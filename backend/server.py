@@ -1783,6 +1783,24 @@ async def get_workflows(user_id: str = Depends(get_current_user)):
     workflows = await db.workflows.find({"user_id": user_id}, {"_id": 0}).to_list(length=None)
     return workflows
 
+@api_router.get("/workflows/executions")
+async def get_executions(user_id: str = Depends(get_current_user)):
+    executions = await db.workflow_executions.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("started_at", -1).limit(50).to_list(length=50)
+    return executions
+
+@api_router.get("/workflows/executions/{execution_id}")
+async def get_execution(execution_id: str, user_id: str = Depends(get_current_user)):
+    execution = await db.workflow_executions.find_one(
+        {"id": execution_id, "user_id": user_id},
+        {"_id": 0}
+    )
+    if not execution:
+        raise HTTPException(status_code=404, detail="Execution not found")
+    return execution
+
 @api_router.get("/workflows/{workflow_id}", response_model=Workflow)
 async def get_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
     workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
