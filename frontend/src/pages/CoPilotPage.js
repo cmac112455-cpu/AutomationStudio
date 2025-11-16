@@ -142,12 +142,27 @@ export default function CoPilotPage() {
     setInput('');
     setSelectedFiles([]);
     
-    // Display user message with file info
-    let displayMessage = userMessage;
-    if (filesToSend.length > 0) {
-      displayMessage += `\n\n📎 Attached: ${filesToSend.map(f => f.name).join(', ')}`;
-    }
-    setMessages(prev => [...prev, { role: 'user', content: displayMessage }]);
+    // Create file previews for display
+    const filePreviewUrls = await Promise.all(
+      filesToSend.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve({
+            name: file.name,
+            type: file.type,
+            url: e.target.result
+          });
+          reader.readAsDataURL(file);
+        });
+      })
+    );
+    
+    // Display user message with file previews
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userMessage,
+      files: filePreviewUrls
+    }]);
     setLoading(true);
 
     try {
