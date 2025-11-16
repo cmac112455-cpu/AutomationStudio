@@ -1866,6 +1866,9 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
     )
     await db.workflow_executions.insert_one(execution.model_dump())
     
+    # Store execution_id for use in nested function scope
+    execution_id = execution.id
+    
     # Build execution graph
     nodes_dict = {node['id']: node for node in workflow['nodes']}
     edges_dict = {}
