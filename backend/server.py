@@ -2072,7 +2072,6 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                         
                         # Cleanup
                         cap.release()
-                        import os
                         if os.path.exists(temp_video_path):
                             os.remove(temp_video_path)
                         
