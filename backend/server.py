@@ -444,6 +444,12 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     # Get user's business profile for context
     profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
     
+    # Get AI learnings for this user
+    learnings = list(await db.ai_learnings.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("confidence_score", -1).limit(10).to_list(10))
+    
     # Check if this is a task-specific chat
     is_task_chat = chat_request.task_id is not None
     task_context = ""
