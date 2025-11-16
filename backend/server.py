@@ -702,6 +702,35 @@ async def get_chat_sessions(user_id: str = Depends(get_current_user)):
     ).sort("last_updated", -1).to_list(50))
     return {"sessions": sessions}
 
+@api_router.delete("/copilot/sessions/{session_id}")
+async def delete_chat_session(session_id: str, user_id: str = Depends(get_current_user)):
+    # Delete all messages in the session
+    messages_result = await db.chat_messages.delete_many({
+        "user_id": user_id,
+        "session_id": session_id
+    })
+    
+    # Delete the session itself
+    session_result = await db.chat_sessions.delete_one({
+        "id": session_id,
+        "user_id": user_id
+    })
+    
+    if session_result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    
+    # If this was a task-specific chat, clear the chat_session_id from the task
+    if messages_result.deleted_count > 0:
+        await db.tasks.update_many(
+            {"user_id": user_id, "chat_session_id": session_id},
+            {"$set": {"chat_session_id": None}}
+        )
+    
+    return {
+        "message": "Chat session deleted successfully",
+        "messages_deleted": messages_result.deleted_count
+    }
+
 # ============ TASK PLANNER ENDPOINTS ============
 
 @api_router.get("/tasks")
