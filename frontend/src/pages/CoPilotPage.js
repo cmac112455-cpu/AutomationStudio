@@ -381,30 +381,36 @@ export default function CoPilotPage() {
             </div>
           </ScrollArea>
 
-          {/* Input Area */}
+          {/* Input Area - Unified Container */}
           <div className="border-t border-gray-800 pt-4">
-            <div className="flex gap-3">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about your business strategy, ad optimization, or growth plans..."
-                className="flex-1 bg-[#1a1d2e] border-gray-700 text-white resize-none min-h-[60px] max-h-[120px]"
-                disabled={loading}
-                data-testid="chat-input"
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={loading || !input.trim()}
-                className="bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90 px-8"
-                data-testid="send-button"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            </div>
+            {/* Unified Input Box with Controls Inside */}
+            <div className="bg-[#1a1d2e] border border-gray-700 rounded-xl p-3 hover:border-gray-600 transition-colors">
+              {/* Textarea and Send Button Row */}
+              <div className="flex gap-3 mb-3">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything about your business strategy, ad optimization, or growth plans..."
+                  className="flex-1 bg-transparent border-0 text-white resize-none min-h-[60px] max-h-[120px] focus:outline-none focus:ring-0 p-0"
+                  disabled={loading}
+                  data-testid="chat-input"
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={loading || !input.trim()}
+                  className="bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90 px-6 self-end"
+                  data-testid="send-button"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
 
-            {/* Controls Below Input - Integrated Layout */}
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {/* Divider */}
+              <div className="border-t border-gray-700/50 mb-3"></div>
+
+              {/* Controls Row - Inside the Textbox */}
+              <div className="flex items-center gap-2 flex-wrap">
               {/* File Upload Button */}
               <Button
                 variant="ghost"
