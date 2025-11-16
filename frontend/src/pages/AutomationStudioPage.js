@@ -12,7 +12,11 @@ import 'reactflow/dist/style.css';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare, Mic, Send, Video, Image, CheckSquare, Settings, X } from 'lucide-react';
 
 // Custom Node Components
 const StartNode = ({ data }) => {
