@@ -115,7 +115,15 @@ export default function CoPilotPage() {
         {/* Messages */}
         <ScrollArea className="flex-1 pr-4 mb-4" data-testid="chat-messages">
           <div className="space-y-4">
-            {messages.map((message, index) => (
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 border-2 border-[#00d4ff] border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-gray-400">Loading chat history...</p>
+                </div>
+              </div>
+            ) : (
+              messages.map((message, index) => (
               <div
                 key={index}
                 className={`message-bubble flex gap-3 ${
