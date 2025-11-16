@@ -121,7 +121,7 @@ const GeminiNode = ({ data, id }) => {
 
 const HttpNode = ({ data }) => {
   return (
-    <NodeWrapper color="#3b82f6" hasInput={true}>
+    <NodeWrapper color="#3b82f6" hasInput={true} nodeType="http">
       <div className="px-4 py-3 rounded-lg border-2 border-blue-500 bg-blue-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-blue-500" />
