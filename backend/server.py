@@ -2205,7 +2205,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
         error_message = str(e)
         logging.error(f"Workflow execution failed - Workflow ID: {workflow_id}, Error: {error_message}")
         await db.workflow_executions.update_one(
-            {"id": execution_id},
+            {"id": execution.id},
             {"$set": {
                 "status": "failed",
                 "error": error_message,
