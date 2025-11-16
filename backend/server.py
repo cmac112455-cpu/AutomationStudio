@@ -451,13 +451,32 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
         {"_id": 0}
     ).sort("created_at", 1).to_list(50))
     
-    # Build conversation history context
+    # Get recent messages from ALL other sessions for broader context
+    all_recent_messages = list(await db.chat_messages.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(30).to_list(30))
+    
+    # Build conversation history context - includes current session + context from other sessions
     conversation_context = ""
+    
+    # Add current session history
     if chat_history:
-        conversation_context = "\n\nPrevious conversation:\n"
+        conversation_context = "\n\nCurrent conversation:\n"
         for msg in chat_history[-10:]:  # Last 10 messages for context
             role = "User" if msg['role'] == 'user' else "Assistant"
-            conversation_context += f"{role}: {msg['content'][:200]}...\n"
+            conversation_context += f"{role}: {msg['content'][:150]}...\n"
+    
+    # Add context from other recent conversations
+    other_sessions_context = []
+    for msg in all_recent_messages:
+        if msg.get('session_id') != session_id and msg['role'] == 'user':
+            other_sessions_context.append(msg['content'][:100])
+    
+    if other_sessions_context:
+        conversation_context += "\n\nContext from recent conversations across sessions:\n"
+        for idx, content in enumerate(other_sessions_context[:5]):  # Top 5 recent from other sessions
+            conversation_context += f"- {content}...\n"
     
     # Build context-aware system message
     if profile:
