@@ -685,7 +685,8 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     - ALWAYS give options, not orders
     - FREE methods first, paid only if significantly better
     - Let user decide based on trade-offs
-    - Use markdown for better readability{task_guidance}{conversation_context}"""
+    - Use markdown for better readability
+    - Apply learned insights about this user to personalize advice{task_guidance}{conversation_context}{learned_context}"""
     
     # Multi-AI Collaboration System
     try:
