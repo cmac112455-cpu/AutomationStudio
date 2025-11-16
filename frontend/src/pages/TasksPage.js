@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CheckCircle2, Trash2, Sparkles, AlertCircle, CalendarIcon, Upload, File as FileIcon, X } from 'lucide-react';
+import { Plus, CheckCircle2, Trash2, Sparkles, AlertCircle, CalendarIcon, Upload, File as FileIcon, X, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 
