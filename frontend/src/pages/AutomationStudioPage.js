@@ -1114,6 +1114,237 @@ export default function AutomationStudioPage() {
           </div>
         </div>
       )}
+
+      {/* Trigger Configuration Modal */}
+      {showTriggerModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#1a1d2e] border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Workflow Triggers
+              </h2>
+              <button
+                onClick={() => setShowTriggerModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-white">Trigger Type</Label>
+                <Select
+                  value={triggerConfig.type || 'manual'}
+                  onValueChange={(value) => setTriggerConfig({ ...triggerConfig, type: value })}
+                >
+                  <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                    <SelectItem value="manual">Manual (Execute button)</SelectItem>
+                    <SelectItem value="schedule">Schedule (Cron)</SelectItem>
+                    <SelectItem value="webhook">Webhook</SelectItem>
+                    <SelectItem value="event">Database Event</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {triggerConfig.type === 'schedule' && (
+                <>
+                  <div>
+                    <Label className="text-white">Schedule Pattern</Label>
+                    <Select
+                      value={triggerConfig.schedulePattern || 'hourly'}
+                      onValueChange={(value) => setTriggerConfig({ ...triggerConfig, schedulePattern: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="hourly">Every Hour</SelectItem>
+                        <SelectItem value="daily">Every Day</SelectItem>
+                        <SelectItem value="weekly">Every Week</SelectItem>
+                        <SelectItem value="custom">Custom (Cron)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {triggerConfig.schedulePattern === 'custom' && (
+                    <div>
+                      <Label className="text-white">Cron Expression</Label>
+                      <Input
+                        value={triggerConfig.cronExpression || ''}
+                        onChange={(e) => setTriggerConfig({ ...triggerConfig, cronExpression: e.target.value })}
+                        placeholder="0 */1 * * *"
+                        className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        E.g., "0 */1 * * *" = every hour
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {triggerConfig.type === 'webhook' && (
+                <div>
+                  <Label className="text-white">Webhook URL</Label>
+                  <Input
+                    value={`https://api.yourdomain.com/webhook/${currentWorkflow?.id || 'workflow-id'}`}
+                    readOnly
+                    className="bg-[#0f1218] border-gray-700 text-gray-400 mt-2"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    POST to this URL to trigger the workflow
+                  </p>
+                </div>
+              )}
+
+              {triggerConfig.type === 'event' && (
+                <>
+                  <div>
+                    <Label className="text-white">Collection to Watch</Label>
+                    <Input
+                      value={triggerConfig.collection || ''}
+                      onChange={(e) => setTriggerConfig({ ...triggerConfig, collection: e.target.value })}
+                      placeholder="tasks"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Event Type</Label>
+                    <Select
+                      value={triggerConfig.eventType || 'insert'}
+                      onValueChange={(value) => setTriggerConfig({ ...triggerConfig, eventType: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="insert">Document Created</SelectItem>
+                        <SelectItem value="update">Document Updated</SelectItem>
+                        <SelectItem value="delete">Document Deleted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={() => setShowTriggerModal(false)}
+                variant="outline"
+                className="border-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  toast.success('Trigger configuration saved');
+                  setShowTriggerModal(false);
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500"
+              >
+                Save Trigger
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Templates Modal */}
+      {showTemplatesModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#1a1d2e] border border-gray-700 rounded-xl p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Copy className="w-5 h-5" />
+                Workflow Templates
+              </h2>
+              <button
+                onClick={() => setShowTemplatesModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Template 1: Ad Performance Monitor */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">📊 Ad Performance Monitor</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Monitors ROAS, auto-generates new ad videos when performance drops
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: Database → Condition → Video Gen → Task Planner
+                </div>
+              </div>
+
+              {/* Template 2: Content Pipeline */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">🎨 Content Pipeline</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  AI generates copy → Creates image → Converts to speech
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: AI Chat → Image Gen → ElevenLabs
+                </div>
+              </div>
+
+              {/* Template 3: Customer Response */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">💬 Auto Customer Response</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Listens for messages, AI generates response, sends via ManyChat
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: Database → AI Chat → ManyChat
+                </div>
+              </div>
+
+              {/* Template 4: Task Automation */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">✅ Smart Task Creator</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Analyzes business data, creates prioritized tasks automatically
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: Database → AI Chat → Loop → Task Planner
+                </div>
+              </div>
+
+              {/* Template 5: A/B Test Pipeline */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">🧪 A/B Test Generator</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Creates multiple ad variations with different copy and images
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: Loop → AI Chat → Image Gen → HTTP
+                </div>
+              </div>
+
+              {/* Template 6: Daily Report */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-white mb-2">📈 Daily Business Report</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Collects metrics, AI analyzes, sends summary via email
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: Database → AI Chat → HTTP (Email API)
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center text-sm text-gray-500">
+              Click a template to load it (Coming soon: One-click template import)
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
