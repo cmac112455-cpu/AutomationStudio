@@ -1753,7 +1753,7 @@ export default function AutomationStudioPage() {
             </div>
 
             <div className="mt-6 text-center text-sm text-gray-500">
-              Click a template to load it (Coming soon: One-click template import)
+              Click Video Ad Creator template to load it instantly. More templates coming soon!
             </div>
           </div>
         </div>
