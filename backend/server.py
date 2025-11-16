@@ -481,6 +481,33 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     else:
         business_context = "You are an elite AI Business Co-Pilot providing strategic business advice."
     
+    # Add task-specific guidance if applicable
+    task_guidance = ""
+    if is_task_chat:
+        task_guidance = f"""
+    
+    TASK-SPECIFIC GUIDANCE MODE:
+    You are helping the user complete this specific task: "{task['title'] if is_task_chat and task else ''}"
+    
+    Your focus:
+    - **Maximum Speed**: Suggest the fastest path to completion
+    - **Maximum Profit**: Prioritize actions that drive revenue
+    - **Cost Efficiency**: ALWAYS recommend FREE options FIRST if they work just as well
+      * Only suggest paid tools if they significantly outperform free alternatives
+      * When suggesting paid tools, explain WHY the free option isn't sufficient
+      * Example: "Use **Canva Free** (not Pro) - the free templates are sufficient for this"
+    
+    Decision Framework:
+    1. Free option exists + works well = ALWAYS choose it
+    2. Free option exists + has limitations = Explain limitations, suggest free first
+    3. No good free option = Recommend best paid option with clear ROI justification
+    
+    Always provide:
+    - Immediate next step (What to do RIGHT NOW)
+    - Expected time to complete
+    - Expected outcome/result
+    - Free tools/resources when available{task_context}"""
+    
     system_message = f"""{business_context}
     
     Your capabilities:
@@ -527,7 +554,7 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     
     > This approach gets 30%+ response rates vs 2% for generic cold emails"
     
-    Remember: Start SHORT, go LONG only when needed. Always use markdown for better readability.{conversation_context}"""
+    Remember: Start SHORT, go LONG only when needed. Always use markdown for better readability.{task_guidance}{conversation_context}"""
     
     # Determine which model to use based on query type
     query_lower = chat_request.message.lower()
