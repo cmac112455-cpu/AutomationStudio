@@ -911,6 +911,167 @@ export default function AutomationStudioPage() {
                   </div>
                 </>
               )}
+
+              {/* Condition Node Config */}
+              {selectedNode.type === 'condition' && (
+                <>
+                  <div>
+                    <Label className="text-white">Condition</Label>
+                    <Input
+                      value={nodeConfig.condition || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, condition: e.target.value })}
+                      placeholder="e.g., value > 100"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use "value" to reference previous node output
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-white">Operator</Label>
+                    <Select
+                      value={nodeConfig.operator || 'greater_than'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, operator: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="equals">Equals (==)</SelectItem>
+                        <SelectItem value="not_equals">Not Equals (!=)</SelectItem>
+                        <SelectItem value="greater_than">Greater Than (&gt;)</SelectItem>
+                        <SelectItem value="less_than">Less Than (&lt;)</SelectItem>
+                        <SelectItem value="contains">Contains</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white">Compare Value</Label>
+                    <Input
+                      value={nodeConfig.compareValue || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, compareValue: e.target.value })}
+                      placeholder="Value to compare against"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Switch Node Config */}
+              {selectedNode.type === 'switch' && (
+                <>
+                  <div>
+                    <Label className="text-white">Switch On Value</Label>
+                    <Input
+                      value={nodeConfig.switchValue || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, switchValue: e.target.value })}
+                      placeholder="Field name to switch on"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Cases (JSON array)</Label>
+                    <Textarea
+                      value={nodeConfig.cases || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, cases: e.target.value })}
+                      placeholder='["case1", "case2", "case3"]'
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Each case will create a connection point
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Loop Node Config */}
+              {selectedNode.type === 'loop' && (
+                <>
+                  <div>
+                    <Label className="text-white">Loop Type</Label>
+                    <Select
+                      value={nodeConfig.loopType || 'forEach'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, loopType: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="forEach">For Each</SelectItem>
+                        <SelectItem value="while">While</SelectItem>
+                        <SelectItem value="count">Count (N times)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {nodeConfig.loopType === 'forEach' && (
+                    <div>
+                      <Label className="text-white">Array to Loop Over</Label>
+                      <Input
+                        value={nodeConfig.array || ''}
+                        onChange={(e) => setNodeConfig({ ...nodeConfig, array: e.target.value })}
+                        placeholder="Field name containing array"
+                        className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      />
+                    </div>
+                  )}
+                  {nodeConfig.loopType === 'count' && (
+                    <div>
+                      <Label className="text-white">Number of Iterations</Label>
+                      <Input
+                        type="number"
+                        value={nodeConfig.iterations || '1'}
+                        onChange={(e) => setNodeConfig({ ...nodeConfig, iterations: e.target.value })}
+                        placeholder="Number of times to loop"
+                        className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      />
+                    </div>
+                  )}
+                  {nodeConfig.loopType === 'while' && (
+                    <div>
+                      <Label className="text-white">While Condition</Label>
+                      <Input
+                        value={nodeConfig.whileCondition || ''}
+                        onChange={(e) => setNodeConfig({ ...nodeConfig, whileCondition: e.target.value })}
+                        placeholder="e.g., count < 10"
+                        className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Delay Node Config */}
+              {selectedNode.type === 'delay' && (
+                <>
+                  <div>
+                    <Label className="text-white">Duration</Label>
+                    <Input
+                      type="number"
+                      value={nodeConfig.duration || '1'}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, duration: e.target.value })}
+                      placeholder="1"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Unit</Label>
+                    <Select
+                      value={nodeConfig.unit || 'seconds'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, unit: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="seconds">Seconds</SelectItem>
+                        <SelectItem value="minutes">Minutes</SelectItem>
+                        <SelectItem value="hours">Hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
