@@ -2161,13 +2161,43 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             return error_result
     
     # Start execution
-    await execute_node(start_nodes[0]['id'])
-    
-    return {
-        "workflow_id": workflow_id,
-        "execution_log": execution_log,
-        "results": results
-    }
+    try:
+        await execute_node(start_nodes[0]['id'])
+        
+        # Mark as completed
+        completed_at = datetime.now(timezone.utc)
+        duration = int((completed_at - execution.started_at).total_seconds() * 1000)
+        
+        await db.workflow_executions.update_one(
+            {"id": execution.id},
+            {"$set": {
+                "status": "completed",
+                "progress": 100,
+                "completed_at": completed_at.isoformat(),
+                "duration": duration,
+                "execution_log": execution_log,
+                "results": results
+            }}
+        )
+        
+        return {
+            "execution_id": execution.id,
+            "workflow_id": workflow_id,
+            "status": "completed",
+            "execution_log": execution_log,
+            "results": results
+        }
+    except Exception as e:
+        # Mark as failed
+        await db.workflow_executions.update_one(
+            {"id": execution.id},
+            {"$set": {
+                "status": "failed",
+                "error": str(e),
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        raise
 
 app.include_router(api_router)
 
