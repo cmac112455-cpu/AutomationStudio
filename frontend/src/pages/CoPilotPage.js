@@ -539,6 +539,8 @@ export default function CoPilotPage() {
               </Button>
             </div>
           </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
