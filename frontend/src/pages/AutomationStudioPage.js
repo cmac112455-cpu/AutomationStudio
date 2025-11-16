@@ -46,68 +46,61 @@ const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true }) =>
 // Custom Node Components
 const StartNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-green-500 bg-green-500/10 backdrop-blur-sm relative">
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        style={{ background: '#22c55e', width: '12px', height: '12px' }}
-      />
-      <div className="flex items-center gap-2">
-        <Zap className="w-4 h-4 text-green-500" />
-        <div className="font-semibold text-white">Start</div>
+    <NodeWrapper color="#22c55e" hasInput={false}>
+      <div className="px-4 py-3 rounded-lg border-2 border-green-500 bg-green-500/10 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-green-500" />
+          <div className="font-semibold text-white">Start</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">Drag from → to connect</div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">Workflow begins here</div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const GeminiNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px] relative">
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        style={{ background: '#a855f7', width: '12px', height: '12px' }}
-      />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        style={{ background: '#a855f7', width: '12px', height: '12px' }}
-      />
-      <div className="flex items-center gap-2">
-        <MessageSquare className="w-4 h-4 text-purple-500" />
-        <div className="font-semibold text-white">AI Chat (Gemini)</div>
+    <NodeWrapper color="#a855f7" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-purple-500" />
+          <div className="font-semibold text-white">AI Chat (Gemini)</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">Prompt: {data.prompt || 'Click to configure'}</div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">Prompt: {data.prompt || 'Not configured'}</div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const HttpNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-blue-500 bg-blue-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Globe className="w-4 h-4 text-blue-500" />
-        <div className="font-semibold text-white">HTTP Request</div>
+    <NodeWrapper color="#3b82f6" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-blue-500 bg-blue-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Globe className="w-4 h-4 text-blue-500" />
+          <div className="font-semibold text-white">HTTP Request</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.method || 'GET'} {data.url || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        {data.method || 'GET'} {data.url || 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const DatabaseNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-cyan-500 bg-cyan-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Database className="w-4 h-4 text-cyan-500" />
-        <div className="font-semibold text-white">Database Read</div>
+    <NodeWrapper color="#06b6d4" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-cyan-500 bg-cyan-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Database className="w-4 h-4 text-cyan-500" />
+          <div className="font-semibold text-white">Database Read</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Collection: {data.collection || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Collection: {data.collection || 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
