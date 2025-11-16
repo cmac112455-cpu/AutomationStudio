@@ -613,6 +613,94 @@ async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
     
     return {"tasks": created_tasks}
 
+@api_router.post("/tasks/generate-from-chat")
+async def generate_tasks_from_chat(user_id: str = Depends(get_current_user)):
+    # Get recent chat messages
+    recent_chats = list(await db.chat_messages.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(20).to_list(20))
+    
+    if not recent_chats:
+        return {"tasks": [], "message": "No chat history to analyze"}
+    
+    # Get business profile for context
+    profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    # Build conversation summary
+    conversation_summary = "Recent AI Co-Pilot conversation:\n"
+    for msg in reversed(recent_chats[-10:]):
+        role = "User" if msg['role'] == 'user' else "AI"
+        conversation_summary += f"{role}: {msg['content']}\n"
+    
+    # Use AI to extract actionable tasks
+    task_extraction_prompt = f"""Based on this conversation, extract 3-5 HIGH-PRIORITY actionable tasks.
+    
+    {conversation_summary}
+    
+    Business Context: {profile.get('business_idea') or profile.get('business_name', 'Business')}
+    
+    Return ONLY a JSON array of tasks in this exact format:
+    [
+        {{"title": "Task title", "description": "What needs to be done", "priority": "high"}},
+        {{"title": "Another task", "description": "Details", "priority": "medium"}}
+    ]
+    
+    Focus on:
+    - Immediate action items mentioned
+    - Tools/strategies to implement
+    - Research or planning needed
+    - Setup or optimization tasks
+    
+    Keep titles short (4-6 words) and descriptions concise (1 sentence)."""
+    
+    try:
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=str(uuid.uuid4()),
+            system_message="You are a task extraction expert. Return ONLY valid JSON arrays, no other text."
+        ).with_model('openai', 'gpt-5')
+        
+        user_message = UserMessage(text=task_extraction_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON response
+        import json
+        # Extract JSON from response if wrapped in markdown
+        if '```json' in response:
+            response = response.split('```json')[1].split('```')[0].strip()
+        elif '```' in response:
+            response = response.split('```')[1].split('```')[0].strip()
+        
+        tasks_data = json.loads(response)
+        
+        # Create tasks in database
+        created_tasks = []
+        for task_data in tasks_data[:5]:  # Max 5 tasks
+            task = Task(
+                user_id=user_id,
+                title=task_data.get('title', 'Untitled Task'),
+                description=task_data.get('description', ''),
+                priority=task_data.get('priority', 'medium'),
+                status="todo",
+                ai_generated=True
+            )
+            
+            task_dict = task.model_dump()
+            task_dict['created_at'] = task_dict['created_at'].isoformat()
+            task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+            if task_dict.get('deadline'):
+                task_dict['deadline'] = task_dict['deadline'].isoformat()
+            
+            await db.tasks.insert_one(task_dict)
+            created_tasks.append(task_dict)
+        
+        return {"tasks": created_tasks, "message": f"Generated {len(created_tasks)} tasks from your conversation"}
+        
+    except Exception as e:
+        logging.error(f"Task generation from chat error: {str(e)}")
+        return {"tasks": [], "message": "Failed to generate tasks from chat"}
+
 # ============ ROOT & HEALTH ============
 
 @api_router.get("/")
