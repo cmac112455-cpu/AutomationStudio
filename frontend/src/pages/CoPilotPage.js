@@ -421,9 +421,29 @@ export default function CoPilotPage() {
           <Button
             onClick={async () => {
               try {
+                toast.info('AI is researching strategies for your business...');
+                const response = await axios.post('/ai/research');
+                if (response.data.research_completed) {
+                  toast.success(`AI learned ${response.data.insights_found} new strategies! These will be applied to future responses.`);
+                } else {
+                  toast.error('Research failed');
+                }
+              } catch (error) {
+                toast.error('Failed to research');
+              }
+            }}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 h-full"
+            data-testid="ai-research-button"
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            AI Research Mode
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
                 const response = await axios.post('/tasks/update-from-insights');
                 if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
-                  toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new tasks. ${response.data.reasoning}`);
+                  toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new tasks.`);
                 } else {
                   toast.info(response.data.message);
                 }
@@ -435,7 +455,7 @@ export default function CoPilotPage() {
             data-testid="update-tasks-button"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Update Tasks from Insights
+            Update Tasks
           </Button>
         </div>
       </div>
