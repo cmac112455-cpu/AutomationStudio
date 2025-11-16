@@ -553,6 +553,7 @@ export default function AutomationStudioPage() {
             className="border-gray-700"
             size="sm"
             disabled={!currentWorkflow}
+            title={!currentWorkflow ? 'Save workflow first to add triggers' : 'Configure triggers'}
           >
             <Calendar className="w-4 h-4 mr-2" />
             Triggers
