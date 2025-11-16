@@ -383,6 +383,44 @@ export default function AutomationStudioPage() {
   const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [triggerConfig, setTriggerConfig] = useState({});
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+
+  const loadTemplate = (templateName) => {
+    const templates = {
+      'video-ad-creator': {
+        name: 'Video Ad Creator - Extended Videos',
+        nodes: [
+          {id: 'start-1', type: 'start', position: {x: 100, y: 100}, data: {}},
+          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 100}, data: {prompt: 'Generate a creative 4-second video concept for a product ad', model: 'gemini-2.5-pro'}},
+          {id: 'video-1', type: 'videogen', position: {x: 500, y: 100}, data: {duration: 4, size: '1280x720'}},
+          {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 100}, data: {}},
+          {id: 'ai-2', type: 'gemini', position: {x: 300, y: 250}, data: {prompt: 'Continue the story from the previous video, create a continuation concept', model: 'gemini-2.5-pro'}},
+          {id: 'video-2', type: 'videogen', position: {x: 500, y: 250}, data: {duration: 4, size: '1280x720'}},
+          {id: 'screenshot-2', type: 'screenshot', position: {x: 700, y: 250}, data: {}},
+          {id: 'stitch-1', type: 'stitch', position: {x: 900, y: 175}, data: {}},
+          {id: 'end-1', type: 'end', position: {x: 1100, y: 175}, data: {}}
+        ],
+        edges: [
+          {id: 'e1', source: 'start-1', target: 'ai-1'},
+          {id: 'e2', source: 'ai-1', target: 'video-1'},
+          {id: 'e3', source: 'video-1', target: 'screenshot-1'},
+          {id: 'e4', source: 'screenshot-1', target: 'ai-2'},
+          {id: 'e5', source: 'ai-2', target: 'video-2'},
+          {id: 'e6', source: 'video-2', target: 'screenshot-2'},
+          {id: 'e7', source: 'screenshot-2', target: 'stitch-1'},
+          {id: 'e8', source: 'stitch-1', target: 'end-1'}
+        ]
+      }
+    };
+
+    const template = templates[templateName];
+    if (template) {
+      setNodes(template.nodes);
+      setEdges(template.edges);
+      setCurrentWorkflow({ name: template.name });
+      setShowTemplatesModal(false);
+      toast.success(`Loaded template: ${template.name}`);
+    }
+  };
   const [selectedNodeForDeletion, setSelectedNodeForDeletion] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
 
