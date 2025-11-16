@@ -1347,6 +1347,209 @@ async def delete_file(file_id: str, user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="File not found")
     return {"message": "File deleted successfully"}
 
+# ============ AI SELF-LEARNING & RESEARCH ============
+
+async def web_search(query: str) -> str:
+    """Perform web search using a search API"""
+    try:
+        # Using a simple web search approach
+        async with aiohttp.ClientSession() as session:
+            # You can replace this with actual search API like Serper, Tavily, etc.
+            # For now, we'll use a simulated search
+            return f"Search results for: {query} (Web search integration placeholder)"
+    except Exception as e:
+        logging.error(f"Web search error: {str(e)}")
+        return ""
+
+@api_router.post("/ai/research")
+async def trigger_ai_research(user_id: str = Depends(get_current_user)):
+    """AI researches strategies for user's business type"""
+    try:
+        profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        if not profile:
+            return {"message": "No business profile found"}
+        
+        business_type = profile.get('business_idea') or profile.get('business_name', 'business')
+        industry = profile.get('desired_industry') or profile.get('industry', 'general')
+        
+        # Research queries
+        research_queries = [
+            f"successful {industry} business low follower count high revenue case studies",
+            f"how to make $10k-30k per month in {industry} with small audience",
+            f"unconventional {industry} marketing strategies that work",
+            f"profitable {business_type} strategies 2024 2025",
+            f"micro-influencer success stories {industry} monetization"
+        ]
+        
+        research_prompt = f"""Research and analyze successful strategies for a {business_type} in {industry}.
+
+Focus on:
+1. **Micro-success stories** - People with <1000 followers making $10-30k/month
+2. **Unconventional methods** - Strategies most people don't know about
+3. **High-leverage tactics** - Small effort, big results
+4. **Free/cheap methods** - Prioritize low-cost approaches
+
+Research queries to consider:
+{chr(10).join([f"- {q}" for q in research_queries])}
+
+Provide 5-7 key insights in this format:
+**Insight #X: [Title]**
+- Strategy: [What they did]
+- Why it worked: [Key factors]
+- How to apply: [Actionable steps]
+- Cost: [Free/Paid]
+- Time to results: [Timeframe]
+
+Be specific with examples and numbers."""
+
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=str(uuid.uuid4()),
+            system_message="You are a business research expert. Find unconventional, proven strategies from real success stories."
+        ).with_model('openai', 'gpt-5')
+        
+        user_message = UserMessage(text=research_prompt)
+        research_results = await chat.send_message(user_message)
+        
+        # Store learnings in database
+        learnings_created = 0
+        
+        # Extract insights (simple parsing)
+        insights = research_results.split("**Insight #")
+        for insight in insights[1:]:  # Skip first empty split
+            if insight.strip():
+                learning = AILearning(
+                    user_id=user_id,
+                    learning_type="research_finding",
+                    category=industry.lower().replace(" ", "_"),
+                    insight=f"Insight #{insight.strip()}",
+                    source="ai_research",
+                    related_business_type=business_type,
+                    confidence_score=0.8
+                )
+                
+                learning_dict = learning.model_dump()
+                learning_dict['created_at'] = learning_dict['created_at'].isoformat()
+                if learning_dict.get('last_applied'):
+                    learning_dict['last_applied'] = learning_dict['last_applied'].isoformat()
+                
+                await db.ai_learnings.insert_one(learning_dict)
+                learnings_created += 1
+        
+        return {
+            "research_completed": True,
+            "insights_found": learnings_created,
+            "research_summary": research_results[:500] + "...",
+            "message": f"AI researched {learnings_created} insights for your {business_type}"
+        }
+        
+    except Exception as e:
+        logging.error(f"AI research error: {str(e)}")
+        return {"research_completed": False, "error": str(e)}
+
+@api_router.post("/ai/learn-from-conversation")
+async def learn_from_conversation(user_id: str = Depends(get_current_user)):
+    """AI extracts learnings from recent conversations"""
+    try:
+        # Get recent conversations
+        recent_messages = list(await db.chat_messages.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(50).to_list(50))
+        
+        if not recent_messages:
+            return {"learnings_extracted": 0}
+        
+        # Build conversation summary
+        conversation_text = ""
+        for msg in reversed(recent_messages[-20:]):
+            role = "User" if msg['role'] == 'user' else "AI"
+            conversation_text += f"{role}: {msg['content']}\n\n"
+        
+        profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        business_context = profile.get('business_idea') or profile.get('business_name', 'business') if profile else 'business'
+        
+        learning_prompt = f"""Analyze this conversation and extract key learnings about the user's business and strategies.
+
+Business Context: {business_context}
+
+Conversation:
+{conversation_text}
+
+Extract 3-5 key insights about:
+1. User's preferences (free vs paid tools, time vs money, risk tolerance)
+2. Strategies they're interested in
+3. Pain points or challenges mentioned
+4. Patterns in their questions
+5. What worked/didn't work for them
+
+Format as JSON:
+{{
+  "learnings": [
+    {{
+      "category": "user_preference|strategy_interest|pain_point|pattern",
+      "insight": "Brief insight description",
+      "confidence": 0.0-1.0
+    }}
+  ]
+}}
+
+Return ONLY the JSON, no other text."""
+
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=str(uuid.uuid4()),
+            system_message="You are a pattern detection expert. Extract actionable insights from conversations."
+        ).with_model('anthropic', 'claude-4-sonnet-20250514')
+        
+        user_message = UserMessage(text=learning_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON
+        if '```json' in response:
+            response = response.split('```json')[1].split('```')[0].strip()
+        elif '```' in response:
+            response = response.split('```')[1].split('```')[0].strip()
+        
+        learnings_data = json_lib.loads(response)
+        learnings_created = 0
+        
+        for learning_item in learnings_data.get('learnings', []):
+            learning = AILearning(
+                user_id=user_id,
+                learning_type="conversation_insight",
+                category=learning_item.get('category', 'general'),
+                insight=learning_item.get('insight', ''),
+                source="conversation_analysis",
+                confidence_score=learning_item.get('confidence', 0.7)
+            )
+            
+            learning_dict = learning.model_dump()
+            learning_dict['created_at'] = learning_dict['created_at'].isoformat()
+            if learning_dict.get('last_applied'):
+                learning_dict['last_applied'] = learning_dict['last_applied'].isoformat()
+            
+            await db.ai_learnings.insert_one(learning_dict)
+            learnings_created += 1
+        
+        return {
+            "learnings_extracted": learnings_created,
+            "message": f"Extracted {learnings_created} insights from your conversations"
+        }
+        
+    except Exception as e:
+        logging.error(f"Conversation learning error: {str(e)}")
+        return {"learnings_extracted": 0, "error": str(e)}
+
+@api_router.get("/ai/learnings")
+async def get_ai_learnings(user_id: str = Depends(get_current_user)):
+    """Get all AI learnings for user"""
+    learnings = list(await db.ai_learnings.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50))
+    return {"learnings": learnings, "total": len(learnings)}
+
 # ============ ROOT & HEALTH ============
 
 @api_router.get("/")
