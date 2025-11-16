@@ -1128,6 +1128,23 @@ export default function AutomationStudioPage() {
                     />
                   </div>
                   <div>
+                    <Label className="text-white">Video Size</Label>
+                    <Select
+                      value={nodeConfig.size || '1280x720'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, size: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="1280x720">1280x720 (HD Landscape)</SelectItem>
+                        <SelectItem value="1792x1024">1792x1024 (Widescreen)</SelectItem>
+                        <SelectItem value="1024x1792">1024x1792 (Portrait)</SelectItem>
+                        <SelectItem value="1024x1024">1024x1024 (Square)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
                     <Label className="text-white">Duration (seconds)</Label>
                     <Select
                       value={String(nodeConfig.duration || '4')}
