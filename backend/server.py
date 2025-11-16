@@ -2148,7 +2148,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             progress = int((completed_nodes / total_nodes) * 100)
             
             await db.workflow_executions.update_one(
-                {"id": execution.id},
+                {"id": execution_id},
                 {"$set": {
                     "progress": progress,
                     "current_node": node_id,
