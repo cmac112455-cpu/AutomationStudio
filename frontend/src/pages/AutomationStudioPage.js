@@ -351,6 +351,7 @@ const nodeTypes = {
   videogen: VideoGenNode,
   imagegen: ImageGenNode,
   screenshot: ScreenshotNode,
+  stitch: StitchNode,
   taskplanner: TaskPlannerNode,
   condition: ConditionNode,
   switch: SwitchNode,
