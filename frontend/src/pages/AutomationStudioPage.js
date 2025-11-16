@@ -303,6 +303,7 @@ export default function AutomationStudioPage() {
   const [triggerConfig, setTriggerConfig] = useState({});
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [selectedNodeForDeletion, setSelectedNodeForDeletion] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
 
   const onConnect = useCallback(
     (params) =>
