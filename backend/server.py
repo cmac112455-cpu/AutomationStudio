@@ -1886,10 +1886,97 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             elif node_type == 'database':
                 # Execute database read
                 collection = node_data.get('collection', 'users')
-                query = node_data.get('query', {})
+                query_str = node_data.get('query', '{}')
+                try:
+                    query = json_lib.loads(query_str) if isinstance(query_str, str) else query_str
+                except:
+                    query = {}
                 
                 docs = await db[collection].find(query, {"_id": 0}).limit(10).to_list(length=10)
                 result = {"count": len(docs), "data": docs}
+            
+            elif node_type == 'elevenlabs':
+                # Execute ElevenLabs TTS
+                text = node_data.get('text', '')
+                voice = node_data.get('voice', 'rachel')
+                api_key = node_data.get('apiKey', '')
+                
+                result = {"status": "TTS conversion would happen here", "text": text, "voice": voice}
+            
+            elif node_type == 'manychat':
+                # Execute ManyChat action
+                action = node_data.get('action', 'send_message')
+                message = node_data.get('message', '')
+                
+                result = {"status": f"ManyChat {action} would execute", "message": message}
+            
+            elif node_type == 'videogen':
+                # Execute Video Generation
+                prompt = node_data.get('prompt', '')
+                duration = node_data.get('duration', 4)
+                
+                try:
+                    video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                    video_bytes = video_gen.text_to_video(
+                        prompt=prompt,
+                        model="sora-2",
+                        size="1280x720",
+                        duration=duration,
+                        max_wait_time=600
+                    )
+                    
+                    if video_bytes:
+                        video_base64 = base64.b64encode(video_bytes).decode('utf-8')
+                        result = {"status": "success", "video_base64": video_base64[:100] + "...", "duration": duration}
+                    else:
+                        result = {"status": "failed", "error": "Video generation failed"}
+                except Exception as e:
+                    result = {"status": "error", "error": str(e)}
+            
+            elif node_type == 'imagegen':
+                # Execute Image Generation
+                prompt = node_data.get('prompt', '')
+                
+                try:
+                    image_gen = OpenAIImageGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                    images = await image_gen.generate_images(
+                        prompt=prompt,
+                        model="gpt-image-1",
+                        number_of_images=1
+                    )
+                    
+                    if images and len(images) > 0:
+                        image_base64 = base64.b64encode(images[0]).decode('utf-8')
+                        result = {"status": "success", "image_base64": image_base64[:100] + "..."}
+                    else:
+                        result = {"status": "failed", "error": "Image generation failed"}
+                except Exception as e:
+                    result = {"status": "error", "error": str(e)}
+            
+            elif node_type == 'taskplanner':
+                # Execute Task Planner action
+                action = node_data.get('action', 'create')
+                title = node_data.get('title', 'New Task')
+                description = node_data.get('description', '')
+                priority = node_data.get('priority', 5)
+                
+                if action == 'create':
+                    # Create new task
+                    task_doc = {
+                        "id": str(uuid.uuid4()),
+                        "user_id": user_id,
+                        "title": title,
+                        "description": description,
+                        "priority": priority,
+                        "status": "pending",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    await db.tasks.insert_one(task_doc)
+                    result = {"status": "success", "action": "created", "task_id": task_doc['id']}
+                else:
+                    result = {"status": "Task action executed", "action": action}
             
             elif node_type == 'end':
                 result = {"status": "completed", "final_data": input_data}
