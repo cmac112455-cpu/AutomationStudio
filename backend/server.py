@@ -908,9 +908,23 @@ Only suggest changes if there's clear new information or better strategy."""
         
         # Create new tasks
         for new_task in task_changes.get('tasks_to_create', [])[:3]:
+            task_title = new_task.get('title')
+            
+            # Check for duplicate
+            existing_task = await db.tasks.find_one({
+                "user_id": user_id,
+                "title": {"$regex": f"^{task_title}$", "$options": "i"},
+                "status": {"$ne": "completed"}
+            })
+            
+            # Skip if duplicate exists
+            if existing_task:
+                logging.info(f"Skipping duplicate task from insights: {task_title}")
+                continue
+            
             task = Task(
                 user_id=user_id,
-                title=new_task.get('title'),
+                title=task_title,
                 description=new_task.get('description', ''),
                 priority=new_task.get('priority', 'medium'),
                 status="todo",
