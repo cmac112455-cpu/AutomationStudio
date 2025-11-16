@@ -142,9 +142,11 @@ class Task(BaseModel):
     title: str
     description: str
     priority: str  # "high", "medium", "low"
+    priority_number: Optional[int] = None  # 1-10 ranking
     status: str  # "todo", "in_progress", "completed"
     ai_generated: bool = True
     deadline: Optional[datetime] = None
+    chat_session_id: Optional[str] = None  # For task-specific chat
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
