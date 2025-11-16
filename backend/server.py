@@ -1851,23 +1851,7 @@ class WorkflowExecution(BaseModel):
     results: Dict[str, Any] = {}
     error: Optional[str] = None
 
-@api_router.get("/workflows/executions")
-async def get_executions(user_id: str = Depends(get_current_user)):
-    executions = await db.workflow_executions.find(
-        {"user_id": user_id},
-        {"_id": 0}
-    ).sort("started_at", -1).limit(50).to_list(length=50)
-    return executions
-
-@api_router.get("/workflows/executions/{execution_id}")
-async def get_execution(execution_id: str, user_id: str = Depends(get_current_user)):
-    execution = await db.workflow_executions.find_one(
-        {"id": execution_id, "user_id": user_id},
-        {"_id": 0}
-    )
-    if not execution:
-        raise HTTPException(status_code=404, detail="Execution not found")
-    return execution
+# Execution routes moved above to avoid route conflicts
 
 @api_router.post("/workflows/{workflow_id}/execute")
 async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
