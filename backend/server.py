@@ -926,7 +926,8 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
         return ChatResponse(
             response=response,
             session_id=session_id,
-            model_used=model_used
+            model_used=model_used,
+            generated_images=generated_images if generated_images else None
         )
     except Exception as e:
         logging.error(f"AI Co-Pilot error: {str(e)}")
