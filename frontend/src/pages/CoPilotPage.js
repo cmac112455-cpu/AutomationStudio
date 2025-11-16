@@ -404,8 +404,22 @@ export default function CoPilotPage() {
             </div>
 
             {/* Controls Below Input - Integrated Layout */}
-            <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between gap-4">
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {/* File Upload Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-gray-400 hover:text-white hover:bg-gray-800/50"
+                title="Upload files"
+              >
+                <Paperclip className="w-4 h-4" />
+              </Button>
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-gray-700/50"></div>
+
+              {/* Model Selection - Compact */}
+              <div className="flex-1 min-w-[200px]">
             {/* Model Selection - Sleek Dropdown */}
             <div className="flex-1">
               <Select value={selectedModel} onValueChange={setSelectedModel}>
