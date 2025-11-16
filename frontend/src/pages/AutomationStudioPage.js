@@ -392,12 +392,31 @@ export default function AutomationStudioPage() {
 
         <div className="flex items-center gap-2">
           <Button
+            onClick={() => setShowTemplatesModal(true)}
+            variant="outline"
+            className="border-gray-700"
+            size="sm"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Templates
+          </Button>
+          <Button
+            onClick={() => setShowTriggerModal(true)}
+            variant="outline"
+            className="border-gray-700"
+            size="sm"
+            disabled={!currentWorkflow}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Triggers
+          </Button>
+          <Button
             onClick={saveWorkflow}
             className="bg-green-600 hover:bg-green-700"
             size="sm"
           >
             <Save className="w-4 h-4 mr-2" />
-            Save Workflow
+            Save
           </Button>
           <Button
             onClick={executeWorkflow}
