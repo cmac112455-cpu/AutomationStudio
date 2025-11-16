@@ -141,6 +141,62 @@ const TaskPlannerNode = ({ data }) => {
   );
 };
 
+const ConditionNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 text-amber-500 font-bold">?</div>
+        <div className="font-semibold text-white">IF Condition</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        {data.condition || 'Not configured'}
+      </div>
+    </div>
+  );
+};
+
+const SwitchNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-fuchsia-500 bg-fuchsia-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 text-fuchsia-500 font-bold">≡</div>
+        <div className="font-semibold text-white">Switch</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Cases: {data.cases?.length || 0}
+      </div>
+    </div>
+  );
+};
+
+const LoopNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-violet-500 bg-violet-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 text-violet-500 font-bold">↻</div>
+        <div className="font-semibold text-white">Loop</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        {data.loopType || 'For Each'}
+      </div>
+    </div>
+  );
+};
+
+const DelayNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-slate-500 bg-slate-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 text-slate-500">⏱</div>
+        <div className="font-semibold text-white">Delay</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Wait: {data.duration || '1'} {data.unit || 'seconds'}
+      </div>
+    </div>
+  );
+};
+
 const EndNode = ({ data }) => {
   return (
     <div className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-500/10 backdrop-blur-sm">
