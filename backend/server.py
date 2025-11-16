@@ -2201,12 +2201,15 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
         }
     except Exception as e:
         # Mark as failed
+        error_message = str(e)
+        logging.error(f"Workflow execution failed - Workflow ID: {workflow_id}, Error: {error_message}")
         await db.workflow_executions.update_one(
-            {"id": execution.id},
+            {"id": execution_id},
             {"$set": {
                 "status": "failed",
-                "error": str(e),
-                "completed_at": datetime.now(timezone.utc).isoformat()
+                "error": error_message,
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "execution_log": execution_log
             }}
         )
         raise
