@@ -180,6 +180,16 @@ export default function CoPilotPage() {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...files]);
+    toast.success(`${files.length} file(s) selected`);
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="h-[calc(100vh-4rem)] flex gap-4" data-testid="copilot-page">
       {/* Chat History Sidebar */}
