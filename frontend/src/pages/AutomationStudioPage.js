@@ -246,6 +246,9 @@ export default function AutomationStudioPage() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [nodeConfig, setNodeConfig] = useState({});
+  const [showTriggerModal, setShowTriggerModal] = useState(false);
+  const [triggerConfig, setTriggerConfig] = useState({});
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
   const onConnect = useCallback(
     (params) =>
