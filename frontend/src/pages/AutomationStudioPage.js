@@ -367,6 +367,9 @@ export default function AutomationStudioPage() {
     setEdges(workflow.edges || initialEdges);
   };
 
+  const [executionId, setExecutionId] = useState(null);
+  const [executionProgress, setExecutionProgress] = useState(0);
+
   const executeWorkflow = async () => {
     if (!currentWorkflow?.id) {
       toast.error('Please save the workflow first');
@@ -374,14 +377,45 @@ export default function AutomationStudioPage() {
     }
 
     setExecuting(true);
+    setExecutionProgress(0);
+    
     try {
       const response = await axios.post(`/workflows/${currentWorkflow.id}/execute`);
-      toast.success('Workflow executed successfully');
-      console.log('Workflow result:', response.data);
+      setExecutionId(response.data.execution_id);
+      
+      // Poll for progress
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await axios.get(`/workflows/executions/${response.data.execution_id}`);
+          const execution = statusResponse.data;
+          
+          setExecutionProgress(execution.progress || 0);
+          
+          if (execution.status === 'completed' || execution.status === 'failed') {
+            clearInterval(pollInterval);
+            setExecuting(false);
+            
+            if (execution.status === 'completed') {
+              toast.success('Workflow executed successfully!');
+            } else {
+              toast.error('Workflow execution failed');
+            }
+          }
+        } catch (err) {
+          clearInterval(pollInterval);
+          setExecuting(false);
+        }
+      }, 1000);
+      
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        setExecuting(false);
+      }, 300000);
+      
     } catch (error) {
       toast.error('Workflow execution failed');
       console.error(error);
-    } finally {
       setExecuting(false);
     }
   };
