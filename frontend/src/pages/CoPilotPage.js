@@ -205,7 +205,7 @@ export default function CoPilotPage() {
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`relative group w-full text-left p-3 rounded-lg transition-colors ${
+                    className={`relative group w-full text-left p-2.5 rounded-lg transition-colors ${
                       sessionId === session.id
                         ? 'bg-[#00d4ff]/20 border border-[#00d4ff]'
                         : 'hover:bg-gray-800'
@@ -213,20 +213,19 @@ export default function CoPilotPage() {
                   >
                     <button
                       onClick={() => switchSession(session.id)}
-                      className="w-full text-left"
+                      className="w-full text-left pr-10"
                       data-testid={`session-${session.id}`}
                     >
                       <div className="flex items-start gap-2">
                         {session.session_type === 'task' ? (
-                          <Target className="w-4 h-4 text-[#00d4ff] mt-1 flex-shrink-0" />
+                          <Target className="w-4 h-4 text-[#00d4ff] mt-0.5 flex-shrink-0" />
                         ) : (
-                          <MessageSquare className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                          <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                         )}
-                        <div className="flex-1 min-w-0 pr-8">
-                          <p className="text-sm font-medium truncate">{session.title}</p>
-                          <p className="text-xs text-gray-400 truncate">{session.last_message}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            <Clock className="w-3 h-3 inline mr-1" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate leading-tight">{session.title}</p>
+                          <p className="text-xs text-gray-400 truncate leading-tight mt-0.5">{session.last_message}</p>
+                          <p className="text-xs text-gray-500 mt-1 leading-tight">
                             {new Date(session.last_updated).toLocaleDateString()}
                           </p>
                         </div>
@@ -234,7 +233,7 @@ export default function CoPilotPage() {
                     </button>
                     <button
                       onClick={(e) => deleteSession(session.id, e)}
-                      className="absolute top-3 right-3 p-1.5 hover:bg-red-500/20 rounded-md transition-colors"
+                      className="absolute top-2 right-2 p-1 hover:bg-red-500/20 rounded transition-colors"
                       data-testid={`delete-session-${session.id}`}
                       title="Delete chat"
                     >
