@@ -194,6 +194,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     task_id: Optional[str] = None
     use_multi_ai: bool = False  # User must explicitly enable multi-AI mode
+    preferred_model: Optional[str] = None  # 'intelligent', 'gpt5', 'claude', 'gemini'
 
 class ChatResponse(BaseModel):
     response: str
