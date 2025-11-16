@@ -738,18 +738,12 @@ async def chat_with_copilot(
                          'show me image', 'show me picture', 'image of', 'picture of']
     is_image_generation_request = any(keyword in message.lower() for keyword in image_gen_keywords)
     
-    # Check if user is requesting video generation (more comprehensive detection)
+    # Check if user is requesting video generation 
+    # Simple and reliable: if message mentions "video" or "animation", assume they want video generation
     message_lower = message.lower()
-    
-    # Check for video-related keywords
-    video_keywords = ['video', 'animation', 'animate', 'clip', 'footage', 'motion', 'moving']
-    action_keywords = ['generate', 'create', 'make', 'produce', 'show', 'build', 'render']
-    
-    # Smart detection: if message contains video keyword + action keyword OR just starts with action + video
-    has_video_keyword = any(keyword in message_lower for keyword in video_keywords)
-    has_action_keyword = any(keyword in message_lower for keyword in action_keywords)
-    
-    is_video_generation_request = has_video_keyword and (has_action_keyword or message_lower.split()[0] in ['generate', 'create', 'make', 'show', 'animate'])
+    is_video_generation_request = ('video' in message_lower or 'animation' in message_lower or 
+                                   'animate' in message_lower or 'clip' in message_lower or
+                                   'footage' in message_lower)
     
     generated_images = []
     generated_videos = []
