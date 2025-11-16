@@ -421,14 +421,43 @@ export default function CoPilotPage() {
               {/* Divider */}
               <div className="border-t border-gray-700/50 mb-3"></div>
 
+              {/* Selected Files Display */}
+              {selectedFiles.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap mb-2 pb-2 border-b border-gray-700/50">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 px-2 py-1 bg-gray-800/50 rounded text-xs">
+                      <Paperclip className="w-3 h-3" />
+                      <span className="text-gray-300">{file.name}</span>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="text-gray-500 hover:text-red-400 ml-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Controls Row - Inside the Textbox */}
               <div className="flex items-center gap-2 flex-wrap">
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.jpg,.jpeg,.png"
+              />
+
               {/* File Upload Button */}
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 px-2 text-gray-400 hover:text-white hover:bg-gray-800/50"
                 title="Upload files"
+                onClick={() => fileInputRef.current?.click()}
               >
                 <Paperclip className="w-4 h-4" />
               </Button>
@@ -436,8 +465,8 @@ export default function CoPilotPage() {
               {/* Divider */}
               <div className="h-6 w-px bg-gray-700/50"></div>
 
-              {/* Model Selection - Compact */}
-              <div className="flex-1 min-w-[200px]">
+              {/* Model Selection - Compact & Narrower */}
+              <div className="w-[180px]">
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
                   <SelectTrigger className="h-8 bg-[#2a2d3a]/30 border-gray-700/30 hover:border-gray-600/50 transition-colors text-white text-sm rounded-md">
                     <SelectValue placeholder="Select Model" />
