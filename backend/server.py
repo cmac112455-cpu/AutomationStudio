@@ -1966,27 +1966,40 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             
             elif node_type == 'videogen':
                 # Execute Video Generation
+                # Get prompt from node config OR from previous node's response
                 prompt = node_data.get('prompt', '')
+                
+                # If no prompt in config, try to get from previous node's output
+                if not prompt and isinstance(input_data, dict):
+                    prompt = input_data.get('response', input_data.get('prompt', ''))
+                
+                # Fallback to input_data as string if it's a direct prompt
+                if not prompt and isinstance(input_data, str):
+                    prompt = input_data
+                
                 duration = node_data.get('duration', 4)
                 size = node_data.get('size', '1280x720')  # Get size from node config
                 
-                try:
-                    video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
-                    video_bytes = video_gen.text_to_video(
-                        prompt=prompt,
-                        model="sora-2",
-                        size=size,
-                        duration=duration,
-                        max_wait_time=600
-                    )
-                    
-                    if video_bytes:
-                        video_base64 = base64.b64encode(video_bytes).decode('utf-8')
-                        result = {"status": "success", "video_base64": video_base64, "duration": duration, "size": size, "prompt": prompt}
-                    else:
-                        result = {"status": "failed", "error": "Video generation failed"}
-                except Exception as e:
-                    result = {"status": "error", "error": str(e)}
+                if not prompt:
+                    result = {"status": "error", "error": "No prompt provided for video generation"}
+                else:
+                    try:
+                        video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                        video_bytes = video_gen.text_to_video(
+                            prompt=prompt,
+                            model="sora-2",
+                            size=size,
+                            duration=duration,
+                            max_wait_time=600
+                        )
+                        
+                        if video_bytes:
+                            video_base64 = base64.b64encode(video_bytes).decode('utf-8')
+                            result = {"status": "success", "video_base64": video_base64, "duration": duration, "size": size, "prompt": prompt}
+                        else:
+                            result = {"status": "failed", "error": "Video generation returned no data"}
+                    except Exception as e:
+                        result = {"status": "error", "error": f"Video generation failed: {str(e)}"}
             
             elif node_type == 'imagegen':
                 # Execute Image Generation
