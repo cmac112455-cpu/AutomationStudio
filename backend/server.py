@@ -474,12 +474,12 @@ async def chat_with_copilot(
     ).sort("confidence_score", -1).limit(10).to_list(10))
     
     # Check if this is a task-specific chat
-    is_task_chat = chat_request.task_id is not None
+    is_task_chat = task_id is not None
     task_context = ""
     session_type = "general"
     
     if is_task_chat:
-        task = await db.tasks.find_one({"id": chat_request.task_id, "user_id": user_id}, {"_id": 0})
+        task = await db.tasks.find_one({"id": task_id, "user_id": user_id}, {"_id": 0})
         if task:
             task_context = f"\n\nTASK CONTEXT:\nTask: {task['title']}\nDescription: {task['description']}\nPriority: {task['priority']}\nDeadline: {task.get('deadline', 'Not set')}\n"
             session_type = "task"
