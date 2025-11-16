@@ -402,18 +402,9 @@ export default function CoPilotPage() {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <div className="flex items-center justify-between mt-2 mb-3">
-              <p className="text-xs text-gray-500">
-                Press Enter to send, Shift+Enter for new line
-              </p>
-              <p className="text-xs text-green-500 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Chat auto-saved
-              </p>
-            </div>
 
-            {/* AI Settings & Actions - Integrated Below Input */}
-            <div className="pt-3 border-t border-gray-800/50">
+            {/* Controls Below Input - Integrated Layout */}
+            <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between gap-4">
             {/* Model Selection - Sleek Dropdown */}
             <div className="flex-1">
