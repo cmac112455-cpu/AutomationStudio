@@ -474,18 +474,17 @@ class BackendTester:
             self.log_result("Workflow Execution with Logs", False, f"Workflow execution error: {str(e)}")
             return False, None
     
-    def test_execution_monitoring(self, execution_id):
-        """Test monitoring execution progress and completion"""
-        if not self.auth_token or not execution_id:
-            self.log_result("Execution Monitoring", False, "No auth token or execution ID available")
-            return False
-            
+    def monitor_execution_with_logs(self, execution_id):
+        """Monitor execution progress with real-time log correlation"""
         try:
-            # Monitor execution progress with timeout
+            # Monitor execution progress with extended timeout for image generation
             max_wait_time = 120  # 2 minutes timeout for image generation
             start_time = time.time()
             final_status = None
             final_progress = 0
+            last_progress = -1
+            
+            print(f"⏱️  Starting execution monitoring (timeout: {max_wait_time}s)")
             
             while time.time() - start_time < max_wait_time:
                 response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
@@ -496,14 +495,43 @@ class BackendTester:
                     progress = data.get("progress", 0)
                     current_node = data.get("current_node", "")
                     results = data.get("results", {})
+                    execution_log = data.get("execution_log", [])
                     
-                    print(f"   Progress: {progress}% - Status: {status} - Current Node: {current_node}")
+                    # Only print progress updates when they change
+                    if progress != last_progress:
+                        elapsed = int(time.time() - start_time)
+                        print(f"📊 [{elapsed:3d}s] Progress: {progress:3d}% | Status: {status:10s} | Node: {current_node}")
+                        last_progress = progress
                     
                     if status == "completed":
                         final_status = status
                         final_progress = progress
+                        elapsed = int(time.time() - start_time)
                         
-                        # Check if image generation was successful
+                        print(f"\n🎉 WORKFLOW COMPLETED in {elapsed}s!")
+                        print("=" * 50)
+                        
+                        # Analyze results
+                        print("📋 EXECUTION RESULTS:")
+                        for node_id, result in results.items():
+                            node_status = result.get("status", "unknown")
+                            print(f"   • {node_id}: {node_status}")
+                            
+                            # Special handling for image generation
+                            if "imagegen" in node_id:
+                                if result.get("status") == "success":
+                                    image_data = result.get("image_base64", "")
+                                    print(f"     ✅ Image generated successfully ({len(image_data)} chars)")
+                                else:
+                                    error = result.get("error", "Unknown error")
+                                    print(f"     ❌ Image generation failed: {error}")
+                        
+                        # Check execution log
+                        print(f"\n📝 EXECUTION LOG ({len(execution_log)} entries):")
+                        for log_entry in execution_log[-5:]:  # Show last 5 entries
+                            print(f"   • {log_entry}")
+                        
+                        # Verify image generation success
                         image_gen_result = None
                         for node_id, result in results.items():
                             if "imagegen" in node_id:
@@ -511,36 +539,32 @@ class BackendTester:
                                 break
                         
                         if image_gen_result and image_gen_result.get("status") == "success":
-                            self.log_result("Execution Monitoring", True, 
-                                          f"Workflow completed successfully with image generation", 
-                                          f"Progress: {progress}%, Image result: {image_gen_result.get('status')}")
+                            print("\n✅ IMAGE GENERATION: SUCCESS")
                             return True
                         else:
-                            self.log_result("Execution Monitoring", False, 
-                                          f"Workflow completed but image generation failed", 
-                                          f"Image result: {image_gen_result}")
+                            print(f"\n❌ IMAGE GENERATION: FAILED - {image_gen_result}")
                             return False
                     
                     elif status == "failed":
                         error = data.get("error", "Unknown error")
-                        self.log_result("Execution Monitoring", False, 
-                                      f"Workflow execution failed: {error}")
+                        elapsed = int(time.time() - start_time)
+                        print(f"\n💥 WORKFLOW FAILED after {elapsed}s: {error}")
                         return False
                     
                     # Continue monitoring if still running
-                    time.sleep(5)  # Wait 5 seconds before next check
+                    time.sleep(3)  # Check every 3 seconds
                 else:
-                    self.log_result("Execution Monitoring", False, 
-                                  f"Failed to get execution status: {response.status_code}")
+                    print(f"❌ Failed to get execution status: {response.status_code}")
                     return False
             
             # Timeout reached
-            self.log_result("Execution Monitoring", False, 
-                          f"Execution monitoring timed out after {max_wait_time}s. Final status: {final_status}, Progress: {final_progress}%")
+            elapsed = int(time.time() - start_time)
+            print(f"\n⏰ EXECUTION TIMEOUT after {elapsed}s")
+            print(f"   Final status: {final_status}, Progress: {final_progress}%")
             return False
                 
         except Exception as e:
-            self.log_result("Execution Monitoring", False, f"Execution monitoring error: {str(e)}")
+            print(f"💥 Execution monitoring error: {str(e)}")
             return False
     
     def test_execution_history(self):
