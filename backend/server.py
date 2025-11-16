@@ -652,12 +652,20 @@ async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
             ]
     
     created_tasks = []
-    for task_data in tasks_to_create:
+    priority_map = {"high": 3, "medium": 2, "low": 1}
+    
+    for idx, task_data in enumerate(tasks_to_create):
+        # Calculate deadline based on priority
+        days_until_deadline = 3 if task_data['priority'] == 'high' else 7 if task_data['priority'] == 'medium' else 14
+        deadline = datetime.now(timezone.utc) + timedelta(days=days_until_deadline)
+        
         task = Task(
             user_id=user_id,
             **task_data,
             status="todo",
-            ai_generated=True
+            ai_generated=True,
+            priority_number=idx + 1,
+            deadline=deadline
         )
         
         task_dict = task.model_dump()
