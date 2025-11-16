@@ -188,6 +188,60 @@ export default function CompletionsPage() {
                   <div className="border-t border-gray-700 bg-black/20 p-6">
                     <h4 className="font-semibold text-white mb-4">Execution Details</h4>
                     
+                    {/* Generated Media Gallery */}
+                    {(() => {
+                      const mediaItems = extractMedia(execution.results);
+                      return mediaItems.length > 0 && (
+                        <div className="mb-6">
+                          <h5 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" />
+                            Generated Content
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {mediaItems.map((media, idx) => (
+                              <div key={idx} className="bg-[#0f1218] rounded-lg overflow-hidden border border-gray-700">
+                                {media.type === 'image' ? (
+                                  <div>
+                                    <img 
+                                      src={`data:image/png;base64,${media.data}`}
+                                      alt={media.prompt}
+                                      className="w-full h-auto object-contain bg-gray-900"
+                                    />
+                                    <div className="p-3">
+                                      <p className="text-xs text-gray-400 mb-1">
+                                        <ImageIcon className="w-3 h-3 inline mr-1" />
+                                        {media.size || 'Image'}
+                                      </p>
+                                      {media.prompt && (
+                                        <p className="text-xs text-gray-500 italic">"{media.prompt}"</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <video 
+                                      src={`data:video/mp4;base64,${media.data}`}
+                                      controls
+                                      className="w-full h-auto bg-gray-900"
+                                    />
+                                    <div className="p-3">
+                                      <p className="text-xs text-gray-400 mb-1">
+                                        <VideoIcon className="w-3 h-3 inline mr-1" />
+                                        {media.size || 'Video'} • {media.duration}s
+                                      </p>
+                                      {media.prompt && (
+                                        <p className="text-xs text-gray-500 italic">"{media.prompt}"</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    
                     {/* Execution Log */}
                     {execution.execution_log && execution.execution_log.length > 0 && (
                       <div className="mb-4">
@@ -210,10 +264,18 @@ export default function CompletionsPage() {
                           {Object.entries(execution.results).map(([nodeId, result]) => (
                             <div key={nodeId} className="bg-[#0f1218] rounded-lg p-3">
                               <p className="text-xs font-semibold text-gray-400 mb-1">{nodeId}</p>
-                              <pre className="text-xs text-gray-300 overflow-x-auto">
-                                {JSON.stringify(result, null, 2).substring(0, 200)}
-                                {JSON.stringify(result).length > 200 && '...'}
-                              </pre>
+                              {hasMedia(result) ? (
+                                <div className="text-xs text-gray-500">
+                                  {result.image_base64 && <div className="flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Image Generated</div>}
+                                  {result.video_base64 && <div className="flex items-center gap-1"><VideoIcon className="w-3 h-3" /> Video Generated</div>}
+                                  <p className="mt-1 text-gray-600">See "Generated Content" above</p>
+                                </div>
+                              ) : (
+                                <pre className="text-xs text-gray-300 overflow-x-auto">
+                                  {JSON.stringify(result, null, 2).substring(0, 200)}
+                                  {JSON.stringify(result).length > 200 && '...'}
+                                </pre>
+                              )}
                             </div>
                           ))}
                         </div>
