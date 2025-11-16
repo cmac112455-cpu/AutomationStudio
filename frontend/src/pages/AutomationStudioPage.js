@@ -1273,6 +1273,56 @@ export default function AutomationStudioPage() {
                 </>
               )}
 
+              {/* Image to Video Node Config */}
+              {selectedNode.type === 'imagetovideo' && (
+                <>
+                  <div>
+                    <Label className="text-white">Video Prompt</Label>
+                    <Textarea
+                      value={nodeConfig.prompt || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                      placeholder="Describe the video motion/animation..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Duration (seconds)</Label>
+                    <Select
+                      value={String(nodeConfig.duration || '4')}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, duration: parseInt(value) })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="4">4 seconds</SelectItem>
+                        <SelectItem value="8">8 seconds</SelectItem>
+                        <SelectItem value="12">12 seconds</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white">Motion Strength</Label>
+                    <Select
+                      value={String(nodeConfig.motionStrength || '5')}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, motionStrength: parseInt(value) })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="1">1 (Minimal)</SelectItem>
+                        <SelectItem value="3">3 (Low)</SelectItem>
+                        <SelectItem value="5">5 (Medium)</SelectItem>
+                        <SelectItem value="7">7 (High)</SelectItem>
+                        <SelectItem value="10">10 (Maximum)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
               {/* Image Generation Node Config */}
               {selectedNode.type === 'imagegen' && (
                 <>
