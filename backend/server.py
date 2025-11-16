@@ -740,8 +740,35 @@ async def chat_with_copilot(
     
     # AI Response System
     try:
+        # Handle image generation requests
+        if is_image_generation_request:
+            try:
+                # Extract the image prompt from the message
+                image_gen = OpenAIImageGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                
+                # Generate image
+                images = await image_gen.generate_images(
+                    prompt=message,
+                    model="gpt-image-1",
+                    number_of_images=1
+                )
+                
+                # Convert to base64
+                if images and len(images) > 0:
+                    image_base64 = base64.b64encode(images[0]).decode('utf-8')
+                    generated_images.append(image_base64)
+                    response = f"I've generated an image based on your request: \"{message}\""
+                    model_used = "gpt-image-1 (Image Generation)"
+                else:
+                    response = "I attempted to generate an image but encountered an issue. Please try rephrasing your request."
+                    model_used = "gpt-image-1"
+            except Exception as e:
+                logging.error(f"Image generation error: {str(e)}")
+                response = f"I encountered an error while generating the image: {str(e)}"
+                model_used = "gpt-image-1 (Error)"
+        
         # Force vision-capable model if images/videos are present
-        if has_vision_files:
+        elif has_vision_files:
             # Use GPT-4o for vision (best vision model available)
             chat = LlmChat(
                 api_key=os.environ.get('EMERGENT_LLM_KEY'),
