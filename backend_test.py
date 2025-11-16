@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Workflow Execution with Image Generation
-Tests workflow creation, execution, and monitoring functionality
+Tests workflow creation, execution, and monitoring functionality with REAL-TIME log monitoring
 """
 
 import requests
 import json
 import time
 import os
+import subprocess
+import threading
 from datetime import datetime
 
 # Get backend URL from frontend .env
