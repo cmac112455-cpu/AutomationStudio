@@ -2003,6 +2003,28 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             
             elif node_type == 'imagetovideo':
                 # Execute Image-To-Video Generation (Sora 2)
+                
+                # ENHANCED LOGGING: Log input_data received
+                logging.info(f"[IMAGETOVIDEO] Node {node_id} executing")
+                logging.info(f"[IMAGETOVIDEO] input_data type: {type(input_data)}")
+                if isinstance(input_data, dict):
+                    logging.info(f"[IMAGETOVIDEO] input_data keys: {list(input_data.keys())}")
+                    # Log first 100 chars of each value to avoid huge logs
+                    for key, val in input_data.items():
+                        val_preview = str(val)[:100] if not key.endswith('base64') else f"<base64 data, length={len(str(val))}>"
+                        logging.info(f"[IMAGETOVIDEO] input_data['{key}']: {val_preview}")
+                else:
+                    logging.info(f"[IMAGETOVIDEO] input_data: {str(input_data)[:100]}")
+                
+                # Log results dict
+                logging.info(f"[IMAGETOVIDEO] results dict has {len(results)} nodes")
+                for res_node_id, res_data in results.items():
+                    if isinstance(res_data, dict):
+                        res_keys = list(res_data.keys())
+                        has_image = 'image_base64' in res_data
+                        has_video = 'video_base64' in res_data
+                        logging.info(f"[IMAGETOVIDEO] results['{res_node_id}']: keys={res_keys}, has_image={has_image}, has_video={has_video}")
+                
                 # Get prompt from node config OR from previous node's response
                 prompt = node_data.get('prompt', '')
                 
@@ -2015,10 +2037,13 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 
                 # If still no prompt, search previous AI chat nodes
                 if not prompt:
-                    for node_id, result in results.items():
+                    for node_id_search, result in results.items():
                         if isinstance(result, dict) and result.get('model') and result.get('response'):
                             prompt = result.get('response')
+                            logging.info(f"[IMAGETOVIDEO] Found prompt from AI node: {node_id_search}")
                             break
+                
+                logging.info(f"[IMAGETOVIDEO] Prompt resolved: {prompt[:100] if prompt else 'NONE'}")
                 
                 # Get image from uploaded config, previous node, or search all screenshot nodes
                 image_base64 = node_data.get('uploadedImage')  # Check for uploaded image first
@@ -2030,17 +2055,19 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 # If no uploaded image, try to get from input
                 if not image_base64 and isinstance(input_data, dict):
                     image_base64 = input_data.get('image_base64')
+                    if image_base64:
+                        logging.info(f"[IMAGETOVIDEO] Found image in input_data")
                 
                 # If still no image, search all previous screenshot nodes
                 if not image_base64:
-                    logging.info(f"Image-to-video searching for image in {len(results)} previous nodes")
-                    for node_id, result in results.items():
+                    logging.info(f"[IMAGETOVIDEO] Searching for image in {len(results)} previous nodes")
+                    for node_id_search, result in results.items():
                         if isinstance(result, dict) and result.get('image_base64'):
                             image_base64 = result.get('image_base64')
-                            logging.info(f"Found image from node: {node_id}")
+                            logging.info(f"[IMAGETOVIDEO] Found image from node: {node_id_search}")
                             break
                     if not image_base64:
-                        logging.error(f"No image found in any previous node. Results keys: {list(results.keys())}")
+                        logging.error(f"[IMAGETOVIDEO] No image found in any previous node. Results keys: {list(results.keys())}")
                 
                 duration = node_data.get('duration', 4)
                 size = node_data.get('size', '1280x720')
