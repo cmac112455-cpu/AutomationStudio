@@ -18,6 +18,10 @@ export default function CoPilotPage() {
   const [sessionId, setSessionId] = useState(localStorage.getItem('copilot_session_id') || null);
   const [currentTaskId, setCurrentTaskId] = useState(localStorage.getItem('copilot_task_id') || null);
   const [showHistory, setShowHistory] = useState(false);
+  const [multiAiMode, setMultiAiMode] = useState(() => {
+    const saved = localStorage.getItem('multi_ai_mode');
+    return saved === 'true' ? true : false; // Default to false for cost protection
+  });
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
