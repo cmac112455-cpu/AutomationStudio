@@ -234,11 +234,11 @@ export default function CoPilotPage() {
                     </button>
                     <button
                       onClick={(e) => deleteSession(session.id, e)}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/20 rounded"
+                      className="absolute top-3 right-3 p-1.5 hover:bg-red-500/20 rounded-md transition-colors"
                       data-testid={`delete-session-${session.id}`}
                       title="Delete chat"
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Trash2 className="w-4 h-4 text-red-400 hover:text-red-500" />
                     </button>
                   </div>
                 ))}
