@@ -585,6 +585,8 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
         user_msg = ChatMessage(
             user_id=user_id,
             session_id=session_id,
+            session_type=session_type,
+            task_id=chat_request.task_id,
             role="user",
             content=chat_request.message
         )
@@ -596,6 +598,8 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
         assistant_msg = ChatMessage(
             user_id=user_id,
             session_id=session_id,
+            session_type=session_type,
+            task_id=chat_request.task_id,
             role="assistant",
             content=response,
             model_used=f"{model_provider}/{model_name}"
@@ -603,6 +607,21 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
         assistant_msg_dict = assistant_msg.model_dump()
         assistant_msg_dict['created_at'] = assistant_msg_dict['created_at'].isoformat()
         await db.chat_messages.insert_one(assistant_msg_dict)
+        
+        # Update or create chat session
+        session_title = task['title'] if is_task_chat and task else "General Chat"
+        await db.chat_sessions.update_one(
+            {"id": session_id},
+            {"$set": {
+                "user_id": user_id,
+                "session_type": session_type,
+                "task_id": chat_request.task_id,
+                "title": session_title,
+                "last_message": chat_request.message[:100],
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
         
         return ChatResponse(
             response=response,
