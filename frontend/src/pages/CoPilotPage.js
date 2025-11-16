@@ -470,7 +470,7 @@ export default function CoPilotPage() {
         </div>
 
         {/* Info Cards & Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 flex-shrink-0">
           <div className="glass-morph p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
