@@ -730,6 +730,66 @@ export default function CoPilotPage() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {lightboxMedia && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setLightboxMedia(null)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLightboxMedia(null)}
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 backdrop-blur"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+
+            {/* Download button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadMedia(lightboxMedia);
+              }}
+              className="absolute top-4 right-20 z-10 bg-black/50 hover:bg-black/70 backdrop-blur"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download
+            </Button>
+
+            {/* Media content */}
+            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              {lightboxMedia.type.startsWith('image/') ? (
+                <img 
+                  src={lightboxMedia.url}
+                  alt={lightboxMedia.name}
+                  className="max-w-full max-h-[85vh] object-contain"
+                />
+              ) : (
+                <video 
+                  src={lightboxMedia.url}
+                  controls
+                  autoPlay
+                  className="max-w-full max-h-[85vh]"
+                />
+              )}
+            </div>
+
+            {/* Media info */}
+            <div className="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur rounded-lg p-4">
+              <p className="text-white font-semibold">{lightboxMedia.name}</p>
+              <p className="text-gray-400 text-sm mt-1">
+                {lightboxMedia.type.startsWith('image/') ? 'Image' : 'Video'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
