@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target, Plus, MoreVertical, Trash2, Zap, Info, Paperclip } from 'lucide-react';
+import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target, Plus, MoreVertical, Trash2, Zap, Info, Paperclip, Maximize2, Download, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
@@ -27,8 +27,19 @@ export default function CoPilotPage() {
     return localStorage.getItem('selected_model') || 'intelligent'; // Default to intelligent routing
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  // Download media function
+  const downloadMedia = (file) => {
+    const link = document.createElement('a');
+    link.href = file.url;
+    link.download = file.name || `download_${Date.now()}.${file.type.includes('image') ? 'png' : 'mp4'}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     loadChatHistory();
