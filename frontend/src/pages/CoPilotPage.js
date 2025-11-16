@@ -542,6 +542,7 @@ export default function CoPilotPage() {
                   Update Tasks
                 </Button>
               </div>
+              </div>
             </div>
           </div>
         </div>
