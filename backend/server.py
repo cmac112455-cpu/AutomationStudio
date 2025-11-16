@@ -1901,16 +1901,20 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 result = {"status": "started", "data": input_data}
             
             elif node_type == 'gemini':
-                # Execute AI chat node
+                # Execute AI chat node with conversation history
                 prompt = node_data.get('prompt', 'Hello')
+                model = node_data.get('model', 'gemini-2.5-pro')
+                
+                # Use execution-specific session to maintain conversation history within workflow
                 chat = LlmChat(
                     api_key=os.environ.get('EMERGENT_LLM_KEY'),
-                    session_id=workflow_id
-                ).with_model('gemini', 'gemini-2.5-pro')
+                    session_id=f"{workflow_id}_{execution.id}",  # Unique per workflow execution
+                    system_message="You are a helpful AI assistant in an automation workflow."
+                ).with_model('gemini', model)
                 
                 user_message = UserMessage(text=prompt)
                 response = await chat.send_message(user_message)
-                result = {"response": response, "model": "gemini-2.5-pro"}
+                result = {"response": response, "model": model}
             
             elif node_type == 'http':
                 # Execute HTTP request
