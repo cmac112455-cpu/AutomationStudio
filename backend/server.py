@@ -1737,6 +1737,191 @@ async def get_ai_learnings(user_id: str = Depends(get_current_user)):
 async def root():
     return {"message": "APOE API - Autonomous Profit Optimization Engine"}
 
+# ============ WORKFLOW AUTOMATION ENDPOINTS ============
+
+class WorkflowNode(BaseModel):
+    id: str
+    type: str
+    position: Dict[str, float]
+    data: Dict[str, Any]
+
+class WorkflowEdge(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: Optional[str] = None
+
+class Workflow(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    nodes: List[WorkflowNode]
+    edges: List[WorkflowEdge]
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class WorkflowCreate(BaseModel):
+    name: str
+    nodes: List[WorkflowNode]
+    edges: List[WorkflowEdge]
+
+@api_router.post("/workflows", response_model=Workflow)
+async def create_workflow(workflow: WorkflowCreate, user_id: str = Depends(get_current_user)):
+    workflow_doc = Workflow(
+        user_id=user_id,
+        name=workflow.name,
+        nodes=workflow.nodes,
+        edges=workflow.edges
+    )
+    
+    await db.workflows.insert_one(workflow_doc.model_dump())
+    return workflow_doc
+
+@api_router.get("/workflows", response_model=List[Workflow])
+async def get_workflows(user_id: str = Depends(get_current_user)):
+    workflows = await db.workflows.find({"user_id": user_id}, {"_id": 0}).to_list(length=None)
+    return workflows
+
+@api_router.get("/workflows/{workflow_id}", response_model=Workflow)
+async def get_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
+    workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return workflow
+
+@api_router.put("/workflows/{workflow_id}", response_model=Workflow)
+async def update_workflow(workflow_id: str, workflow: WorkflowCreate, user_id: str = Depends(get_current_user)):
+    existing = await db.workflows.find_one({"id": workflow_id, "user_id": user_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    update_doc = {
+        "name": workflow.name,
+        "nodes": [node.model_dump() for node in workflow.nodes],
+        "edges": [edge.model_dump() for edge in workflow.edges],
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.workflows.update_one(
+        {"id": workflow_id, "user_id": user_id},
+        {"$set": update_doc}
+    )
+    
+    return await get_workflow(workflow_id, user_id)
+
+@api_router.delete("/workflows/{workflow_id}")
+async def delete_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
+    result = await db.workflows.delete_one({"id": workflow_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return {"message": "Workflow deleted successfully"}
+
+@api_router.post("/workflows/{workflow_id}/execute")
+async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
+    workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    # Build execution graph
+    nodes_dict = {node['id']: node for node in workflow['nodes']}
+    edges_dict = {}
+    for edge in workflow['edges']:
+        source = edge['source']
+        if source not in edges_dict:
+            edges_dict[source] = []
+        edges_dict[source].append(edge['target'])
+    
+    # Find start node
+    start_nodes = [node for node in workflow['nodes'] if node['type'] == 'start']
+    if not start_nodes:
+        raise HTTPException(status_code=400, detail="Workflow must have a start node")
+    
+    # Execute workflow
+    results = {}
+    execution_log = []
+    
+    async def execute_node(node_id: str, input_data: Any = None):
+        node = nodes_dict.get(node_id)
+        if not node:
+            return None
+        
+        node_type = node['type']
+        node_data = node['data']
+        
+        execution_log.append(f"Executing {node_type} node: {node_id}")
+        
+        try:
+            if node_type == 'start':
+                result = {"status": "started", "data": input_data}
+            
+            elif node_type == 'gemini':
+                # Execute AI chat node
+                prompt = node_data.get('prompt', 'Hello')
+                chat = LlmChat(
+                    api_key=os.environ.get('EMERGENT_LLM_KEY'),
+                    session_id=workflow_id
+                ).with_model('gemini', 'gemini-2.5-pro')
+                
+                user_message = UserMessage(text=prompt)
+                response = await chat.send_message(user_message)
+                result = {"response": response, "model": "gemini-2.5-pro"}
+            
+            elif node_type == 'http':
+                # Execute HTTP request
+                url = node_data.get('url', '')
+                method = node_data.get('method', 'GET').upper()
+                
+                async with aiohttp.ClientSession() as session:
+                    if method == 'GET':
+                        async with session.get(url) as resp:
+                            result = {"status": resp.status, "data": await resp.text()}
+                    elif method == 'POST':
+                        body = node_data.get('body', {})
+                        async with session.post(url, json=body) as resp:
+                            result = {"status": resp.status, "data": await resp.text()}
+                    else:
+                        result = {"error": "Unsupported HTTP method"}
+            
+            elif node_type == 'database':
+                # Execute database read
+                collection = node_data.get('collection', 'users')
+                query = node_data.get('query', {})
+                
+                docs = await db[collection].find(query, {"_id": 0}).limit(10).to_list(length=10)
+                result = {"count": len(docs), "data": docs}
+            
+            elif node_type == 'end':
+                result = {"status": "completed", "final_data": input_data}
+            
+            else:
+                result = {"error": f"Unknown node type: {node_type}"}
+            
+            results[node_id] = result
+            execution_log.append(f"Completed {node_type} node: {node_id}")
+            
+            # Execute next nodes
+            next_nodes = edges_dict.get(node_id, [])
+            for next_node_id in next_nodes:
+                await execute_node(next_node_id, result)
+            
+            return result
+            
+        except Exception as e:
+            error_result = {"error": str(e), "node_type": node_type}
+            results[node_id] = error_result
+            execution_log.append(f"Error in {node_type} node: {str(e)}")
+            return error_result
+    
+    # Start execution
+    await execute_node(start_nodes[0]['id'])
+    
+    return {
+        "workflow_id": workflow_id,
+        "execution_log": execution_log,
+        "results": results
+    }
+
 app.include_router(api_router)
 
 app.add_middleware(
