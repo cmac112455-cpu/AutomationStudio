@@ -728,9 +728,26 @@ async def chat_with_copilot(
     if file_contents:
         full_message += f"\n\n[User uploaded {len(file_contents)} file(s): {', '.join([f['filename'] for f in file_contents])}]"
     
-    # AI Response System - Single model by default, Multi-AI optional
+    # AI Response System - Use vision model if images/videos present
     try:
-        if use_multi_ai:
+        # Force vision-capable model if images/videos are present
+        if has_vision_files:
+            # Use GPT-4o for vision (best vision model available)
+            chat = LlmChat(
+                api_key=os.environ.get('EMERGENT_LLM_KEY'),
+                session_id=session_id,
+                system_message=system_message
+            ).with_model('openai', 'gpt-4o')
+            
+            # Create user message with images
+            user_message = UserMessage(
+                text=full_message,
+                file_contents=image_contents
+            )
+            response = await chat.send_message(user_message)
+            model_used = "gpt-4o (Vision)"
+            
+        elif use_multi_ai:
             # Multi-AI Collaboration (4x API calls - user explicitly enabled)
             models = [
                 ('openai', 'gpt-5', 'GPT-5'),
