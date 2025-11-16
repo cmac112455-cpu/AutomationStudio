@@ -23,7 +23,12 @@ import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare
 // Custom Node Components
 const StartNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-green-500 bg-green-500/10 backdrop-blur-sm">
+    <div className="px-4 py-3 rounded-lg border-2 border-green-500 bg-green-500/10 backdrop-blur-sm relative">
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        style={{ background: '#22c55e', width: '12px', height: '12px' }}
+      />
       <div className="flex items-center gap-2">
         <Zap className="w-4 h-4 text-green-500" />
         <div className="font-semibold text-white">Start</div>
