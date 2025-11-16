@@ -193,6 +193,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
     task_id: Optional[str] = None
+    use_multi_ai: bool = False  # User must explicitly enable multi-AI mode
 
 class ChatResponse(BaseModel):
     response: str
