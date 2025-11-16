@@ -787,4 +787,4 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_all_tests()
+    summary = tester.run_comprehensive_workflow_test()
