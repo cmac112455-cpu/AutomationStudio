@@ -711,9 +711,14 @@ async def chat_with_copilot(
     - Use markdown for better readability
     - Apply learned insights about this user to personalize advice{task_guidance}{conversation_context}{learned_context}"""
     
+    # Add file context to message if files were uploaded
+    full_message = message
+    if file_contents:
+        full_message += f"\n\n[User uploaded {len(file_contents)} file(s): {', '.join([f['filename'] for f in file_contents])}]"
+    
     # AI Response System - Single model by default, Multi-AI optional
     try:
-        if chat_request.use_multi_ai:
+        if use_multi_ai:
             # Multi-AI Collaboration (4x API calls - user explicitly enabled)
             models = [
                 ('openai', 'gpt-5', 'GPT-5'),
