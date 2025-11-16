@@ -455,44 +455,43 @@ export default function CoPilotPage() {
 
               {/* Multi-AI Toggle - Compact */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#2a2d3a]/20 border border-gray-700/20 hover:border-gray-600/30 transition-colors">
-              <Zap className={`w-4 h-4 transition-colors ${multiAiMode ? 'text-purple-400' : 'text-gray-500'}`} />
-              <div className="flex items-center gap-2">
-                <label htmlFor="multi-ai-toggle" className="text-sm text-gray-300 cursor-pointer whitespace-nowrap">
+                <Zap className={`w-3.5 h-3.5 transition-colors ${multiAiMode ? 'text-purple-400' : 'text-gray-500'}`} />
+                <label htmlFor="multi-ai-toggle" className="text-xs text-gray-300 cursor-pointer whitespace-nowrap">
                   Multi-AI
                 </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-gray-500 hover:text-gray-300 transition-colors">
-                      <Info className="w-3.5 h-3.5" />
+                      <Info className="w-3 h-3" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-64 p-3 bg-[#1a1d2e] border-gray-700 rounded-lg" align="end">
+                  <PopoverContent className="w-56 p-3 bg-[#1a1d2e] border-gray-700 rounded-lg" align="end">
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-white">Multi-AI Collaboration</p>
-                      <p className="text-xs text-gray-400">
-                        Uses 3 models simultaneously + synthesis
-                      </p>
+                      <p className="text-xs text-gray-400">Uses 3 models + synthesis</p>
                       <div className="px-2 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded text-center">
                         <p className="text-xs text-yellow-400">⚠️ 4x credits</p>
                       </div>
                     </div>
                   </PopoverContent>
                 </Popover>
+                <Switch
+                  id="multi-ai-toggle"
+                  checked={multiAiMode}
+                  onCheckedChange={(checked) => {
+                    setMultiAiMode(checked);
+                    toast.info(checked ? 'Multi-AI: ON (4x)' : 'Multi-AI: OFF');
+                  }}
+                  className="data-[state=checked]:bg-purple-500"
+                  data-testid="multi-ai-toggle"
+                />
               </div>
-              <Switch
-                id="multi-ai-toggle"
-                checked={multiAiMode}
-                onCheckedChange={(checked) => {
-                  setMultiAiMode(checked);
-                  toast.info(checked ? 'Multi-AI Mode: ON (4x credits)' : 'Multi-AI Mode: OFF');
-                }}
-                className="data-[state=checked]:bg-purple-500"
-                data-testid="multi-ai-toggle"
-              />
-            </div>
 
-            {/* Action Buttons - Compact & Modern */}
-            <div className="flex items-center gap-2">
+              {/* Divider */}
+              <div className="h-6 w-px bg-gray-700/50"></div>
+
+              {/* Action Buttons - Compact */}
+              <div className="flex items-center gap-1">
               <Button
                 onClick={async () => {
                   try {
