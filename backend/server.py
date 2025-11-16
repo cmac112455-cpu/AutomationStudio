@@ -2167,7 +2167,9 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
         except Exception as e:
             error_result = {"error": str(e), "node_type": node_type}
             results[node_id] = error_result
-            execution_log.append(f"Error in {node_type} node: {str(e)}")
+            error_msg = f"Error in {node_type} node: {str(e)}"
+            execution_log.append(error_msg)
+            logging.error(f"Workflow execution error - Node: {node_id}, Type: {node_type}, Error: {str(e)}")
             return error_result
     
     # Start execution
