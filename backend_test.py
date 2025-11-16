@@ -22,6 +22,8 @@ class BackendTester:
         self.auth_token = None
         self.user_id = None
         self.test_results = []
+        self.log_monitor_active = False
+        self.captured_logs = []
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
