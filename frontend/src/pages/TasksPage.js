@@ -157,6 +157,11 @@ export default function TasksPage() {
     }
   };
 
+  const chatWithAI = async (task) => {
+    // Create or get task chat session
+    try {
+      const message = `Help me complete this task: ${task.title}. ${task.description}. I need to do this fast, efficiently, and cost-effectively.`;\n      \n      const response = await axios.post('/copilot/chat', {\n        message: message,\n        task_id: task.id,\n        session_id: task.chat_session_id || null\n      });\n\n      // Update task with chat session ID\n      if (!task.chat_session_id && response.data.session_id) {\n        await axios.patch(`/tasks/${task.id}`, {\n          chat_session_id: response.data.session_id\n        });\n      }\n\n      // Navigate to Co-Pilot with session\n      localStorage.setItem('copilot_session_id', response.data.session_id);\n      navigate('/copilot');\n      toast.success('Starting task-focused chat...');\n    } catch (error) {\n      toast.error('Failed to start chat');\n    }\n  };
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'high': return 'bg-red-500/10 border-l-4 border-red-500';
