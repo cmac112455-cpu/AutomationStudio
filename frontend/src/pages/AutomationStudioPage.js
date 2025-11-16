@@ -469,11 +469,21 @@ export default function AutomationStudioPage() {
 
   const onNodeClick = useCallback((event, node) => {
     setSelectedNodeForDeletion(node);
+    setContextMenu(null); // Close context menu on click
     if (node.type !== 'start' && node.type !== 'end') {
       setSelectedNode(node);
       setNodeConfig(node.data || {});
       setShowConfigModal(true);
     }
+  }, []);
+
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault();
+    setContextMenu({
+      node,
+      x: event.clientX,
+      y: event.clientY,
+    });
   }, []);
 
   const deleteNode = useCallback((nodeId) => {
