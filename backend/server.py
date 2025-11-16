@@ -814,9 +814,9 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
             user_id=user_id,
             session_id=session_id,
             session_type=session_type,
-            task_id=chat_request.task_id,
+            task_id=task_id,
             role="user",
-            content=chat_request.message
+            content=full_message
         )
         user_msg_dict = user_msg.model_dump()
         user_msg_dict['created_at'] = user_msg_dict['created_at'].isoformat()
