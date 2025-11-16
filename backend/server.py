@@ -1982,7 +1982,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     
                     if video_bytes:
                         video_base64 = base64.b64encode(video_bytes).decode('utf-8')
-                        result = {"status": "success", "video_base64": video_base64[:100] + "...", "duration": duration, "size": size}
+                        result = {"status": "success", "video_base64": video_base64, "duration": duration, "size": size, "prompt": prompt}
                     else:
                         result = {"status": "failed", "error": "Video generation failed"}
                 except Exception as e:
