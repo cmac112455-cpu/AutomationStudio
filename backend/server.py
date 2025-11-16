@@ -790,7 +790,7 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
                         model_provider, model_name = 'gemini', 'gemini-2.5-pro'
             else:
                 # Intelligent routing based on query content
-                query_lower = chat_request.message.lower()
+                query_lower = message.lower()
                 
                 if any(word in query_lower for word in ['strategy', 'plan', 'roadmap']):
                     model_provider, model_name = 'openai', 'gpt-5'
