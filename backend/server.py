@@ -752,6 +752,126 @@ async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
     
     return {"tasks": created_tasks}
 
+@api_router.post("/tasks/update-from-insights")
+async def update_tasks_from_insights(user_id: str = Depends(get_current_user)):
+    # AI analyzes current tasks and chat context to update priorities
+    try:
+        # Get current active tasks
+        current_tasks = list(await db.tasks.find(
+            {"user_id": user_id, "status": {"$ne": "completed"}},
+            {"_id": 0}
+        ).to_list(20))
+        
+        # Get recent chat messages
+        recent_chats = list(await db.chat_messages.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(20).to_list(20))
+        
+        if not recent_chats:
+            return {"tasks_updated": 0, "tasks_created": 0, "message": "No chat context to analyze"}
+        
+        # Build context for AI
+        conversation_summary = "Recent conversations:\n"
+        for msg in reversed(recent_chats[-10:]):
+            role = "User" if msg['role'] == 'user' else "AI"
+            conversation_summary += f"{role}: {msg['content'][:150]}...\n"
+        
+        current_tasks_summary = "\nCurrent active tasks:\n"
+        for idx, task in enumerate(current_tasks[:10]):
+            current_tasks_summary += f"{idx+1}. [{task['priority']}] {task['title']} - {task['description']}\n"
+        
+        profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        business_context = profile.get('business_idea') or profile.get('business_name', 'the business')
+        
+        analysis_prompt = f"""Based on the conversation and current tasks for {business_context}, analyze and provide:
+
+{conversation_summary}
+{current_tasks_summary}
+
+Provide a JSON response with:
+1. "tasks_to_create": NEW tasks that emerged from conversation (max 3)
+2. "tasks_to_update": Existing tasks to update priority (by title match)
+3. "tasks_to_remove": Tasks that are no longer relevant (by title match)
+4. "reasoning": Brief explanation of changes
+
+Format:
+{{
+  "tasks_to_create": [
+    {{"title": "...", "description": "...", "priority": "high"}}
+  ],
+  "tasks_to_update": [
+    {{"title": "existing task title", "new_priority": "high", "reason": "..."}}
+  ],
+  "tasks_to_remove": ["task title to remove"],
+  "reasoning": "Based on the conversation about X, we should focus on Y first..."
+}}
+
+Only suggest changes if there's clear new information or better strategy."""
+        
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=str(uuid.uuid4()),
+            system_message="You are a strategic task manager. Return ONLY valid JSON, no markdown."
+        ).with_model('openai', 'gpt-5')
+        
+        user_message = UserMessage(text=analysis_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON
+        import json
+        if '```json' in response:
+            response = response.split('```json')[1].split('```')[0].strip()
+        elif '```' in response:
+            response = response.split('```')[1].split('```')[0].strip()
+        
+        task_changes = json.loads(response)
+        
+        tasks_created = 0
+        tasks_updated = 0
+        
+        # Create new tasks
+        for new_task in task_changes.get('tasks_to_create', [])[:3]:
+            task = Task(
+                user_id=user_id,
+                title=new_task.get('title'),
+                description=new_task.get('description', ''),
+                priority=new_task.get('priority', 'medium'),
+                status="todo",
+                ai_generated=True,
+                priority_number=None
+            )
+            
+            task_dict = task.model_dump()
+            task_dict['created_at'] = task_dict['created_at'].isoformat()
+            task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+            
+            await db.tasks.insert_one(task_dict)
+            tasks_created += 1
+        
+        # Update existing tasks
+        for update in task_changes.get('tasks_to_update', []):
+            await db.tasks.update_one(
+                {"user_id": user_id, "title": update['title']},
+                {"$set": {"priority": update['new_priority']}}
+            )
+            tasks_updated += 1
+        
+        # Remove tasks
+        for title in task_changes.get('tasks_to_remove', []):
+            await db.tasks.delete_one({"user_id": user_id, "title": title})
+        
+        return {
+            "tasks_created": tasks_created,
+            "tasks_updated": tasks_updated,
+            "reasoning": task_changes.get('reasoning', ''),
+            "message": f"Updated task list based on new insights"
+        }
+        
+    except Exception as e:
+        logging.error(f"Task update from insights error: {str(e)}")
+        return {"tasks_created": 0, "tasks_updated": 0, "message": "Failed to update tasks"}
+
 @api_router.post("/tasks/generate-from-chat")
 async def generate_tasks_from_chat(user_id: str = Depends(get_current_user)):
     # Get recent chat messages
