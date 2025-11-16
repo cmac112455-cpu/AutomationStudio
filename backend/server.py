@@ -730,7 +730,15 @@ async def chat_with_copilot(
     if file_contents:
         full_message += f"\n\n[User uploaded {len(file_contents)} file(s): {', '.join([f['filename'] for f in file_contents])}]"
     
-    # AI Response System - Use vision model if images/videos present
+    # Check if user is requesting image generation
+    image_gen_keywords = ['generate image', 'create image', 'make image', 'draw', 'generate picture', 
+                         'create picture', 'make picture', 'generate photo', 'create photo', 
+                         'show me image', 'show me picture', 'image of', 'picture of']
+    is_image_generation_request = any(keyword in message.lower() for keyword in image_gen_keywords)
+    
+    generated_images = []
+    
+    # AI Response System
     try:
         # Force vision-capable model if images/videos are present
         if has_vision_files:
