@@ -203,32 +203,44 @@ export default function CoPilotPage() {
             <ScrollArea className="h-[calc(100vh-16rem)]">
               <div className="space-y-2">
                 {sessions.map((session) => (
-                  <button
+                  <div
                     key={session.id}
-                    onClick={() => switchSession(session.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    className={`relative group w-full text-left p-3 rounded-lg transition-colors ${
                       sessionId === session.id
                         ? 'bg-[#00d4ff]/20 border border-[#00d4ff]'
                         : 'hover:bg-gray-800'
                     }`}
-                    data-testid={`session-${session.id}`}
                   >
-                    <div className="flex items-start gap-2">
-                      {session.session_type === 'task' ? (
-                        <Target className="w-4 h-4 text-[#00d4ff] mt-1 flex-shrink-0" />
-                      ) : (
-                        <MessageSquare className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{session.title}</p>
-                        <p className="text-xs text-gray-400 truncate">{session.last_message}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          {new Date(session.last_updated).toLocaleDateString()}
-                        </p>
+                    <button
+                      onClick={() => switchSession(session.id)}
+                      className="w-full text-left"
+                      data-testid={`session-${session.id}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        {session.session_type === 'task' ? (
+                          <Target className="w-4 h-4 text-[#00d4ff] mt-1 flex-shrink-0" />
+                        ) : (
+                          <MessageSquare className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0 pr-8">
+                          <p className="text-sm font-medium truncate">{session.title}</p>
+                          <p className="text-xs text-gray-400 truncate">{session.last_message}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            {new Date(session.last_updated).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => deleteSession(session.id, e)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/20 rounded"
+                      data-testid={`delete-session-${session.id}`}
+                      title="Delete chat"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
                 ))}
 
                 {sessions.length === 0 && (
