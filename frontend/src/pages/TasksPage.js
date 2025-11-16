@@ -5,14 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, CheckCircle2, Circle, Clock, Trash2, Sparkles, AlertCircle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Plus, CheckCircle2, Trash2, Sparkles, AlertCircle, CalendarIcon, Upload, File as FileIcon, X } from 'lucide-react';
+import { format } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [fileDialogOpen, setFileDialogOpen] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [analyzingFile, setAnalyzingFile] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [view, setView] = useState('priority'); // 'priority' or 'calendar'
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -22,12 +31,20 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
+    fetchFiles();
   }, []);
 
   const fetchTasks = async () => {
     try {
       const response = await axios.get('/tasks');
-      setTasks(response.data.tasks);
+      // Sort by priority: high > medium > low, then by created date
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const sorted = response.data.tasks.sort((a, b) => {
+        const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+        if (priorityDiff !== 0) return priorityDiff;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      setTasks(sorted);
     } catch (error) {
       toast.error('Failed to load tasks');
     } finally {
@@ -35,11 +52,67 @@ export default function TasksPage() {
     }
   };
 
+  const fetchFiles = async () => {
+    try {
+      const response = await axios.get('/files');
+      setFiles(response.data.files);
+    } catch (error) {
+      console.error('Failed to load files:', error);
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await axios.post('/files/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success('File uploaded successfully!');
+      fetchFiles();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload file');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const analyzeFile = async (fileId) => {
+    setAnalyzingFile(fileId);
+    try {
+      const response = await axios.post(`/files/${fileId}/analyze`);
+      toast.success('File analyzed successfully!');
+      // Update file with analysis
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, analysis: response.data.analysis } : f
+      ));
+    } catch (error) {
+      toast.error('Failed to analyze file');
+    } finally {
+      setAnalyzingFile(null);
+    }
+  };
+
+  const deleteFile = async (fileId) => {
+    try {
+      await axios.delete(`/files/${fileId}`);
+      toast.success('File deleted');
+      fetchFiles();
+    } catch (error) {
+      toast.error('Failed to delete file');
+    }
+  };
+
   const generateAITasks = async () => {
     try {
       const response = await axios.post('/tasks/generate');
-      setTasks(prev => [...response.data.tasks, ...prev]);
       toast.success(`Generated ${response.data.tasks.length} AI-powered tasks!`);
+      fetchTasks();
     } catch (error) {
       toast.error('Failed to generate AI tasks');
     }
@@ -52,11 +125,11 @@ export default function TasksPage() {
     }
 
     try {
-      const response = await axios.post('/tasks', newTask);
-      setTasks(prev => [response.data, ...prev]);
+      await axios.post('/tasks', newTask);
       setNewTask({ title: '', description: '', priority: 'medium', status: 'todo' });
       setDialogOpen(false);
       toast.success('Task created successfully!');
+      fetchTasks();
     } catch (error) {
       toast.error('Failed to create task');
     }
@@ -64,9 +137,9 @@ export default function TasksPage() {
 
   const updateTaskStatus = async (taskId, newStatus) => {
     try {
-      const response = await axios.patch(`/tasks/${taskId}`, { status: newStatus });
-      setTasks(prev => prev.map(task => task.id === taskId ? response.data : task));
+      await axios.patch(`/tasks/${taskId}`, { status: newStatus });
       toast.success('Task updated!');
+      fetchTasks();
     } catch (error) {
       toast.error('Failed to update task');
     }
@@ -75,8 +148,8 @@ export default function TasksPage() {
   const deleteTask = async (taskId) => {
     try {
       await axios.delete(`/tasks/${taskId}`);
-      setTasks(prev => prev.filter(task => task.id !== taskId));
       toast.success('Task deleted');
+      fetchTasks();
     } catch (error) {
       toast.error('Failed to delete task');
     }
@@ -84,23 +157,24 @@ export default function TasksPage() {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'priority-high';
-      case 'medium': return 'priority-medium';
-      case 'low': return 'priority-low';
+      case 'high': return 'bg-red-500/10 border-l-4 border-red-500';
+      case 'medium': return 'bg-yellow-500/10 border-l-4 border-yellow-500';
+      case 'low': return 'bg-green-500/10 border-l-4 border-green-500';
       default: return '';
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      case 'in_progress': return <Clock className="w-5 h-5 text-blue-500" />;
-      default: return <Circle className="w-5 h-5 text-gray-500" />;
-    }
+  const getPriorityBadge = (priority) => {
+    const colors = {
+      high: 'bg-red-500 text-white',
+      medium: 'bg-yellow-500 text-black',
+      low: 'bg-green-500 text-white'
+    };
+    return colors[priority] || '';
   };
 
-  const todoTasks = tasks.filter(t => t.status === 'todo');
-  const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
+  // Show only top 10 tasks in priority view
+  const displayedTasks = view === 'priority' ? tasks.filter(t => t.status !== 'completed').slice(0, 10) : tasks;
   const completedTasks = tasks.filter(t => t.status === 'completed');
 
   if (loading) {
@@ -120,9 +194,27 @@ export default function TasksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold mb-2">Adaptive Task Planner</h1>
-          <p className="text-gray-400">AI-powered task management and prioritization</p>
+          <p className="text-gray-400">AI-powered task management and file analysis</p>
         </div>
         <div className="flex gap-3">
+          <Button
+            onClick={() => setView(view === 'priority' ? 'calendar' : 'priority')}
+            variant="outline"
+            className="border-gray-700"
+            data-testid="toggle-view-button"
+          >
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            {view === 'priority' ? 'Calendar View' : 'Priority View'}
+          </Button>
+          <Button
+            onClick={() => setFileDialogOpen(true)}
+            variant="outline"
+            className="border-[#00ff88] text-[#00ff88] hover:bg-[#00ff88]/10"
+            data-testid="upload-file-button"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Files
+          </Button>
           <Button
             onClick={generateAITasks}
             variant="outline"
@@ -169,19 +261,6 @@ export default function TasksPage() {
                     data-testid="task-description-input"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select value={newTask.priority} onValueChange={(value) => setNewTask(prev => ({ ...prev, priority: value }))}>
-                    <SelectTrigger className="bg-[#1a1d2e] border-gray-700 text-white" data-testid="priority-select">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1a1d2e] border-gray-800">
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button
                   onClick={createTask}
                   className="w-full bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90"
@@ -195,161 +274,215 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="stat-card rounded-xl p-4" data-testid="todo-count">
-          <p className="text-gray-400 text-sm">To Do</p>
-          <p className="text-3xl font-bold">{todoTasks.length}</p>
-        </div>
-        <div className="stat-card rounded-xl p-4" data-testid="in-progress-count">
-          <p className="text-gray-400 text-sm">In Progress</p>
-          <p className="text-3xl font-bold text-[#4785ff]">{inProgressTasks.length}</p>
-        </div>
-        <div className="stat-card rounded-xl p-4" data-testid="completed-count">
-          <p className="text-gray-400 text-sm">Completed</p>
-          <p className="text-3xl font-bold text-green-500">{completedTasks.length}</p>
-        </div>
-      </div>
+      {/* File Upload Dialog */}
+      <Dialog open={fileDialogOpen} onOpenChange={setFileDialogOpen}>
+        <DialogContent className="bg-[#141b3a] border-gray-800 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload & Analyze Files</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
+              <p className="text-gray-400 mb-4">Upload spreadsheets, docs, or payment transactions</p>
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+                accept=".csv,.xlsx,.xls,.pdf,.doc,.docx,.txt,.json"
+                disabled={uploadingFile}
+              />
+              <label htmlFor="file-upload">
+                <Button
+                  as="span"
+                  className="bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90"
+                  disabled={uploadingFile}
+                >
+                  {uploadingFile ? 'Uploading...' : 'Choose File'}
+                </Button>
+              </label>
+            </div>
 
-      {/* Tasks Board */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* To Do Column */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-4">
-            <Circle className="w-5 h-5 text-gray-500" />
-            <h3 className="text-xl font-semibold">To Do</h3>
-            <span className="text-sm text-gray-500">({todoTasks.length})</span>
+            {/* Uploaded Files List */}
+            {files.length > 0 && (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                <h3 className="font-semibold text-sm text-gray-400">Uploaded Files</h3>
+                {files.map((file) => (
+                  <div key={file.id} className="glass-morph p-4 rounded-lg">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3 flex-1">
+                        <FileIcon className="w-5 h-5 text-[#00d4ff]" />
+                        <div className="flex-1">
+                          <p className="font-semibold">{file.filename}</p>
+                          <p className="text-xs text-gray-400">
+                            {(file.file_size / 1024).toFixed(2)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => analyzeFile(file.id)}
+                          disabled={analyzingFile === file.id}
+                          className="bg-[#00d4ff] hover:bg-[#00d4ff]/80"
+                        >
+                          {analyzingFile === file.id ? 'Analyzing...' : 'Analyze'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteFile(file.id)}
+                          className="border-red-500 text-red-500 hover:bg-red-500/10"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {file.analysis && (
+                      <div className="mt-3 p-3 bg-[#1a1d2e] rounded-lg">
+                        <p className="text-xs font-semibold text-[#00d4ff] mb-2">AI Analysis:</p>
+                        <div className="text-sm text-gray-300 prose prose-invert prose-sm max-w-none">
+                          <ReactMarkdown>{file.analysis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="space-y-3">
-            {todoTasks.map((task, index) => (
-              <div key={task.id} className={`glass-morph rounded-lg p-4 ${getPriorityColor(task.priority)}`} data-testid={`task-todo-${index}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold flex-1">{task.title}</h4>
-                  {task.ai_generated && (
-                    <Sparkles className="w-4 h-4 text-[#00d4ff] flex-shrink-0" title="AI Generated" />
-                  )}
-                </div>
-                <p className="text-sm text-gray-400 mb-3">{task.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">{task.priority}</span>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
-                      onClick={() => updateTaskStatus(task.id, 'in_progress')}
-                      data-testid={`start-task-${index}`}
-                    >
-                      Start
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-500 text-red-500 hover:bg-red-500/10"
-                      onClick={() => deleteTask(task.id)}
-                      data-testid={`delete-task-${index}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Toggle & Calendar */}
+      {view === 'calendar' && (
+        <div className="glass-morph rounded-xl p-6">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            className="mx-auto"
+          />
+        </div>
+      )}
+
+      {/* Priority View */}
+      {view === 'priority' && (
+        <div className="space-y-6">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="stat-card rounded-xl p-4" data-testid="active-tasks-count">
+              <p className="text-gray-400 text-sm">Active Tasks</p>
+              <p className="text-3xl font-bold">{displayedTasks.length}</p>
+              <p className="text-xs text-gray-500 mt-1">Top 10 priority tasks</p>
+            </div>
+            <div className="stat-card rounded-xl p-4" data-testid="completed-count">
+              <p className="text-gray-400 text-sm">Completed</p>
+              <p className="text-3xl font-bold text-green-500">{completedTasks.length}</p>
+            </div>
+            <div className="stat-card rounded-xl p-4" data-testid="files-count">
+              <p className="text-gray-400 text-sm">Uploaded Files</p>
+              <p className="text-3xl font-bold text-[#00d4ff]">{files.length}</p>
+            </div>
+          </div>
+
+          {/* Priority Task List */}
+          <div className="glass-morph rounded-xl p-6">
+            <h3 className="text-xl font-semibold mb-4">Priority Tasks (1-10)</h3>
+            <div className="space-y-3">
+              {displayedTasks.map((task, index) => (
+                <div 
+                  key={task.id} 
+                  className={`glass-morph rounded-lg p-4 ${getPriorityColor(task.priority)}`}
+                  data-testid={`priority-task-${index}`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#00d4ff] to-[#4785ff] text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold">{task.title}</h4>
+                            {task.ai_generated && (
+                              <Sparkles className="w-4 h-4 text-[#00d4ff]" title="AI Generated" />
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-400">{task.description}</p>
+                        </div>
+                        <span className={`text-xs px-3 py-1 rounded-full ${getPriorityBadge(task.priority)}`}>
+                          {task.priority.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          size="sm"
+                          onClick={() => updateTaskStatus(task.id, task.status === 'todo' ? 'in_progress' : 'completed')}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                          data-testid={`complete-task-${index}`}
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
+                          {task.status === 'todo' ? 'Start' : 'Complete'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteTask(task.id)}
+                          className="border-red-500 text-red-500 hover:bg-red-500/10"
+                          data-testid={`delete-task-${index}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        {/* In Progress Column */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-blue-500" />
-            <h3 className="text-xl font-semibold">In Progress</h3>
-            <span className="text-sm text-gray-500">({inProgressTasks.length})</span>
+            {displayedTasks.length === 0 && (
+              <div className="text-center py-12">
+                <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No active tasks</h3>
+                <p className="text-gray-400 mb-6">Create your first task or let AI generate tasks for you</p>
+                <Button
+                  onClick={generateAITasks}
+                  className="bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate AI Tasks
+                </Button>
+              </div>
+            )}
           </div>
-          <div className="space-y-3">
-            {inProgressTasks.map((task, index) => (
-              <div key={task.id} className={`glass-morph rounded-lg p-4 ${getPriorityColor(task.priority)}`} data-testid={`task-inprogress-${index}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold flex-1">{task.title}</h4>
-                  {task.ai_generated && (
-                    <Sparkles className="w-4 h-4 text-[#00d4ff] flex-shrink-0" title="AI Generated" />
-                  )}
-                </div>
-                <p className="text-sm text-gray-400 mb-3">{task.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs px-2 py-1 rounded-full bg-blue-700 text-blue-300">{task.priority}</span>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-green-500 text-green-500 hover:bg-green-500/10"
-                      onClick={() => updateTaskStatus(task.id, 'completed')}
-                      data-testid={`complete-task-${index}`}
-                    >
-                      Complete
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-500 text-red-500 hover:bg-red-500/10"
-                      onClick={() => deleteTask(task.id)}
-                      data-testid={`delete-inprogress-task-${index}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+
+          {/* Completed Tasks */}
+          {completedTasks.length > 0 && (
+            <div className="glass-morph rounded-xl p-6">
+              <h3 className="text-xl font-semibold mb-4 text-green-500">Completed Tasks ({completedTasks.length})</h3>
+              <div className="space-y-3">
+                {completedTasks.slice(0, 5).map((task, index) => (
+                  <div key={task.id} className="glass-morph rounded-lg p-4 opacity-60">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <span className="line-through">{task.title}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => deleteTask(task.id)}
+                        className="border-red-500 text-red-500 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Completed Column */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
-            <h3 className="text-xl font-semibold">Completed</h3>
-            <span className="text-sm text-gray-500">({completedTasks.length})</span>
-          </div>
-          <div className="space-y-3">
-            {completedTasks.map((task, index) => (
-              <div key={task.id} className="glass-morph rounded-lg p-4 opacity-70" data-testid={`task-completed-${index}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold flex-1 line-through">{task.title}</h4>
-                  {task.ai_generated && (
-                    <Sparkles className="w-4 h-4 text-[#00d4ff] flex-shrink-0" title="AI Generated" />
-                  )}
-                </div>
-                <p className="text-sm text-gray-400 mb-3">{task.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs px-2 py-1 rounded-full bg-green-700 text-green-300">Done</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-500/10"
-                    onClick={() => deleteTask(task.id)}
-                    data-testid={`delete-completed-task-${index}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {tasks.length === 0 && (
-        <div className="glass-morph rounded-2xl p-12 text-center">
-          <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No tasks yet</h3>
-          <p className="text-gray-400 mb-6">Create your first task or let AI generate tasks for you</p>
-          <Button
-            onClick={generateAITasks}
-            className="bg-gradient-to-r from-[#00d4ff] to-[#4785ff] hover:opacity-90"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Generate AI Tasks
-          </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
