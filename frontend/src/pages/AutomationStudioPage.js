@@ -20,6 +20,29 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare, Mic, Send, Video, Image, CheckSquare, Settings, X, Clock, Copy, Calendar } from 'lucide-react';
 
+// Helper component for nodes with handles
+const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true }) => {
+  return (
+    <div className="relative">
+      {hasInput && (
+        <Handle 
+          type="target" 
+          position={Position.Left} 
+          style={{ background: color, width: '12px', height: '12px', border: '2px solid #0f1218' }}
+        />
+      )}
+      {children}
+      {hasOutput && (
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          style={{ background: color, width: '12px', height: '12px', border: '2px solid #0f1218' }}
+        />
+      )}
+    </div>
+  );
+};
+
 // Custom Node Components
 const StartNode = ({ data }) => {
   return (
