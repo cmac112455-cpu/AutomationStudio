@@ -410,8 +410,8 @@ export default function AutomationStudioPage() {
           {id: 'ai-1', type: 'gemini', position: {x: 300, y: 100}, data: {prompt: 'Generate a creative and detailed 4-second video concept for a product advertisement. Describe the scene, action, and visual details that Sora 2 should create.', model: 'gemini-2.5-pro'}},
           {id: 'video-1', type: 'videogen', position: {x: 500, y: 100}, data: {duration: 4, size: '1280x720'}},
           {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 100}, data: {}},
-          {id: 'ai-2', type: 'gemini', position: {x: 300, y: 250}, data: {prompt: 'Based on the previous video concept, generate a continuation that seamlessly follows the story. Describe what happens next in 4 seconds with specific visual details for Sora 2.', model: 'gemini-2.5-pro'}},
-          {id: 'video-2', type: 'videogen', position: {x: 500, y: 250}, data: {duration: 4, size: '1280x720'}},
+          {id: 'ai-2', type: 'gemini', position: {x: 300, y: 250}, data: {prompt: 'Based on the previous video concept, generate a seamless continuation. Describe what happens next in 4 seconds with specific motion and visual details.', model: 'gemini-2.5-pro'}},
+          {id: 'video-2', type: 'imagetovideo', position: {x: 500, y: 250}, data: {duration: 4, size: '1280x720'}},
           {id: 'screenshot-2', type: 'screenshot', position: {x: 700, y: 250}, data: {}},
           {id: 'stitch-1', type: 'stitch', position: {x: 900, y: 175}, data: {}},
           {id: 'end-1', type: 'end', position: {x: 1100, y: 175}, data: {}}
