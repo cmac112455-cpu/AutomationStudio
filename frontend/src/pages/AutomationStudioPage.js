@@ -567,9 +567,10 @@ export default function AutomationStudioPage() {
           </Button>
           <Button
             onClick={executeWorkflow}
-            disabled={executing || !currentWorkflow}
+            disabled={executing || nodes.length < 2}
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
             size="sm"
+            title={nodes.length < 2 ? 'Add nodes to execute' : 'Execute workflow'}
           >
             <Play className="w-4 h-4 mr-2" />
             {executing ? 'Executing...' : 'Execute'}
