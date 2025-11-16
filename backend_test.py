@@ -415,14 +415,21 @@ class BackendTester:
             self.log_result("Workflow Creation", False, f"Workflow creation error: {str(e)}")
             return False, None
     
-    def test_workflow_execution(self, workflow_id):
-        """Test executing the workflow and monitoring progress"""
+    def test_workflow_execution_with_logs(self, workflow_id):
+        """Test executing the workflow with REAL-TIME log monitoring"""
         if not self.auth_token or not workflow_id:
-            self.log_result("Workflow Execution", False, "No auth token or workflow ID available")
+            self.log_result("Workflow Execution with Logs", False, "No auth token or workflow ID available")
             return False, None
             
         try:
+            print("\n🚀 STARTING WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
+            print("=" * 80)
+            
+            # Start log monitoring BEFORE execution
+            self.start_log_monitoring()
+            
             # Execute workflow
+            print("📤 Sending workflow execution request...")
             response = self.session.post(f"{self.base_url}/workflows/{workflow_id}/execute")
             
             if response.status_code == 200:
@@ -431,20 +438,40 @@ class BackendTester:
                 status = data.get("status")
                 
                 if execution_id:
-                    self.log_result("Workflow Execution", True, 
-                                  f"Workflow execution started successfully. Status: {status}", 
-                                  f"Execution ID: {execution_id}")
-                    return True, execution_id
+                    print(f"✅ Workflow execution started! Execution ID: {execution_id}")
+                    print(f"📊 Initial Status: {status}")
+                    print("\n🔄 MONITORING EXECUTION PROGRESS...")
+                    print("-" * 60)
+                    
+                    # Monitor execution with logs
+                    success = self.monitor_execution_with_logs(execution_id)
+                    
+                    # Stop log monitoring
+                    captured_logs = self.stop_log_monitoring()
+                    
+                    if success:
+                        self.log_result("Workflow Execution with Logs", True, 
+                                      f"Workflow execution completed successfully with real-time log monitoring", 
+                                      f"Execution ID: {execution_id}, Logs captured: {len(captured_logs)}")
+                        return True, execution_id
+                    else:
+                        self.log_result("Workflow Execution with Logs", False, 
+                                      f"Workflow execution failed during monitoring", 
+                                      f"Execution ID: {execution_id}, Logs captured: {len(captured_logs)}")
+                        return False, execution_id
                 else:
-                    self.log_result("Workflow Execution", False, "No execution ID returned")
+                    self.stop_log_monitoring()
+                    self.log_result("Workflow Execution with Logs", False, "No execution ID returned")
                     return False, None
             else:
-                self.log_result("Workflow Execution", False, 
+                self.stop_log_monitoring()
+                self.log_result("Workflow Execution with Logs", False, 
                               f"Workflow execution failed with status {response.status_code}", response.text)
                 return False, None
                 
         except Exception as e:
-            self.log_result("Workflow Execution", False, f"Workflow execution error: {str(e)}")
+            self.stop_log_monitoring()
+            self.log_result("Workflow Execution with Logs", False, f"Workflow execution error: {str(e)}")
             return False, None
     
     def test_execution_monitoring(self, execution_id):
