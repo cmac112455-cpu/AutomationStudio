@@ -184,6 +184,8 @@ export default function AutomationStudioPage() {
   const [currentWorkflow, setCurrentWorkflow] = useState(null);
   const [executing, setExecuting] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [nodeConfig, setNodeConfig] = useState({});
 
   const onConnect = useCallback(
     (params) =>
