@@ -732,6 +732,13 @@ export default function AutomationStudioPage() {
               Video Gen
             </button>
             <button
+              onClick={() => addNode('screenshot')}
+              className="w-full p-2 rounded bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-xs flex items-center gap-2"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              Screenshot
+            </button>
+            <button
               onClick={() => addNode('elevenlabs')}
               className="w-full p-2 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-xs flex items-center gap-2"
             >
