@@ -1,15 +1,19 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+import bcrypt
+import jwt
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+import random
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,54 +23,586 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# JWT Configuration
+JWT_SECRET = os.environ.get('JWT_SECRET', 'secret_key')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 24
 
-# Create a router with the /api prefix
+# Security
+security = HTTPBearer()
+
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ============ MODELS ============
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    email: EmailStr
+    password_hash: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    profile_completed: bool = False
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
 
-# Add your routes to the router instead of directly to app
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: str
+    profile_completed: bool
+
+class BusinessProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    business_type: str  # "existing" or "starting"
+    # For existing businesses
+    business_name: Optional[str] = None
+    industry: Optional[str] = None
+    description: Optional[str] = None
+    target_audience: Optional[str] = None
+    products_services: Optional[str] = None
+    # For starting businesses
+    business_idea: Optional[str] = None
+    desired_industry: Optional[str] = None
+    goals: Optional[str] = None
+    # Common fields
+    ad_copy_library: Optional[List[str]] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class BusinessProfileCreate(BaseModel):
+    business_type: str
+    business_name: Optional[str] = None
+    industry: Optional[str] = None
+    description: Optional[str] = None
+    target_audience: Optional[str] = None
+    products_services: Optional[str] = None
+    business_idea: Optional[str] = None
+    desired_industry: Optional[str] = None
+    goals: Optional[str] = None
+    ad_copy_library: Optional[List[str]] = Field(default_factory=list)
+
+class FinancialData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    month: str
+    revenue: float
+    expenses: float
+    profit_margin: float
+    calls_count: int = 0
+    bookings_count: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FinancialDataCreate(BaseModel):
+    month: str
+    revenue: float
+    expenses: float
+    profit_margin: float
+    calls_count: int = 0
+    bookings_count: int = 0
+
+class AdCampaign(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    campaign_name: str
+    status: str  # "active", "paused", "completed"
+    ctr: float  # Click-through rate
+    cpc: float  # Cost per click
+    roas: float  # Return on ad spend
+    spend: float
+    conversions: int
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CommunicationFeeds(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    instagram_dm_count: int = 0
+    twitter_mention_count: int = 0
+    email_count: int = 0
+    date: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Task(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    description: str
+    priority: str  # "high", "medium", "low"
+    status: str  # "todo", "in_progress", "completed"
+    ai_generated: bool = True
+    deadline: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+    priority: str = "medium"
+    status: str = "todo"
+    deadline: Optional[datetime] = None
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    deadline: Optional[datetime] = None
+
+class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_id: str
+    role: str  # "user" or "assistant"
+    content: str
+    model_used: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    model_used: str
+
+# ============ AUTH HELPERS ============
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def create_access_token(user_id: str) -> str:
+    expiration = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    payload = {
+        'user_id': user_id,
+        'exp': expiration
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get('user_id')
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return user_id
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+# ============ AUTH ENDPOINTS ============
+
+@api_router.post("/auth/register", response_model=TokenResponse)
+async def register(user_data: UserRegister):
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user = User(
+        email=user_data.email,
+        password_hash=hash_password(user_data.password)
+    )
+    
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    
+    await db.users.insert_one(user_dict)
+    
+    # Generate token
+    token = create_access_token(user.id)
+    
+    return TokenResponse(
+        access_token=token,
+        user_id=user.id,
+        profile_completed=False
+    )
+
+@api_router.post("/auth/login", response_model=TokenResponse)
+async def login(user_data: UserLogin):
+    # Find user
+    user_dict = await db.users.find_one({"email": user_data.email})
+    if not user_dict:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Verify password
+    if not verify_password(user_data.password, user_dict['password_hash']):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Generate token
+    token = create_access_token(user_dict['id'])
+    
+    return TokenResponse(
+        access_token=token,
+        user_id=user_dict['id'],
+        profile_completed=user_dict.get('profile_completed', False)
+    )
+
+@api_router.get("/auth/me")
+async def get_current_user_info(user_id: str = Depends(get_current_user)):
+    user_dict = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user_dict:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_dict
+
+# ============ BUSINESS PROFILE ENDPOINTS ============
+
+@api_router.post("/profile")
+async def create_business_profile(profile_data: BusinessProfileCreate, user_id: str = Depends(get_current_user)):
+    # Check if profile already exists
+    existing_profile = await db.business_profiles.find_one({"user_id": user_id})
+    
+    if existing_profile:
+        # Update existing profile
+        profile_dict = profile_data.model_dump(exclude_unset=True)
+        profile_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+        
+        await db.business_profiles.update_one(
+            {"user_id": user_id},
+            {"$set": profile_dict}
+        )
+        
+        # Update user profile_completed status
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"profile_completed": True}}
+        )
+        
+        updated_profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        return updated_profile
+    
+    # Create new profile
+    profile = BusinessProfile(
+        user_id=user_id,
+        **profile_data.model_dump()
+    )
+    
+    profile_dict = profile.model_dump()
+    profile_dict['created_at'] = profile_dict['created_at'].isoformat()
+    profile_dict['updated_at'] = profile_dict['updated_at'].isoformat()
+    
+    await db.business_profiles.insert_one(profile_dict)
+    
+    # Update user profile_completed status
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"profile_completed": True}}
+    )
+    
+    return profile_dict
+
+@api_router.get("/profile")
+async def get_business_profile(user_id: str = Depends(get_current_user)):
+    profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+# ============ DASHBOARD DATA ENDPOINTS ============
+
+@api_router.get("/dashboard")
+async def get_dashboard_data(user_id: str = Depends(get_current_user)):
+    # Get financial data (simulated)
+    financial_data = list(await db.financial_data.find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).limit(6).to_list(6))
+    
+    # If no data, generate simulated data
+    if not financial_data:
+        months = ["January", "February", "March", "April", "May", "June"]
+        for month in months:
+            revenue = random.uniform(50000, 150000)
+            expenses = random.uniform(20000, 60000)
+            data = FinancialData(
+                user_id=user_id,
+                month=month,
+                revenue=round(revenue, 2),
+                expenses=round(expenses, 2),
+                profit_margin=round(((revenue - expenses) / revenue) * 100, 2),
+                calls_count=random.randint(50, 200),
+                bookings_count=random.randint(20, 100)
+            )
+            data_dict = data.model_dump()
+            data_dict['created_at'] = data_dict['created_at'].isoformat()
+            await db.financial_data.insert_one(data_dict)
+        
+        financial_data = list(await db.financial_data.find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).limit(6).to_list(6))
+    
+    # Get ad campaigns (simulated)
+    ad_campaigns = list(await db.ad_campaigns.find({"user_id": user_id}, {"_id": 0}).to_list(10))
+    
+    if not ad_campaigns:
+        campaigns = [
+            {"campaign_name": "Summer Sale 2025", "status": "active", "ctr": 3.2, "cpc": 1.25, "roas": 4.5, "spend": 5000, "conversions": 125},
+            {"campaign_name": "Product Launch", "status": "active", "ctr": 4.1, "cpc": 0.95, "roas": 5.2, "spend": 3500, "conversions": 98},
+            {"campaign_name": "Brand Awareness", "status": "paused", "ctr": 2.8, "cpc": 1.50, "roas": 3.1, "spend": 2000, "conversions": 45}
+        ]
+        
+        for camp in campaigns:
+            campaign = AdCampaign(user_id=user_id, **camp)
+            campaign_dict = campaign.model_dump()
+            campaign_dict['created_at'] = campaign_dict['created_at'].isoformat()
+            await db.ad_campaigns.insert_one(campaign_dict)
+        
+        ad_campaigns = list(await db.ad_campaigns.find({"user_id": user_id}, {"_id": 0}).to_list(10))
+    
+    # Get communication feeds (simulated for today)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    comm_feeds = await db.communication_feeds.find_one({"user_id": user_id, "date": today}, {"_id": 0})
+    
+    if not comm_feeds:
+        feeds = CommunicationFeeds(
+            user_id=user_id,
+            instagram_dm_count=random.randint(10, 50),
+            twitter_mention_count=random.randint(5, 30),
+            email_count=random.randint(20, 80),
+            date=today
+        )
+        feeds_dict = feeds.model_dump()
+        feeds_dict['created_at'] = feeds_dict['created_at'].isoformat()
+        await db.communication_feeds.insert_one(feeds_dict)
+        comm_feeds = feeds_dict
+    
+    return {
+        "financial": financial_data,
+        "ad_campaigns": ad_campaigns,
+        "communication_feeds": comm_feeds
+    }
+
+# ============ AI CO-PILOT ENDPOINT ============
+
+@api_router.post("/copilot/chat", response_model=ChatResponse)
+async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(get_current_user)):
+    # Get or create session ID
+    session_id = chat_request.session_id or str(uuid.uuid4())
+    
+    # Get user's business profile for context
+    profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    # Get recent chat history
+    chat_history = list(await db.chat_messages.find(
+        {"user_id": user_id, "session_id": session_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(10).to_list(10))
+    chat_history.reverse()
+    
+    # Build context-aware system message
+    if profile:
+        if profile.get('business_type') == 'existing':
+            business_context = f"""You are an elite AI Business Co-Pilot for {profile.get('business_name', 'the user')}.
+            Industry: {profile.get('industry', 'Not specified')}
+            Description: {profile.get('description', 'Not specified')}
+            Target Audience: {profile.get('target_audience', 'Not specified')}
+            Products/Services: {profile.get('products_services', 'Not specified')}
+            
+            You are a professional business strategist helping optimize this established business."""
+        else:
+            business_context = f"""You are an elite AI Business Co-Pilot helping someone start their business.
+            Business Idea: {profile.get('business_idea', 'Not specified')}
+            Desired Industry: {profile.get('desired_industry', 'Not specified')}
+            Goals: {profile.get('goals', 'Not specified')}
+            
+            IMPORTANT: Embody the mindset of a successful {profile.get('desired_industry', 'entrepreneur')} making $1,000,000 per month.
+            You built this business fast but reliably. Provide actionable advice, suggest automation tools, 
+            lead generation strategies, and industry-specific tools. Be confident and results-oriented."""
+    else:
+        business_context = "You are an elite AI Business Co-Pilot providing strategic business advice."
+    
+    system_message = f"""{business_context}
+    
+    Your capabilities:
+    - Analyze financial and operational data to identify bottlenecks and opportunities
+    - Provide strategic planning for new systems, products, or services
+    - Optimize ad campaigns and suggest high-performing ad copy
+    - Recommend automation tools and strategies
+    - Give data-driven insights and actionable recommendations
+    
+    Be direct, insightful, and action-oriented. Focus on revenue growth and efficiency."""
+    
+    # Determine which model to use based on query type
+    query_lower = chat_request.message.lower()
+    
+    if any(word in query_lower for word in ['strategy', 'plan', 'roadmap', 'future']):
+        model_provider = 'openai'
+        model_name = 'gpt-5'
+    elif any(word in query_lower for word in ['analyze', 'data', 'performance', 'metric']):
+        model_provider = 'anthropic'
+        model_name = 'claude-4-sonnet-20250514'
+    else:
+        model_provider = 'gemini'
+        model_name = 'gemini-2.5-pro'
+    
+    # Initialize LLM Chat
+    try:
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=session_id,
+            system_message=system_message
+        ).with_model(model_provider, model_name)
+        
+        # Send message
+        user_message = UserMessage(text=chat_request.message)
+        response = await chat.send_message(user_message)
+        
+        # Save user message
+        user_msg = ChatMessage(
+            user_id=user_id,
+            session_id=session_id,
+            role="user",
+            content=chat_request.message
+        )
+        user_msg_dict = user_msg.model_dump()
+        user_msg_dict['created_at'] = user_msg_dict['created_at'].isoformat()
+        await db.chat_messages.insert_one(user_msg_dict)
+        
+        # Save assistant message
+        assistant_msg = ChatMessage(
+            user_id=user_id,
+            session_id=session_id,
+            role="assistant",
+            content=response,
+            model_used=f"{model_provider}/{model_name}"
+        )
+        assistant_msg_dict = assistant_msg.model_dump()
+        assistant_msg_dict['created_at'] = assistant_msg_dict['created_at'].isoformat()
+        await db.chat_messages.insert_one(assistant_msg_dict)
+        
+        return ChatResponse(
+            response=response,
+            session_id=session_id,
+            model_used=f"{model_provider}/{model_name}"
+        )
+    except Exception as e:
+        logging.error(f"AI Co-Pilot error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI Co-Pilot error: {str(e)}")
+
+@api_router.get("/copilot/history/{session_id}")
+async def get_chat_history(session_id: str, user_id: str = Depends(get_current_user)):
+    messages = list(await db.chat_messages.find(
+        {"user_id": user_id, "session_id": session_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100))
+    return {"messages": messages}
+
+# ============ TASK PLANNER ENDPOINTS ============
+
+@api_router.get("/tasks")
+async def get_tasks(user_id: str = Depends(get_current_user)):
+    tasks = list(await db.tasks.find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).to_list(100))
+    return {"tasks": tasks}
+
+@api_router.post("/tasks")
+async def create_task(task_data: TaskCreate, user_id: str = Depends(get_current_user)):
+    task = Task(
+        user_id=user_id,
+        **task_data.model_dump(),
+        ai_generated=False
+    )
+    
+    task_dict = task.model_dump()
+    task_dict['created_at'] = task_dict['created_at'].isoformat()
+    task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+    if task_dict.get('deadline'):
+        task_dict['deadline'] = task_dict['deadline'].isoformat()
+    
+    await db.tasks.insert_one(task_dict)
+    return task_dict
+
+@api_router.patch("/tasks/{task_id}")
+async def update_task(task_id: str, task_update: TaskUpdate, user_id: str = Depends(get_current_user)):
+    update_data = task_update.model_dump(exclude_unset=True)
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    if 'deadline' in update_data and update_data['deadline']:
+        update_data['deadline'] = update_data['deadline'].isoformat()
+    
+    result = await db.tasks.update_one(
+        {"id": task_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    updated_task = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+    return updated_task
+
+@api_router.delete("/tasks/{task_id}")
+async def delete_task(task_id: str, user_id: str = Depends(get_current_user)):
+    result = await db.tasks.delete_one({"id": task_id, "user_id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return {"message": "Task deleted successfully"}
+
+@api_router.post("/tasks/generate")
+async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
+    # Get business profile and dashboard data
+    profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    # Generate AI-powered tasks based on business context
+    tasks_to_create = []
+    
+    if profile:
+        if profile.get('business_type') == 'starting':
+            tasks_to_create = [
+                {"title": "Research market demand", "description": f"Conduct market research for {profile.get('business_idea', 'your business idea')}", "priority": "high"},
+                {"title": "Set up automation tools", "description": "Implement lead generation and outreach automation", "priority": "high"},
+                {"title": "Create initial ad campaigns", "description": "Design and launch first Meta ad campaigns", "priority": "medium"},
+                {"title": "Build landing page", "description": "Create high-converting landing page for lead capture", "priority": "high"},
+            ]
+        else:
+            tasks_to_create = [
+                {"title": "Optimize ad performance", "description": "Review and optimize underperforming ad campaigns", "priority": "high"},
+                {"title": "Analyze expense reports", "description": "Identify cost-saving opportunities in current operations", "priority": "medium"},
+                {"title": "Update ad copy library", "description": "Refresh ad copy based on recent performance data", "priority": "medium"},
+                {"title": "Automate customer responses", "description": "Set up automated responses for common customer inquiries", "priority": "low"},
+            ]
+    
+    created_tasks = []
+    for task_data in tasks_to_create:
+        task = Task(
+            user_id=user_id,
+            **task_data,
+            status="todo",
+            ai_generated=True
+        )
+        
+        task_dict = task.model_dump()
+        task_dict['created_at'] = task_dict['created_at'].isoformat()
+        task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+        if task_dict.get('deadline'):
+            task_dict['deadline'] = task_dict['deadline'].isoformat()
+        
+        await db.tasks.insert_one(task_dict)
+        created_tasks.append(task_dict)
+    
+    return {"tasks": created_tasks}
+
+# ============ ROOT & HEALTH ============
+
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "APOE API - Autonomous Profit Optimization Engine"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
 app.include_router(api_router)
 
 app.add_middleware(
@@ -77,7 +613,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
