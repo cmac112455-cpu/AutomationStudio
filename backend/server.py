@@ -2079,6 +2079,75 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 except Exception as e:
                     result = {"status": "error", "error": f"Screenshot extraction failed: {str(e)}"}
             
+            elif node_type == 'stitch':
+                # Execute Video Stitching - combine multiple videos
+                try:
+                    # Get video data from node config or collect from results
+                    # The stitch node should collect all videos from previous nodes in the workflow
+                    video_list = []
+                    
+                    # Collect video_base64 from all previous nodes' results
+                    for node_id, node_result in results.items():
+                        if isinstance(node_result, dict) and node_result.get('video_base64'):
+                            video_list.append(node_result['video_base64'])
+                    
+                    if len(video_list) < 2:
+                        result = {"status": "error", "error": f"Need at least 2 videos to stitch. Found {len(video_list)} videos."}
+                    else:
+                        import subprocess
+                        import tempfile
+                        
+                        # Save all videos to temporary files
+                        temp_files = []
+                        temp_dir = tempfile.mkdtemp()
+                        
+                        for idx, video_base64 in enumerate(video_list):
+                            video_bytes = base64.b64decode(video_base64)
+                            temp_path = f"{temp_dir}/video_{idx}.mp4"
+                            with open(temp_path, 'wb') as f:
+                                f.write(video_bytes)
+                            temp_files.append(temp_path)
+                        
+                        # Create concat file for ffmpeg
+                        concat_file = f"{temp_dir}/concat.txt"
+                        with open(concat_file, 'w') as f:
+                            for temp_path in temp_files:
+                                f.write(f"file '{temp_path}'\n")
+                        
+                        # Output file
+                        output_path = f"{temp_dir}/stitched_output.mp4"
+                        
+                        # Run ffmpeg to concatenate videos
+                        cmd = [
+                            'ffmpeg', '-f', 'concat', '-safe', '0',
+                            '-i', concat_file,
+                            '-c', 'copy',  # Copy streams without re-encoding for speed
+                            output_path
+                        ]
+                        
+                        subprocess.run(cmd, check=True, capture_output=True)
+                        
+                        # Read stitched video
+                        with open(output_path, 'rb') as f:
+                            stitched_video_bytes = f.read()
+                        
+                        # Encode to base64
+                        stitched_video_base64 = base64.b64encode(stitched_video_bytes).decode('utf-8')
+                        
+                        # Cleanup
+                        import shutil
+                        shutil.rmtree(temp_dir)
+                        
+                        result = {
+                            "status": "success",
+                            "video_base64": stitched_video_base64,
+                            "videos_stitched": len(video_list),
+                            "prompt": f"Stitched {len(video_list)} videos together"
+                        }
+                        
+                except Exception as e:
+                    result = {"status": "error", "error": f"Video stitching failed: {str(e)}"}
+            
             elif node_type == 'taskplanner':
                 # Execute Task Planner action
                 action = node_data.get('action', 'create')
