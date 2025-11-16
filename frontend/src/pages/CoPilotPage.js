@@ -200,12 +200,12 @@ export default function CoPilotPage() {
               New Chat
             </Button>
 
-            <ScrollArea className="h-[calc(100vh-16rem)]">
+            <ScrollArea className="h-[calc(100vh-16rem)] pr-2">
               <div className="space-y-2">
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`w-full rounded-lg transition-colors flex items-start gap-2 p-2.5 ${
+                    className={`rounded-lg transition-colors flex items-start gap-2 p-2.5 max-w-full overflow-hidden ${
                       sessionId === session.id
                         ? 'bg-[#00d4ff]/20 border border-[#00d4ff]'
                         : 'hover:bg-gray-800'
