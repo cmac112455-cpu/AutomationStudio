@@ -374,6 +374,70 @@ export default function CoPilotPage() {
 
           {/* Input Area */}
           <div className="border-t border-gray-800 pt-4">
+            {/* Multi-AI Mode Toggle */}
+            <div className="mb-3 flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
+              <div className="flex items-center gap-3">
+                <Zap className={`w-5 h-5 ${multiAiMode ? 'text-purple-400' : 'text-gray-500'}`} />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="multi-ai-toggle" className="text-sm font-semibold text-white cursor-pointer">
+                      Multi-AI Collaboration Mode
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-gray-400 hover:text-white transition-colors">
+                          <Info className="w-4 h-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-4 bg-[#1a1d2e] border-gray-700" align="start">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-white">What is Multi-AI Mode?</h4>
+                          <p className="text-xs text-gray-400">
+                            When enabled, your message is processed by <strong>3 AI models simultaneously</strong>:
+                          </p>
+                          <ul className="text-xs text-gray-400 space-y-1 ml-4">
+                            <li>• <strong>GPT-5</strong> - Strategic planning</li>
+                            <li>• <strong>Claude 4 Sonnet</strong> - Data analysis</li>
+                            <li>• <strong>Gemini 2.5 Pro</strong> - General insights</li>
+                          </ul>
+                          <p className="text-xs text-gray-400">
+                            A 4th model synthesizes all responses into one optimized answer.
+                          </p>
+                          <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                            <p className="text-xs text-yellow-400">
+                              ⚠️ <strong>Uses 4x API credits</strong> per message (4 API calls instead of 1)
+                            </p>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-2">
+                            <strong>Single model mode</strong> (default) intelligently routes your question to the best model - cost-efficient and still highly effective.
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {multiAiMode 
+                      ? '⚡ Active - Using 4x credits per message' 
+                      : '💰 Efficient mode - 1 credit per message'}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="multi-ai-toggle"
+                checked={multiAiMode}
+                onCheckedChange={(checked) => {
+                  setMultiAiMode(checked);
+                  if (checked) {
+                    toast.info('Multi-AI Mode enabled - 4x credits per message');
+                  } else {
+                    toast.info('Switched to efficient single-model mode');
+                  }
+                }}
+                className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-500 data-[state=checked]:to-pink-500"
+                data-testid="multi-ai-toggle"
+              />
+            </div>
+
             <div className="flex gap-3">
               <Textarea
                 value={input}
