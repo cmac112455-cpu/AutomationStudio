@@ -438,10 +438,31 @@ async def get_dashboard_data(user_id: str = Depends(get_current_user)):
 
 # ============ AI CO-PILOT ENDPOINT ============
 
+from fastapi import Form
+
 @api_router.post("/copilot/chat", response_model=ChatResponse)
-async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(get_current_user)):
+async def chat_with_copilot(
+    message: str = Form(...),
+    session_id: Optional[str] = Form(None),
+    task_id: Optional[str] = Form(None),
+    use_multi_ai: bool = Form(False),
+    preferred_model: Optional[str] = Form(None),
+    files: List[UploadFile] = File(default=[]),
+    user_id: str = Depends(get_current_user)
+):
     # Get or create session ID
-    session_id = chat_request.session_id or str(uuid.uuid4())
+    session_id = session_id or str(uuid.uuid4())
+    
+    # Process uploaded files
+    file_contents = []
+    if files:
+        for file in files:
+            content = await file.read()
+            file_contents.append({
+                'filename': file.filename,
+                'content': base64.b64encode(content).decode('utf-8'),
+                'content_type': file.content_type
+            })
     
     # Get user's business profile for context
     profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
