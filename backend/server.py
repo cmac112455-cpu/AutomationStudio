@@ -398,12 +398,19 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     # Get user's business profile for context
     profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
     
-    # Get recent chat history
+    # Get full chat history for this session
     chat_history = list(await db.chat_messages.find(
         {"user_id": user_id, "session_id": session_id},
         {"_id": 0}
-    ).sort("created_at", -1).limit(10).to_list(10))
-    chat_history.reverse()
+    ).sort("created_at", 1).to_list(50))
+    
+    # Build conversation history context
+    conversation_context = ""
+    if chat_history:
+        conversation_context = "\n\nPrevious conversation:\n"
+        for msg in chat_history[-10:]:  # Last 10 messages for context
+            role = "User" if msg['role'] == 'user' else "Assistant"
+            conversation_context += f"{role}: {msg['content'][:200]}...\n"
     
     # Build context-aware system message
     if profile:
@@ -436,7 +443,14 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     - Recommend automation tools and strategies
     - Give data-driven insights and actionable recommendations
     
-    Be direct, insightful, and action-oriented. Focus on revenue growth and efficiency."""
+    CRITICAL RESPONSE STYLE:
+    - Keep responses SHORT and CONCISE (2-4 sentences or 3-5 bullet points max)
+    - Be DIRECT and ACTIONABLE - no fluff
+    - Use bullet points for clarity when listing items
+    - Focus on immediate next steps
+    - If asked for detailed plans, break into numbered steps (max 5 steps)
+    
+    Remember: Brevity = Impact. The user values quick, actionable insights over long explanations.{conversation_context}"""
     
     # Determine which model to use based on query type
     query_lower = chat_request.message.lower()
