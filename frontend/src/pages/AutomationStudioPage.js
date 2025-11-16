@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare, Mic, Send, Video, Image, CheckSquare, Settings, X, Clock, Copy, Calendar } from 'lucide-react';
 
 // Helper component for nodes with handles
-const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true, nodeId, nodeType, onDelete, onConfigure }) => {
+const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true, nodeType = 'default' }) => {
   const [showMenu, setShowMenu] = React.useState(false);
   
   return (
@@ -44,45 +44,41 @@ const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true, node
       
       {/* Three-dot menu - only show for non-start nodes */}
       {nodeType !== 'start' && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowMenu(!showMenu);
             }}
-            className="p-1 rounded hover:bg-white/10 transition-colors"
-            title="Node menu"
+            onMouseDown={(e) => e.stopPropagation()}
+            className="p-1 rounded bg-black/20 hover:bg-black/40 backdrop-blur-sm border border-gray-700/50 transition-colors"
+            title="Node options"
           >
-            <MoreVertical className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+            <MoreVertical className="w-3.5 h-3.5 text-gray-300" />
           </button>
           
           {showMenu && (
-            <div className="absolute right-0 top-8 bg-[#1a1d2e] border border-gray-700 rounded-lg shadow-xl z-50 min-w-[150px]">
-              {nodeType !== 'end' && (
+            <>
+              <div 
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMenu(false)}
+              />
+              <div className="absolute right-0 top-8 bg-[#1a1d2e] border border-gray-700 rounded-lg shadow-xl z-50 min-w-[150px]">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowMenu(false);
-                    if (onConfigure) onConfigure();
+                    // Trigger delete via custom event
+                    window.dispatchEvent(new CustomEvent('deleteNode', { detail: { nodeType } }));
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors rounded-lg"
                 >
-                  <Settings className="w-3.5 h-3.5" />
-                  Configure
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete Node
                 </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(false);
-                  if (onDelete) onDelete(nodeId);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors rounded-b-lg"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Delete Node
-              </button>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}
