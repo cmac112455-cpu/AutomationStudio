@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Multi-AI Toggle Functionality
-Tests the copilot chat endpoint with use_multi_ai flag
+Backend API Testing for Workflow Execution with Image Generation
+Tests workflow creation, execution, and monitoring functionality
 """
 
 import requests
