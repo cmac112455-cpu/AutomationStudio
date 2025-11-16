@@ -750,7 +750,7 @@ async def chat_with_copilot(
             if len(individual_responses) >= 2:
                 reasoning_prompt = f"""Synthesize the best response from multiple AI models.
 
-User's Question: {chat_request.message}
+User's Question: {full_message}
 
 {chr(10).join([f"**{resp['model']}**: {resp['response']}" for resp in individual_responses])}
 
