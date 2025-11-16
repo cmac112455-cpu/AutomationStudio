@@ -414,68 +414,155 @@ export default function CoPilotPage() {
           </div>
         </div>
 
-        {/* Info Cards & Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 flex-shrink-0">
-          <div className="glass-morph p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <p className="text-sm font-semibold">GPT-5</p>
+        {/* AI Settings & Actions */}
+        <div className="glass-morph rounded-2xl p-6 mt-6 flex-shrink-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Section: Model Selection & Multi-AI Toggle */}
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-300 mb-2 block">AI Model Selection</label>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger className="w-full bg-[#1a1d2e] border-gray-700 text-white">
+                    <SelectValue placeholder="Select AI Model" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                    <SelectItem value="intelligent" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <Brain className="w-4 h-4 text-[#00d4ff]" />
+                        <div>
+                          <p className="font-semibold">Intelligent Routing</p>
+                          <p className="text-xs text-gray-400">Auto-selects best model per query</p>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gpt5" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <div>
+                          <p className="font-semibold">GPT-5</p>
+                          <p className="text-xs text-gray-400">Best for strategy & planning</p>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="claude" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <div>
+                          <p className="font-semibold">Claude 4 Sonnet</p>
+                          <p className="text-xs text-gray-400">Best for data analysis</p>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gemini" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <div>
+                          <p className="font-semibold">Gemini 2.5 Pro</p>
+                          <p className="text-xs text-gray-400">Best for general insights</p>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Multi-AI Collaboration Toggle */}
+              <div className="p-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Zap className={`w-5 h-5 flex-shrink-0 ${multiAiMode ? 'text-purple-400' : 'text-gray-500'}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="multi-ai-toggle" className="text-sm font-semibold text-white cursor-pointer">
+                          Multi-AI Collaboration
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="text-gray-400 hover:text-white transition-colors">
+                              <Info className="w-4 h-4" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-4 bg-[#1a1d2e] border-gray-700" align="start">
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-white">Multi-AI Collaboration</h4>
+                              <p className="text-xs text-gray-400">
+                                Uses <strong>3 models simultaneously</strong> (GPT-5, Claude, Gemini) + synthesis model.
+                              </p>
+                              <div className="p-2 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                                <p className="text-xs text-yellow-400">
+                                  ⚠️ <strong>Uses 4x credits</strong> per message
+                                </p>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {multiAiMode ? '⚡ Active - 4x credits' : '💰 Off - 1x credit'}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="multi-ai-toggle"
+                    checked={multiAiMode}
+                    onCheckedChange={(checked) => {
+                      setMultiAiMode(checked);
+                      if (checked) {
+                        toast.info('Multi-AI Mode enabled - 4x credits per message');
+                      } else {
+                        toast.info('Switched to single-model mode');
+                      }
+                    }}
+                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-500 data-[state=checked]:to-pink-500"
+                    data-testid="multi-ai-toggle"
+                  />
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-400">Strategic planning & roadmaps</p>
-          </div>
-          <div className="glass-morph p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-              <p className="text-sm font-semibold">Claude 4 Sonnet</p>
+
+            {/* Right Section: Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={async () => {
+                  try {
+                    toast.info('AI is researching strategies for your business...');
+                    const response = await axios.post('/ai/research');
+                    if (response.data.research_completed) {
+                      toast.success(`AI learned ${response.data.insights_found} new strategies!`);
+                    } else {
+                      toast.error('Research failed');
+                    }
+                  } catch (error) {
+                    toast.error('Failed to research');
+                  }
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 h-full"
+                data-testid="ai-research-button"
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                AI Research Mode
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    const response = await axios.post('/tasks/update-from-insights');
+                    if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
+                      toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new tasks.`);
+                    } else {
+                      toast.info(response.data.message);
+                    }
+                  } catch (error) {
+                    toast.error('Failed to update tasks');
+                  }
+                }}
+                className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] hover:opacity-90 h-full"
+                data-testid="update-tasks-button"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Update Tasks from Chat
+              </Button>
             </div>
-            <p className="text-xs text-gray-400">Data analysis & performance metrics</p>
           </div>
-          <div className="glass-morph p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
-              <p className="text-sm font-semibold">Gemini 2.5 Pro</p>
-            </div>
-            <p className="text-xs text-gray-400">General optimization & insights</p>
-          </div>
-          <Button
-            onClick={async () => {
-              try {
-                toast.info('AI is researching strategies for your business...');
-                const response = await axios.post('/ai/research');
-                if (response.data.research_completed) {
-                  toast.success(`AI learned ${response.data.insights_found} new strategies! These will be applied to future responses.`);
-                } else {
-                  toast.error('Research failed');
-                }
-              } catch (error) {
-                toast.error('Failed to research');
-              }
-            }}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 h-full"
-            data-testid="ai-research-button"
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            AI Research Mode
-          </Button>
-          <Button
-            onClick={async () => {
-              try {
-                const response = await axios.post('/tasks/update-from-insights');
-                if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
-                  toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new tasks.`);
-                } else {
-                  toast.info(response.data.message);
-                }
-              } catch (error) {
-                toast.error('Failed to update tasks');
-              }
-            }}
-            className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] hover:opacity-90 h-full"
-            data-testid="update-tasks-button"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Update Tasks
-          </Button>
         </div>
       </div>
     </div>
