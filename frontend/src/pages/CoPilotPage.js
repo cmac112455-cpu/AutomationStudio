@@ -165,7 +165,8 @@ export default function CoPilotPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              ))
+            )}
 
             {/* Typing Indicator */}
             {loading && (
