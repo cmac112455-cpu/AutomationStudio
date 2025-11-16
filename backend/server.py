@@ -827,7 +827,7 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
             user_id=user_id,
             session_id=session_id,
             session_type=session_type,
-            task_id=chat_request.task_id,
+            task_id=task_id,
             role="assistant",
             content=response,
             model_used=model_used
