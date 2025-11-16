@@ -397,35 +397,82 @@ export default function AutomationStudioPage() {
         </div>
 
         {/* Node Palette */}
-        <div className="w-48 border-r border-gray-800 p-4">
-          <h3 className="text-sm font-semibold mb-3 text-gray-400">NODE PALETTE</h3>
-          <div className="space-y-2">
+        <div className="w-48 border-r border-gray-800 p-4 overflow-y-auto">
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">AI NODES</h3>
+          <div className="space-y-2 mb-4">
             <button
               onClick={() => addNode('gemini')}
-              className="w-full p-2 rounded bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-sm flex items-center gap-2"
+              className="w-full p-2 rounded bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-xs flex items-center gap-2"
             >
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="w-3.5 h-3.5" />
               AI Chat
             </button>
             <button
-              onClick={() => addNode('http')}
-              className="w-full p-2 rounded bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-sm flex items-center gap-2"
+              onClick={() => addNode('imagegen')}
+              className="w-full p-2 rounded bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 text-xs flex items-center gap-2"
             >
-              <Globe className="w-4 h-4" />
+              <Image className="w-3.5 h-3.5" />
+              Image Gen
+            </button>
+            <button
+              onClick={() => addNode('videogen')}
+              className="w-full p-2 rounded bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/50 text-xs flex items-center gap-2"
+            >
+              <Video className="w-3.5 h-3.5" />
+              Video Gen
+            </button>
+            <button
+              onClick={() => addNode('elevenlabs')}
+              className="w-full p-2 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-xs flex items-center gap-2"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              ElevenLabs
+            </button>
+          </div>
+          
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">INTEGRATIONS</h3>
+          <div className="space-y-2 mb-4">
+            <button
+              onClick={() => addNode('http')}
+              className="w-full p-2 rounded bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-xs flex items-center gap-2"
+            >
+              <Globe className="w-3.5 h-3.5" />
               HTTP Request
             </button>
             <button
-              onClick={() => addNode('database')}
-              className="w-full p-2 rounded bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-sm flex items-center gap-2"
+              onClick={() => addNode('manychat')}
+              className="w-full p-2 rounded bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/50 text-xs flex items-center gap-2"
             >
-              <Database className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
+              ManyChat
+            </button>
+          </div>
+          
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">INTERNAL</h3>
+          <div className="space-y-2 mb-4">
+            <button
+              onClick={() => addNode('database')}
+              className="w-full p-2 rounded bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-xs flex items-center gap-2"
+            >
+              <Database className="w-3.5 h-3.5" />
               Database
             </button>
             <button
-              onClick={() => addNode('end')}
-              className="w-full p-2 rounded bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-sm flex items-center gap-2"
+              onClick={() => addNode('taskplanner')}
+              className="w-full p-2 rounded bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-xs flex items-center gap-2"
             >
-              <Zap className="w-4 h-4" />
+              <CheckSquare className="w-3.5 h-3.5" />
+              Task Planner
+            </button>
+          </div>
+          
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">CONTROL</h3>
+          <div className="space-y-2">
+            <button
+              onClick={() => addNode('end')}
+              className="w-full p-2 rounded bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-xs flex items-center gap-2"
+            >
+              <Zap className="w-3.5 h-3.5" />
               End
             </button>
           </div>
