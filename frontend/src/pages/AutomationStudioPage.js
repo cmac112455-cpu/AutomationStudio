@@ -416,9 +416,9 @@ export default function AutomationStudioPage() {
     if (template) {
       setNodes(template.nodes);
       setEdges(template.edges);
-      setCurrentWorkflow({ name: template.name });
+      setCurrentWorkflow(null); // Set to null so it creates a new workflow on execute
       setShowTemplatesModal(false);
-      toast.success(`Loaded template: ${template.name}`);
+      toast.success(`Loaded template: ${template.name}. Click Execute to run it!`);
     }
   };
   const [selectedNodeForDeletion, setSelectedNodeForDeletion] = useState(null);
