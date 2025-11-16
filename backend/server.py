@@ -732,11 +732,13 @@ async def chat_with_copilot(
     if file_contents:
         full_message += f"\n\n[User uploaded {len(file_contents)} file(s): {', '.join([f['filename'] for f in file_contents])}]"
     
-    # Check if user is requesting image generation
+    # Check if user is requesting image generation (but not video)
+    message_lower = message.lower()
     image_gen_keywords = ['generate image', 'create image', 'make image', 'draw', 'generate picture', 
                          'create picture', 'make picture', 'generate photo', 'create photo', 
                          'show me image', 'show me picture', 'image of', 'picture of']
-    is_image_generation_request = any(keyword in message.lower() for keyword in image_gen_keywords)
+    is_image_generation_request = (any(keyword in message_lower for keyword in image_gen_keywords) and 
+                                   'video' not in message_lower and 'animation' not in message_lower)
     
     # Check if user is requesting video generation 
     # Simple and reliable: if message mentions "video" or "animation", assume they want video generation
