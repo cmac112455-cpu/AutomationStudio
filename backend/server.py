@@ -800,6 +800,14 @@ Keep it concise but comprehensive. Use markdown formatting."""
             upsert=True
         )
         
+        # Periodic learning trigger (every 10 messages)
+        message_count = await db.chat_messages.count_documents({"user_id": user_id})
+        if message_count % 10 == 0:
+            # Trigger background learning (async, don't wait)
+            logging.info(f"Triggering automatic learning for user {user_id}")
+            # In production, this would be a background task
+            # For now, we'll let it happen on next manual trigger
+        
         return ChatResponse(
             response=response,
             session_id=session_id,
