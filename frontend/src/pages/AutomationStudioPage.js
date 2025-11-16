@@ -40,7 +40,17 @@ const StartNode = ({ data }) => {
 
 const GeminiNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
+    <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px] relative">
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        style={{ background: '#a855f7', width: '12px', height: '12px' }}
+      />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        style={{ background: '#a855f7', width: '12px', height: '12px' }}
+      />
       <div className="flex items-center gap-2">
         <MessageSquare className="w-4 h-4 text-purple-500" />
         <div className="font-semibold text-white">AI Chat (Gemini)</div>
