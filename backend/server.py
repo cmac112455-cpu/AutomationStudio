@@ -501,6 +501,14 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
         for idx, content in enumerate(other_sessions_context[:5]):  # Top 5 recent from other sessions
             conversation_context += f"- {content}...\n"
     
+    # Add learned insights to context
+    learned_context = ""
+    if learnings:
+        learned_context = "\n\nAI LEARNED INSIGHTS (Apply these to personalize your response):\n"
+        for learning in learnings[:5]:
+            learned_context += f"- [{learning['category']}] {learning['insight'][:150]}...\n"
+        learned_context += "\nUse these insights to tailor your advice to this specific user's preferences and situation."
+    
     # Build context-aware system message
     if profile:
         if profile.get('business_type') == 'existing':
