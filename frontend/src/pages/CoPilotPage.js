@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target, Plus, MoreVertical, Trash2, Zap, Info } from 'lucide-react';
+import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target, Plus, MoreVertical, Trash2, Zap, Info, Paperclip } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
