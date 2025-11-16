@@ -487,7 +487,7 @@ async def chat_with_copilot(
             # Update task with chat session ID if not set
             if not task.get('chat_session_id'):
                 await db.tasks.update_one(
-                    {"id": chat_request.task_id},
+                    {"id": task_id},
                     {"$set": {"chat_session_id": session_id}}
                 )
     
