@@ -33,6 +33,10 @@ export default function CoPilotPage() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    localStorage.setItem('multi_ai_mode', multiAiMode);
+  }, [multiAiMode]);
+
   const loadChatHistory = async () => {
     try {
       if (sessionId) {
