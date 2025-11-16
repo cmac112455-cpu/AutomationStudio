@@ -145,7 +145,9 @@ export default function CoPilotPage() {
                       ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30'
                       : 'bg-gradient-to-br from-[#00d4ff]/10 to-[#4785ff]/10 border border-[#00d4ff]/30'
                   }`}>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                    <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
                     {message.model_used && message.model_used !== 'system' && (
                       <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
