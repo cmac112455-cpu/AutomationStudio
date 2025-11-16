@@ -334,6 +334,7 @@ const nodeTypes = {
   manychat: ManyChatNode,
   videogen: VideoGenNode,
   imagegen: ImageGenNode,
+  screenshot: ScreenshotNode,
   taskplanner: TaskPlannerNode,
   condition: ConditionNode,
   switch: SwitchNode,
