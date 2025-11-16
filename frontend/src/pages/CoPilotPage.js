@@ -429,19 +429,66 @@ export default function CoPilotPage() {
                       {message.files && message.files.length > 0 && (
                         <div className="mb-3 space-y-2">
                           {message.files.map((file, idx) => (
-                            <div key={idx} className="rounded-lg overflow-hidden">
+                            <div key={idx} className="rounded-lg overflow-hidden relative group">
                               {file.type.startsWith('image/') ? (
-                                <img 
-                                  src={file.url} 
-                                  alt={file.name}
-                                  className="max-w-full max-h-[400px] rounded-lg"
-                                />
+                                <div className="relative">
+                                  <img 
+                                    src={file.url} 
+                                    alt={file.name}
+                                    className="max-w-full max-h-[400px] rounded-lg cursor-pointer"
+                                    onClick={() => setLightboxMedia(file)}
+                                  />
+                                  {/* Hover overlay with buttons */}
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => setLightboxMedia(file)}
+                                      className="bg-white/10 hover:bg-white/20 backdrop-blur"
+                                    >
+                                      <Maximize2 className="w-4 h-4 mr-1" />
+                                      Expand
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => downloadMedia(file)}
+                                      className="bg-white/10 hover:bg-white/20 backdrop-blur"
+                                    >
+                                      <Download className="w-4 h-4 mr-1" />
+                                      Download
+                                    </Button>
+                                  </div>
+                                </div>
                               ) : file.type.startsWith('video/') ? (
-                                <video 
-                                  src={file.url} 
-                                  controls
-                                  className="max-w-full max-h-[400px] rounded-lg"
-                                />
+                                <div className="relative">
+                                  <video 
+                                    src={file.url} 
+                                    controls
+                                    className="max-w-full max-h-[400px] rounded-lg"
+                                  />
+                                  {/* Action buttons */}
+                                  <div className="absolute top-2 right-2 flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => setLightboxMedia(file)}
+                                      className="bg-black/60 hover:bg-black/80 backdrop-blur"
+                                    >
+                                      <Maximize2 className="w-4 h-4 mr-1" />
+                                      Expand
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => downloadMedia(file)}
+                                      className="bg-black/60 hover:bg-black/80 backdrop-blur"
+                                    >
+                                      <Download className="w-4 h-4 mr-1" />
+                                      Download
+                                    </Button>
+                                  </div>
+                                </div>
                               ) : (
                                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 rounded">
                                   <Paperclip className="w-4 h-4" />
