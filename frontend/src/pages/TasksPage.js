@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 
 export default function TasksPage() {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
