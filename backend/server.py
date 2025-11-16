@@ -804,13 +804,11 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
             upsert=True
         )
         
-        # Periodic learning trigger (every 10 messages)
-        message_count = await db.chat_messages.count_documents({"user_id": user_id})
-        if message_count % 10 == 0:
-            # Trigger background learning (async, don't wait)
-            logging.info(f"Triggering automatic learning for user {user_id}")
-            # In production, this would be a background task
-            # For now, we'll let it happen on next manual trigger
+        # Automatic learning DISABLED to save credits
+        # User can manually trigger via "AI Research Mode" button
+        # message_count = await db.chat_messages.count_documents({"user_id": user_id})
+        # if message_count % 10 == 0:
+        #     logging.info(f"User {user_id} eligible for learning analysis")
         
         return ChatResponse(
             response=response,
