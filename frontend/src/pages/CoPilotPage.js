@@ -135,20 +135,39 @@ export default function CoPilotPage() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() && selectedFiles.length === 0) return;
 
     const userMessage = input;
+    const filesToSend = selectedFiles;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setSelectedFiles([]);
+    
+    // Display user message with file info
+    let displayMessage = userMessage;
+    if (filesToSend.length > 0) {
+      displayMessage += `\n\n📎 Attached: ${filesToSend.map(f => f.name).join(', ')}`;
+    }
+    setMessages(prev => [...prev, { role: 'user', content: displayMessage }]);
     setLoading(true);
 
     try {
-      const response = await axios.post('/copilot/chat', {
-        message: userMessage,
-        session_id: sessionId,
-        task_id: currentTaskId,
-        use_multi_ai: multiAiMode,
-        preferred_model: selectedModel
+      // Prepare form data for file upload
+      const formData = new FormData();
+      formData.append('message', userMessage);
+      formData.append('session_id', sessionId || '');
+      formData.append('task_id', currentTaskId || '');
+      formData.append('use_multi_ai', multiAiMode);
+      formData.append('preferred_model', selectedModel);
+      
+      // Add files to form data
+      filesToSend.forEach((file, index) => {
+        formData.append(`files`, file);
+      });
+
+      const response = await axios.post('/copilot/chat', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       if (!sessionId) {
