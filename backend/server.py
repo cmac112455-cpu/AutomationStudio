@@ -744,6 +744,126 @@ async def generate_tasks_from_chat(user_id: str = Depends(get_current_user)):
         logging.error(f"Task generation from chat error: {str(e)}")
         return {"tasks": [], "message": "Failed to generate tasks from chat"}
 
+# ============ FILE UPLOAD & ANALYSIS ============
+
+@api_router.post("/files/upload")
+async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Limit file size to 10MB
+        if file_size > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File size exceeds 10MB limit")
+        
+        # Determine if text-based or binary
+        file_type = file.content_type or "application/octet-stream"
+        
+        # Store content as base64 for binary files or decode for text
+        if file_type.startswith('text') or file_type in ['application/json', 'application/csv']:
+            file_content = content.decode('utf-8')
+        else:
+            file_content = base64.b64encode(content).decode('utf-8')
+        
+        uploaded_file = UploadedFile(
+            user_id=user_id,
+            filename=file.filename,
+            file_type=file_type,
+            file_size=file_size,
+            content=file_content
+        )
+        
+        file_dict = uploaded_file.model_dump()
+        file_dict['created_at'] = file_dict['created_at'].isoformat()
+        
+        await db.uploaded_files.insert_one(file_dict)
+        
+        return {"id": uploaded_file.id, "filename": file.filename, "message": "File uploaded successfully"}
+        
+    except Exception as e:
+        logging.error(f"File upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+@api_router.get("/files")
+async def get_files(user_id: str = Depends(get_current_user)):
+    files = await db.uploaded_files.find(
+        {"user_id": user_id},
+        {"_id": 0, "content": 0}  # Don't return content in list
+    ).sort("created_at", -1).to_list(50)
+    return {"files": files}
+
+@api_router.get("/files/{file_id}")
+async def get_file(file_id: str, user_id: str = Depends(get_current_user)):
+    file_doc = await db.uploaded_files.find_one({"id": file_id, "user_id": user_id}, {"_id": 0})
+    if not file_doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    return file_doc
+
+@api_router.post("/files/{file_id}/analyze")
+async def analyze_file(file_id: str, user_id: str = Depends(get_current_user)):
+    # Get file
+    file_doc = await db.uploaded_files.find_one({"id": file_id, "user_id": user_id}, {"_id": 0})
+    if not file_doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Get business profile for context
+    profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    try:
+        # Prepare content for analysis
+        if file_doc['file_type'].startswith('text') or 'csv' in file_doc['file_type'] or 'json' in file_doc['file_type']:
+            file_content = file_doc['content'][:10000]  # Limit to first 10k chars
+        else:
+            file_content = "[Binary file - cannot analyze content directly]"
+        
+        business_name = profile.get('business_name') or profile.get('business_idea', 'your business')
+        
+        analysis_prompt = f"""Analyze this file for {business_name} and provide actionable insights.
+
+File: {file_doc['filename']}
+Type: {file_doc['file_type']}
+Size: {file_doc['file_size']} bytes
+
+Content Preview:
+{file_content}
+
+Provide a **concise analysis** (3-5 key points) focusing on:
+• **Financial insights** (if applicable)
+• **Optimization opportunities**
+• **Action items**
+• **Red flags or risks**
+
+Use markdown formatting for clarity."""
+        
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=str(uuid.uuid4()),
+            system_message="You are a business analyst expert. Provide concise, actionable insights from files."
+        ).with_model('anthropic', 'claude-4-sonnet-20250514')
+        
+        user_message = UserMessage(text=analysis_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Save analysis to file record
+        await db.uploaded_files.update_one(
+            {"id": file_id},
+            {"$set": {"analysis": response}}
+        )
+        
+        return {"analysis": response}
+        
+    except Exception as e:
+        logging.error(f"File analysis error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze file: {str(e)}")
+
+@api_router.delete("/files/{file_id}")
+async def delete_file(file_id: str, user_id: str = Depends(get_current_user)):
+    result = await db.uploaded_files.delete_one({"id": file_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="File not found")
+    return {"message": "File deleted successfully"}
+
 # ============ ROOT & HEALTH ============
 
 @api_router.get("/")
