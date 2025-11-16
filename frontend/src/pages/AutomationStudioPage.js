@@ -185,14 +185,30 @@ const ManyChatNode = ({ data }) => {
 
 const VideoGenNode = ({ data }) => {
   return (
-    <NodeWrapper color="#6366f1" hasInput={true} nodeType="videogen">
-      <div className="px-4 py-3 rounded-lg border-2 border-indigo-500 bg-indigo-500/10 backdrop-blur-sm min-w-[200px]">
+    <NodeWrapper color="#a855f7" hasInput={true} nodeType="videogen">
+      <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
-          <Video className="w-4 h-4 text-indigo-500" />
+          <Video className="w-4 h-4 text-purple-500" />
           <div className="font-semibold text-white">Video Generation</div>
         </div>
         <div className="text-xs text-gray-400 mt-1">
-          Sora 2: {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Click to configure'}
+          {data.duration ? `${data.duration}s` : 'Click to configure'}
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
+const ImageToVideoNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#f97316" hasInput={true} nodeType="imagetovideo">
+      <div className="px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Video className="w-4 h-4 text-orange-500" />
+          <div className="font-semibold text-white">Image → Video</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.duration ? `${data.duration}s from image` : 'Uses starting frame'}
         </div>
       </div>
     </NodeWrapper>
