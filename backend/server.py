@@ -190,6 +190,7 @@ class ChatSession(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    task_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
