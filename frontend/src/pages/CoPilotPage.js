@@ -17,7 +17,7 @@ export default function CoPilotPage() {
     // Welcome message
     setMessages([{
       role: 'assistant',
-      content: 'Hello! I\'m your AI Business Co-Pilot. I can help you with:\n\n• Strategic business planning\n• Ad campaign optimization\n• Financial analysis\n• Growth strategies\n• Automation recommendations\n\nWhat would you like to discuss today?',
+      content: 'Hello! I\'m your AI Business Co-Pilot. I can help you with:\n\n• Strategic business planning\n• Ad campaign optimization\n• Financial analysis\n• Growth strategies\n• Automation recommendations\n\n💾 All conversations are automatically saved and analyzed to generate priority tasks for you.\n\nWhat would you like to discuss today?',
       model_used: 'system'
     }]);
   }, []);
