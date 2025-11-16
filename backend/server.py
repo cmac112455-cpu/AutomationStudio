@@ -14,6 +14,7 @@ import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
+from emergentintegrations.llm.openai.video_generation import OpenAIVideoGeneration
 import random
 from fastapi import UploadFile, File
 import base64
