@@ -2033,10 +2033,14 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 
                 # If still no image, search all previous screenshot nodes
                 if not image_base64:
+                    logging.info(f"Image-to-video searching for image in {len(results)} previous nodes")
                     for node_id, result in results.items():
                         if isinstance(result, dict) and result.get('image_base64'):
                             image_base64 = result.get('image_base64')
+                            logging.info(f"Found image from node: {node_id}")
                             break
+                    if not image_base64:
+                        logging.error(f"No image found in any previous node. Results keys: {list(results.keys())}")
                 
                 duration = node_data.get('duration', 4)
                 size = node_data.get('size', '1280x720')
