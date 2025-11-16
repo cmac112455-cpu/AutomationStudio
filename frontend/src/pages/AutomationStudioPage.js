@@ -106,15 +106,17 @@ const DatabaseNode = ({ data }) => {
 
 const ElevenLabsNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Mic className="w-4 h-4 text-orange-500" />
-        <div className="font-semibold text-white">ElevenLabs TTS</div>
+    <NodeWrapper color="#f97316" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Mic className="w-4 h-4 text-orange-500" />
+          <div className="font-semibold text-white">ElevenLabs TTS</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Voice: {data.voice || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Voice: {data.voice || 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
