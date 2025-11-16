@@ -365,6 +365,7 @@ const nodeTypes = {
   elevenlabs: ElevenLabsNode,
   manychat: ManyChatNode,
   videogen: VideoGenNode,
+  imagetovideo: ImageToVideoNode,
   imagegen: ImageGenNode,
   screenshot: ScreenshotNode,
   stitch: StitchNode,
