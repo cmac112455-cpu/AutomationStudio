@@ -1963,20 +1963,21 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 # Execute Video Generation
                 prompt = node_data.get('prompt', '')
                 duration = node_data.get('duration', 4)
+                size = node_data.get('size', '1280x720')  # Get size from node config
                 
                 try:
                     video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
                     video_bytes = video_gen.text_to_video(
                         prompt=prompt,
                         model="sora-2",
-                        size="1280x720",
+                        size=size,
                         duration=duration,
                         max_wait_time=600
                     )
                     
                     if video_bytes:
                         video_base64 = base64.b64encode(video_bytes).decode('utf-8')
-                        result = {"status": "success", "video_base64": video_base64[:100] + "...", "duration": duration}
+                        result = {"status": "success", "video_base64": video_base64[:100] + "...", "duration": duration, "size": size}
                     else:
                         result = {"status": "failed", "error": "Video generation failed"}
                 except Exception as e:
