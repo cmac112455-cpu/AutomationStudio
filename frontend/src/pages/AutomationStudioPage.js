@@ -137,7 +137,7 @@ const HttpNode = ({ data }) => {
 
 const DatabaseNode = ({ data }) => {
   return (
-    <NodeWrapper color="#06b6d4" hasInput={true}>
+    <NodeWrapper color="#06b6d4" hasInput={true} nodeType="database">
       <div className="px-4 py-3 rounded-lg border-2 border-cyan-500 bg-cyan-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-cyan-500" />
@@ -153,7 +153,7 @@ const DatabaseNode = ({ data }) => {
 
 const ElevenLabsNode = ({ data }) => {
   return (
-    <NodeWrapper color="#f97316" hasInput={true}>
+    <NodeWrapper color="#f97316" hasInput={true} nodeType="elevenlabs">
       <div className="px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Mic className="w-4 h-4 text-orange-500" />
@@ -169,7 +169,7 @@ const ElevenLabsNode = ({ data }) => {
 
 const ManyChatNode = ({ data }) => {
   return (
-    <NodeWrapper color="#ec4899" hasInput={true}>
+    <NodeWrapper color="#ec4899" hasInput={true} nodeType="manychat">
       <div className="px-4 py-3 rounded-lg border-2 border-pink-500 bg-pink-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Send className="w-4 h-4 text-pink-500" />
@@ -185,7 +185,7 @@ const ManyChatNode = ({ data }) => {
 
 const VideoGenNode = ({ data }) => {
   return (
-    <NodeWrapper color="#6366f1" hasInput={true}>
+    <NodeWrapper color="#6366f1" hasInput={true} nodeType="videogen">
       <div className="px-4 py-3 rounded-lg border-2 border-indigo-500 bg-indigo-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Video className="w-4 h-4 text-indigo-500" />
@@ -201,7 +201,7 @@ const VideoGenNode = ({ data }) => {
 
 const ImageGenNode = ({ data }) => {
   return (
-    <NodeWrapper color="#eab308" hasInput={true}>
+    <NodeWrapper color="#eab308" hasInput={true} nodeType="imagegen">
       <div className="px-4 py-3 rounded-lg border-2 border-yellow-500 bg-yellow-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <Image className="w-4 h-4 text-yellow-500" />
@@ -217,7 +217,7 @@ const ImageGenNode = ({ data }) => {
 
 const TaskPlannerNode = ({ data }) => {
   return (
-    <NodeWrapper color="#10b981" hasInput={true}>
+    <NodeWrapper color="#10b981" hasInput={true} nodeType="taskplanner">
       <div className="px-4 py-3 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <CheckSquare className="w-4 h-4 text-emerald-500" />
@@ -233,7 +233,7 @@ const TaskPlannerNode = ({ data }) => {
 
 const ConditionNode = ({ data }) => {
   return (
-    <NodeWrapper color="#f59e0b" hasInput={true}>
+    <NodeWrapper color="#f59e0b" hasInput={true} nodeType="condition">
       <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 text-amber-500 font-bold">?</div>
@@ -249,7 +249,7 @@ const ConditionNode = ({ data }) => {
 
 const SwitchNode = ({ data }) => {
   return (
-    <NodeWrapper color="#d946ef" hasInput={true}>
+    <NodeWrapper color="#d946ef" hasInput={true} nodeType="switch">
       <div className="px-4 py-3 rounded-lg border-2 border-fuchsia-500 bg-fuchsia-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 text-fuchsia-500 font-bold">≡</div>
@@ -265,7 +265,7 @@ const SwitchNode = ({ data }) => {
 
 const LoopNode = ({ data }) => {
   return (
-    <NodeWrapper color="#8b5cf6" hasInput={true}>
+    <NodeWrapper color="#8b5cf6" hasInput={true} nodeType="loop">
       <div className="px-4 py-3 rounded-lg border-2 border-violet-500 bg-violet-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 text-violet-500 font-bold">↻</div>
@@ -281,7 +281,7 @@ const LoopNode = ({ data }) => {
 
 const DelayNode = ({ data }) => {
   return (
-    <NodeWrapper color="#64748b" hasInput={true}>
+    <NodeWrapper color="#64748b" hasInput={true} nodeType="delay">
       <div className="px-4 py-3 rounded-lg border-2 border-slate-500 bg-slate-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 text-slate-500">⏱</div>
@@ -297,7 +297,7 @@ const DelayNode = ({ data }) => {
 
 const EndNode = ({ data }) => {
   return (
-    <NodeWrapper color="#ef4444" hasInput={true} hasOutput={false}>
+    <NodeWrapper color="#ef4444" hasInput={true} hasOutput={false} nodeType="end">
       <div className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-500/10 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-red-500" />
