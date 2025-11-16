@@ -1012,9 +1012,22 @@ async def generate_tasks_from_chat(user_id: str = Depends(get_current_user)):
         # Create tasks in database
         created_tasks = []
         for task_data in tasks_data[:5]:  # Max 5 tasks
+            # Check for duplicate
+            task_title = task_data.get('title', 'Untitled Task')
+            existing_task = await db.tasks.find_one({
+                "user_id": user_id,
+                "title": {"$regex": f"^{task_title}$", "$options": "i"},
+                "status": {"$ne": "completed"}
+            })
+            
+            # Skip if duplicate exists
+            if existing_task:
+                logging.info(f"Skipping duplicate task from chat: {task_title}")
+                continue
+            
             task = Task(
                 user_id=user_id,
-                title=task_data.get('title', 'Untitled Task'),
+                title=task_title,
                 description=task_data.get('description', ''),
                 priority=task_data.get('priority', 'medium'),
                 status="todo",
