@@ -43,6 +43,19 @@ export default function CompletionsPage() {
     return media;
   };
 
+  // Download media function
+  const downloadMedia = (media) => {
+    const link = document.createElement('a');
+    const dataUrl = media.type === 'image' 
+      ? `data:image/png;base64,${media.data}`
+      : `data:video/mp4;base64,${media.data}`;
+    link.href = dataUrl;
+    link.download = `${media.prompt.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.${media.type === 'image' ? 'png' : 'mp4'}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     loadExecutions();
   }, []);
