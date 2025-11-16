@@ -213,14 +213,38 @@ export default function CompletionsPage() {
                           </h5>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {mediaItems.map((media, idx) => (
-                              <div key={idx} className="bg-[#0f1218] rounded-lg overflow-hidden border border-gray-700">
+                              <div key={idx} className="bg-[#0f1218] rounded-lg overflow-hidden border border-gray-700 relative group">
                                 {media.type === 'image' ? (
                                   <div>
-                                    <img 
-                                      src={`data:image/png;base64,${media.data}`}
-                                      alt={media.prompt}
-                                      className="w-full h-auto object-contain bg-gray-900"
-                                    />
+                                    <div className="relative">
+                                      <img 
+                                        src={`data:image/png;base64,${media.data}`}
+                                        alt={media.prompt}
+                                        className="w-full h-auto object-contain bg-gray-900 cursor-pointer"
+                                        onClick={() => setLightboxMedia(media)}
+                                      />
+                                      {/* Hover overlay with buttons */}
+                                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => setLightboxMedia(media)}
+                                          className="bg-white/10 hover:bg-white/20 backdrop-blur"
+                                        >
+                                          <Maximize2 className="w-4 h-4 mr-1" />
+                                          Expand
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => downloadMedia(media)}
+                                          className="bg-white/10 hover:bg-white/20 backdrop-blur"
+                                        >
+                                          <Download className="w-4 h-4 mr-1" />
+                                          Download
+                                        </Button>
+                                      </div>
+                                    </div>
                                     <div className="p-3">
                                       <p className="text-xs text-gray-400 mb-1">
                                         <ImageIcon className="w-3 h-3 inline mr-1" />
@@ -233,11 +257,34 @@ export default function CompletionsPage() {
                                   </div>
                                 ) : (
                                   <div>
-                                    <video 
-                                      src={`data:video/mp4;base64,${media.data}`}
-                                      controls
-                                      className="w-full h-auto bg-gray-900"
-                                    />
+                                    <div className="relative">
+                                      <video 
+                                        src={`data:video/mp4;base64,${media.data}`}
+                                        controls
+                                        className="w-full h-auto bg-gray-900"
+                                      />
+                                      {/* Hover overlay with buttons */}
+                                      <div className="absolute top-2 right-2 flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => setLightboxMedia(media)}
+                                          className="bg-black/60 hover:bg-black/80 backdrop-blur"
+                                        >
+                                          <Maximize2 className="w-4 h-4 mr-1" />
+                                          Expand
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => downloadMedia(media)}
+                                          className="bg-black/60 hover:bg-black/80 backdrop-blur"
+                                        >
+                                          <Download className="w-4 h-4 mr-1" />
+                                          Download
+                                        </Button>
+                                      </div>
+                                    </div>
                                     <div className="p-3">
                                       <p className="text-xs text-gray-400 mb-1">
                                         <VideoIcon className="w-3 h-3 inline mr-1" />
