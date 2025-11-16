@@ -209,13 +209,13 @@ backend:
           - Includes execution metadata and status
 
 frontend:
-  - task: "Workflow UI Integration (Not tested - backend focus)"
-    implemented: "NA"
+  - task: "Automation Studio Workflow Creation and Execution"
+    implemented: true
     working: "NA"
-    file: "frontend/src/components/WorkflowBuilder.js"
+    file: "frontend/src/pages/AutomationStudioPage.js"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "testing"
@@ -228,6 +228,39 @@ frontend:
           3. Progress monitoring UI
           4. Results display with image rendering
           5. Execution history view
+      - working: "NA"
+        agent: "testing"
+        comment: |
+          Starting comprehensive frontend testing of workflow execution and completions display flow.
+          Test scenario: End-to-end workflow execution with image generation
+          - Login/Register new user
+          - Navigate to Automation Studio (/automation/studio)
+          - Create workflow: Start -> Image Gen -> End
+          - Configure Image Gen node with prompt "a cute cat playing with yarn"
+          - Save and execute workflow
+          - Monitor progress and completion
+          - Navigate to Completions page (/automation/completions)
+          - Verify execution appears with proper status and results
+          
+  - task: "Completions Page Display and Data Fetching"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/CompletionsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: |
+          Completions page implementation exists and needs testing.
+          Will verify:
+          - Execution list display
+          - Status indicators (completed, running, failed)
+          - Progress tracking
+          - Expandable execution details
+          - Results display including image data
+          - Real-time updates for running executions
 
 metadata:
   created_by: "testing_agent"
