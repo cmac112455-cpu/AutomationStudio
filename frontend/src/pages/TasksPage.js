@@ -300,6 +300,15 @@ export default function TasksPage() {
             <Sparkles className="w-4 h-4 mr-2" />
             Generate AI Tasks
           </Button>
+          <Button
+            onClick={removeDuplicates}
+            variant="outline"
+            className="border-gray-700 text-gray-400 hover:bg-gray-800"
+            data-testid="remove-duplicates-button"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Clean Duplicates
+          </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button 
