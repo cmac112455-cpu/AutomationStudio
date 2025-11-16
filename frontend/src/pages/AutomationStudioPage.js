@@ -102,15 +102,11 @@ const StartNode = ({ data }) => {
 };
 
 const GeminiNode = ({ data, id }) => {
-  const actions = React.useContext(NodeActionsContext);
   return (
     <NodeWrapper 
       color="#a855f7" 
       hasInput={true}
-      nodeId={id}
       nodeType="gemini"
-      onDelete={actions?.deleteNode}
-      onConfigure={() => actions?.configureNode(id, data)}
     >
       <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
         <div className="flex items-center gap-2">
