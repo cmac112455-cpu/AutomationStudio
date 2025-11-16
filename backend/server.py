@@ -2001,6 +2001,65 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     except Exception as e:
                         result = {"status": "error", "error": f"Video generation failed: {str(e)}"}
             
+            elif node_type == 'imagetovideo':
+                # Execute Image-To-Video Generation (Sora 2)
+                # Get prompt from node config OR from previous node's response
+                prompt = node_data.get('prompt', '')
+                
+                # If no prompt in config, try to get from previous node's output
+                if not prompt and isinstance(input_data, dict):
+                    prompt = input_data.get('response', input_data.get('prompt', ''))
+                
+                # Fallback to input_data as string if it's a direct prompt
+                if not prompt and isinstance(input_data, str):
+                    prompt = input_data
+                
+                # Get image from previous node (should be from screenshot node)
+                image_base64 = None
+                if isinstance(input_data, dict):
+                    image_base64 = input_data.get('image_base64')
+                
+                duration = node_data.get('duration', 4)
+                size = node_data.get('size', '1280x720')
+                
+                if not prompt:
+                    result = {"status": "error", "error": "No prompt provided for image-to-video generation"}
+                elif not image_base64:
+                    result = {"status": "error", "error": "No image data found from previous node. Connect a Screenshot node before Image-To-Video node."}
+                else:
+                    try:
+                        # Save image temporarily
+                        temp_image_path = f"/tmp/img2vid_{str(uuid.uuid4())}.png"
+                        image_bytes = base64.b64decode(image_base64)
+                        with open(temp_image_path, 'wb') as f:
+                            f.write(image_bytes)
+                        
+                        video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                        video_bytes = video_gen.text_to_video(
+                            prompt=prompt,
+                            model="sora-2",
+                            size=size,
+                            duration=duration,
+                            max_wait_time=600,
+                            image_path=temp_image_path,
+                            mime_type='image/png'
+                        )
+                        
+                        # Cleanup temp image
+                        if os.path.exists(temp_image_path):
+                            os.remove(temp_image_path)
+                        
+                        if video_bytes:
+                            video_base64 = base64.b64encode(video_bytes).decode('utf-8')
+                            result = {"status": "success", "video_base64": video_base64, "duration": duration, "size": size, "prompt": prompt}
+                        else:
+                            result = {"status": "failed", "error": "Image-to-video generation returned no data"}
+                    except Exception as e:
+                        result = {"status": "error", "error": f"Image-to-video generation failed: {str(e)}"}
+                        # Cleanup on error
+                        if os.path.exists(temp_image_path):
+                            os.remove(temp_image_path)
+            
             elif node_type == 'imagegen':
                 # Execute Image Generation
                 prompt = node_data.get('prompt', '')
