@@ -805,7 +805,7 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
                 system_message=system_message
             ).with_model(model_provider, model_name)
             
-            user_message = UserMessage(text=chat_request.message)
+            user_message = UserMessage(text=full_message)
             response = await chat.send_message(user_message)
             model_used = f"{model_provider}/{model_name}"
         
