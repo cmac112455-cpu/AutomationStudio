@@ -1277,6 +1277,36 @@ export default function AutomationStudioPage() {
               {selectedNode.type === 'imagetovideo' && (
                 <>
                   <div>
+                    <Label className="text-white">Starting Image (Optional)</Label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            setNodeConfig({ ...nodeConfig, uploadedImage: event.target.result });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full p-2 bg-[#0f1218] border border-gray-700 rounded text-white text-sm mt-2"
+                    />
+                    {nodeConfig.uploadedImage && (
+                      <div className="mt-2">
+                        <img src={nodeConfig.uploadedImage} alt="Uploaded" className="w-full h-32 object-cover rounded" />
+                        <button
+                          onClick={() => setNodeConfig({ ...nodeConfig, uploadedImage: null })}
+                          className="text-xs text-red-400 hover:text-red-300 mt-1"
+                        >
+                          Remove image
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">Leave empty to use image from previous node</p>
+                  </div>
+                  <div>
                     <Label className="text-white">Video Prompt</Label>
                     <Textarea
                       value={nodeConfig.prompt || ''}
@@ -1303,20 +1333,19 @@ export default function AutomationStudioPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-white">Motion Strength</Label>
+                    <Label className="text-white">Video Size</Label>
                     <Select
-                      value={String(nodeConfig.motionStrength || '5')}
-                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, motionStrength: parseInt(value) })}
+                      value={nodeConfig.size || '1280x720'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, size: value })}
                     >
                       <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-[#1a1d2e] border-gray-700">
-                        <SelectItem value="1">1 (Minimal)</SelectItem>
-                        <SelectItem value="3">3 (Low)</SelectItem>
-                        <SelectItem value="5">5 (Medium)</SelectItem>
-                        <SelectItem value="7">7 (High)</SelectItem>
-                        <SelectItem value="10">10 (Maximum)</SelectItem>
+                        <SelectItem value="1280x720">1280x720 (HD Landscape)</SelectItem>
+                        <SelectItem value="1792x1024">1792x1024 (Widescreen)</SelectItem>
+                        <SelectItem value="1024x1792">1024x1792 (Portrait)</SelectItem>
+                        <SelectItem value="1024x1024">1024x1024 (Square)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
