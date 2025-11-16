@@ -492,51 +492,50 @@ export default function CoPilotPage() {
 
               {/* Action Buttons - Compact */}
               <div className="flex items-center gap-1">
-              <Button
-                onClick={async () => {
-                  try {
-                    toast.info('Researching strategies...');
-                    const response = await axios.post('/ai/research');
-                    if (response.data.research_completed) {
-                      toast.success(`Learned ${response.data.insights_found} strategies!`);
-                    } else {
-                      toast.error('Research failed');
+                <Button
+                  onClick={async () => {
+                    try {
+                      toast.info('Researching...');
+                      const response = await axios.post('/ai/research');
+                      if (response.data.research_completed) {
+                        toast.success(`Learned ${response.data.insights_found} strategies!`);
+                      } else {
+                        toast.error('Research failed');
+                      }
+                    } catch (error) {
+                      toast.error('Failed to research');
                     }
-                  } catch (error) {
-                    toast.error('Failed to research');
-                  }
-                }}
-                variant="ghost"
-                size="sm"
-                className="h-10 px-3 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-colors"
-                data-testid="ai-research-button"
-              >
-                <Brain className="w-4 h-4 mr-1.5" />
-                <span className="text-sm">Research</span>
-              </Button>
-              <Button
-                onClick={async () => {
-                  try {
-                    const response = await axios.post('/tasks/update-from-insights');
-                    if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
-                      toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new.`);
-                    } else {
-                      toast.info(response.data.message);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
+                  data-testid="ai-research-button"
+                >
+                  <Brain className="w-3.5 h-3.5 mr-1" />
+                  Research
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      const response = await axios.post('/tasks/update-from-insights');
+                      if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
+                        toast.success(`Updated ${response.data.tasks_updated}, created ${response.data.tasks_created} tasks`);
+                      } else {
+                        toast.info(response.data.message);
+                      }
+                    } catch (error) {
+                      toast.error('Failed to update tasks');
                     }
-                  } catch (error) {
-                    toast.error('Failed to update tasks');
-                  }
-                }}
-                variant="ghost"
-                size="sm"
-                className="h-10 px-3 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-colors"
-                data-testid="update-tasks-button"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                <span className="text-sm">Update Tasks</span>
-              </Button>
-            </div>
-          </div>
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
+                  data-testid="update-tasks-button"
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1" />
+                  Update Tasks
+                </Button>
+              </div>
             </div>
           </div>
         </div>
