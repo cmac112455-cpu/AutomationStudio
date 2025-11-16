@@ -1996,8 +1996,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     images = await image_gen.generate_images(
                         prompt=prompt,
                         model="gpt-image-1",
-                        number_of_images=1,
-                        size=size
+                        number_of_images=1
                     )
                     
                     if images and len(images) > 0:
