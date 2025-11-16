@@ -89,7 +89,29 @@ export default function CoPilotPage() {
     setSessionId(newSessionId);
     setCurrentTaskId(null);
     localStorage.removeItem('copilot_session_id');
+    localStorage.removeItem('copilot_task_id');
     showWelcomeMessage();
+  };
+
+  const deleteSession = async (sessionIdToDelete, event) => {
+    event.stopPropagation(); // Prevent switching to the session being deleted
+    
+    try {
+      await axios.delete(`/copilot/sessions/${sessionIdToDelete}`);
+      
+      // Remove from sessions list
+      setSessions(prev => prev.filter(s => s.id !== sessionIdToDelete));
+      
+      // If the deleted session was the current one, start a new chat
+      if (sessionId === sessionIdToDelete) {
+        startNewChat();
+      }
+      
+      toast.success('Chat session deleted');
+    } catch (error) {
+      toast.error('Failed to delete chat session');
+      console.error('Delete session error:', error);
+    }
   };
 
   const sendMessage = async () => {
