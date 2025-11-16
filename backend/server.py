@@ -1817,11 +1817,54 @@ async def delete_workflow(workflow_id: str, user_id: str = Depends(get_current_u
         raise HTTPException(status_code=404, detail="Workflow not found")
     return {"message": "Workflow deleted successfully"}
 
+class WorkflowExecution(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    workflow_id: str
+    workflow_name: str
+    user_id: str
+    status: str  # 'running', 'completed', 'failed'
+    progress: int = 0
+    current_node: Optional[str] = None
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+    duration: Optional[int] = None  # milliseconds
+    execution_log: List[str] = []
+    results: Dict[str, Any] = {}
+    error: Optional[str] = None
+
+@api_router.get("/workflows/executions")
+async def get_executions(user_id: str = Depends(get_current_user)):
+    executions = await db.workflow_executions.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("started_at", -1).limit(50).to_list(length=50)
+    return executions
+
+@api_router.get("/workflows/executions/{execution_id}")
+async def get_execution(execution_id: str, user_id: str = Depends(get_current_user)):
+    execution = await db.workflow_executions.find_one(
+        {"id": execution_id, "user_id": user_id},
+        {"_id": 0}
+    )
+    if not execution:
+        raise HTTPException(status_code=404, detail="Execution not found")
+    return execution
+
 @api_router.post("/workflows/{workflow_id}/execute")
 async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
     workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    # Create execution record
+    execution = WorkflowExecution(
+        workflow_id=workflow_id,
+        workflow_name=workflow.get('name', 'Unnamed Workflow'),
+        user_id=user_id,
+        status='running'
+    )
+    await db.workflow_executions.insert_one(execution.model_dump())
     
     # Build execution graph
     nodes_dict = {node['id']: node for node in workflow['nodes']}
