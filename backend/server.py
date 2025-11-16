@@ -2009,6 +2009,76 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 except Exception as e:
                     result = {"status": "error", "error": str(e)}
             
+            elif node_type == 'screenshot':
+                # Execute Screenshot Extraction from Video
+                try:
+                    # Get video from previous node's result
+                    video_base64 = None
+                    if isinstance(input_data, dict):
+                        video_base64 = input_data.get('video_base64')
+                    
+                    if not video_base64:
+                        result = {"status": "error", "error": "No video data found from previous node. Connect a Video Gen node before Screenshot node."}
+                    else:
+                        import cv2
+                        import numpy as np
+                        from io import BytesIO
+                        
+                        # Decode video from base64
+                        video_bytes = base64.b64decode(video_base64)
+                        
+                        # Save temporarily to process with opencv
+                        temp_video_path = f"/tmp/temp_video_{str(uuid.uuid4())}.mp4"
+                        with open(temp_video_path, 'wb') as f:
+                            f.write(video_bytes)
+                        
+                        # Open video with opencv
+                        cap = cv2.VideoCapture(temp_video_path)
+                        
+                        # Get total frames
+                        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                        
+                        if total_frames > 0:
+                            # Set to last frame
+                            cap.set(cv2.CAP_PROP_POS_FRAMES, total_frames - 1)
+                            
+                            # Read last frame
+                            ret, frame = cap.read()
+                            
+                            if ret:
+                                # Convert BGR to RGB
+                                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                                
+                                # Encode frame as PNG
+                                from PIL import Image
+                                img = Image.fromarray(frame_rgb)
+                                img_byte_arr = BytesIO()
+                                img.save(img_byte_arr, format='PNG')
+                                img_byte_arr = img_byte_arr.getvalue()
+                                
+                                # Convert to base64
+                                screenshot_base64 = base64.b64encode(img_byte_arr).decode('utf-8')
+                                
+                                result = {
+                                    "status": "success",
+                                    "image_base64": screenshot_base64,
+                                    "size": f"{frame.shape[1]}x{frame.shape[0]}",
+                                    "prompt": "Last frame screenshot from video"
+                                }
+                            else:
+                                result = {"status": "error", "error": "Failed to read last frame from video"}
+                        else:
+                            result = {"status": "error", "error": "Video has no frames"}
+                        
+                        # Cleanup
+                        cap.release()
+                        import os
+                        if os.path.exists(temp_video_path):
+                            os.remove(temp_video_path)
+                        
+                except Exception as e:
+                    result = {"status": "error", "error": f"Screenshot extraction failed: {str(e)}"}
+            
             elif node_type == 'taskplanner':
                 # Execute Task Planner action
                 action = node_data.get('action', 'create')
