@@ -41,6 +41,10 @@ export default function CoPilotPage() {
     localStorage.setItem('multi_ai_mode', multiAiMode);
   }, [multiAiMode]);
 
+  useEffect(() => {
+    localStorage.setItem('selected_model', selectedModel);
+  }, [selectedModel]);
+
   const loadChatHistory = async () => {
     try {
       if (sessionId) {
