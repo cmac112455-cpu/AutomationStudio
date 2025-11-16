@@ -1671,8 +1671,22 @@ export default function AutomationStudioPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Template 1: Ad Performance Monitor */}
-              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer">
+              {/* Template 1: Video Ad Creator */}
+              <div 
+                onClick={() => loadTemplate('video-ad-creator')}
+                className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors cursor-pointer"
+              >
+                <h3 className="font-semibold text-white mb-2">🎬 Video Ad Creator</h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  Creates seamless extended videos by generating continuation clips and stitching them together
+                </p>
+                <div className="text-xs text-gray-500">
+                  Nodes: AI Chat → Video Gen → Screenshot → AI Chat → Video Gen → Stitch
+                </div>
+              </div>
+
+              {/* Template 2: Ad Performance Monitor */}
+              <div className="border border-gray-700 rounded-lg p-4 hover:border-purple-500/50 transition-colors cursor-not-allowed opacity-50">
                 <h3 className="font-semibold text-white mb-2">📊 Ad Performance Monitor</h3>
                 <p className="text-sm text-gray-400 mb-3">
                   Monitors ROAS, auto-generates new ad videos when performance drops
