@@ -526,6 +526,38 @@ export default function AutomationStudioPage() {
             </button>
           </div>
           
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">LOGIC</h3>
+          <div className="space-y-2 mb-4">
+            <button
+              onClick={() => addNode('condition')}
+              className="w-full p-2 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs flex items-center gap-2"
+            >
+              <span className="font-bold">?</span>
+              IF Condition
+            </button>
+            <button
+              onClick={() => addNode('switch')}
+              className="w-full p-2 rounded bg-fuchsia-500/20 hover:bg-fuchsia-500/30 border border-fuchsia-500/50 text-xs flex items-center gap-2"
+            >
+              <span className="font-bold">≡</span>
+              Switch
+            </button>
+            <button
+              onClick={() => addNode('loop')}
+              className="w-full p-2 rounded bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/50 text-xs flex items-center gap-2"
+            >
+              <span className="font-bold">↻</span>
+              Loop
+            </button>
+            <button
+              onClick={() => addNode('delay')}
+              className="w-full p-2 rounded bg-slate-500/20 hover:bg-slate-500/30 border border-slate-500/50 text-xs flex items-center gap-2"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              Delay
+            </button>
+          </div>
+          
           <h3 className="text-sm font-semibold mb-3 text-gray-400">CONTROL</h3>
           <div className="space-y-2">
             <button
