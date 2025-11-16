@@ -145,7 +145,8 @@ export default function CoPilotPage() {
         message: userMessage,
         session_id: sessionId,
         task_id: currentTaskId,
-        use_multi_ai: multiAiMode
+        use_multi_ai: multiAiMode,
+        preferred_model: selectedModel
       });
 
       if (!sessionId) {
