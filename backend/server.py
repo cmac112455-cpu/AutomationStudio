@@ -427,6 +427,24 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     # Get user's business profile for context
     profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
     
+    # Check if this is a task-specific chat
+    is_task_chat = chat_request.task_id is not None
+    task_context = ""
+    session_type = "general"
+    
+    if is_task_chat:
+        task = await db.tasks.find_one({"id": chat_request.task_id, "user_id": user_id}, {"_id": 0})
+        if task:
+            task_context = f"\n\nTASK CONTEXT:\nTask: {task['title']}\nDescription: {task['description']}\nPriority: {task['priority']}\nDeadline: {task.get('deadline', 'Not set')}\n"
+            session_type = "task"
+            
+            # Update task with chat session ID if not set
+            if not task.get('chat_session_id'):
+                await db.tasks.update_one(
+                    {"id": chat_request.task_id},
+                    {"$set": {"chat_session_id": session_id}}
+                )
+    
     # Get full chat history for this session
     chat_history = list(await db.chat_messages.find(
         {"user_id": user_id, "session_id": session_id},
