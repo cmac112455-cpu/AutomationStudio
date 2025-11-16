@@ -23,6 +23,9 @@ export default function CoPilotPage() {
     const saved = localStorage.getItem('multi_ai_mode');
     return saved === 'true' ? true : false; // Default to false for cost protection
   });
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem('selected_model') || 'intelligent'; // Default to intelligent routing
+  });
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
