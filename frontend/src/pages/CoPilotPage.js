@@ -370,17 +370,21 @@ export default function CoPilotPage() {
           <Button
             onClick={async () => {
               try {
-                const response = await axios.post('/tasks/generate-from-chat');
-                toast.success(response.data.message || 'Tasks generated from conversation!');
+                const response = await axios.post('/tasks/update-from-insights');
+                if (response.data.tasks_created > 0 || response.data.tasks_updated > 0) {
+                  toast.success(`Updated ${response.data.tasks_updated} tasks, created ${response.data.tasks_created} new tasks. ${response.data.reasoning}`);
+                } else {
+                  toast.info(response.data.message);
+                }
               } catch (error) {
-                toast.error('Failed to generate tasks from chat');
+                toast.error('Failed to update tasks');
               }
             }}
             className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] hover:opacity-90 h-full"
-            data-testid="generate-tasks-from-chat-button"
+            data-testid="update-tasks-button"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Generate Tasks from Chat
+            Update Tasks from Insights
           </Button>
         </div>
       </div>
