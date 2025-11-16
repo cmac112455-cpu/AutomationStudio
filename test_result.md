@@ -192,6 +192,28 @@ frontend:
           - API receives correct use_multi_ai flag
           - Different models are used based on toggle state
           - Credit usage is as expected
+          
+  - task: "Fix chat page scroll behavior - keep layout stationary"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/CoPilotPage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Fixed UX issue where entire page would scroll down as chat messages accumulated.
+          Changes made:
+          1. Added min-h-0 to main chat area container for proper flex behavior
+          2. Added flex-shrink-0 to header to prevent it from shrinking
+          3. Added overflow-y-auto to ScrollArea for explicit scroll behavior
+          4. Added flex-shrink-0 to info cards section to keep it fixed at bottom
+          5. Ensured chat container uses proper flex layout with min-h-0
+          
+          Result: Page layout now stays stationary with only the messages area scrolling.
+          Header, input area, toggle, and action buttons remain fixed in viewport.
 
 metadata:
   created_by: "main_agent"
