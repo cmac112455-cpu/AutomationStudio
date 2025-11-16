@@ -14,7 +14,7 @@ export default function CoPilotPage() {
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [sessionId, setSessionId] = useState(localStorage.getItem('copilot_session_id') || null);
-  const [currentTaskId, setCurrentTaskId] = useState(null);
+  const [currentTaskId, setCurrentTaskId] = useState(localStorage.getItem('copilot_task_id') || null);
   const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
 
