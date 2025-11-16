@@ -2132,6 +2132,21 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             results[node_id] = result
             execution_log.append(f"Completed {node_type} node: {node_id}")
             
+            # Update progress
+            nonlocal completed_nodes
+            completed_nodes += 1
+            progress = int((completed_nodes / total_nodes) * 100)
+            
+            await db.workflow_executions.update_one(
+                {"id": execution.id},
+                {"$set": {
+                    "progress": progress,
+                    "current_node": node_id,
+                    "execution_log": execution_log,
+                    "results": results
+                }}
+            )
+            
             # Execute next nodes
             next_nodes = edges_dict.get(node_id, [])
             for next_node_id in next_nodes:
