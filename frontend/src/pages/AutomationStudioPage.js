@@ -158,6 +158,11 @@ const nodeTypes = {
   gemini: GeminiNode,
   http: HttpNode,
   database: DatabaseNode,
+  elevenlabs: ElevenLabsNode,
+  manychat: ManyChatNode,
+  videogen: VideoGenNode,
+  imagegen: ImageGenNode,
+  taskplanner: TaskPlannerNode,
   end: EndNode,
 };
 
