@@ -206,7 +206,7 @@ export default function CoPilotPage() {
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`rounded-lg transition-colors flex items-start gap-2 p-2.5 max-w-full overflow-hidden ${
+                    className={`group rounded-lg transition-colors flex items-start gap-2 p-2.5 max-w-full overflow-hidden ${
                       sessionId === session.id
                         ? 'bg-[#00d4ff]/20 border border-[#00d4ff]'
                         : 'hover:bg-gray-800'
@@ -215,7 +215,7 @@ export default function CoPilotPage() {
                     {/* CHAT INFO - Takes available space */}
                     <button
                       onClick={() => switchSession(session.id)}
-                      className="flex-1 text-left flex items-start gap-2 min-w-0 max-w-[280px]"
+                      className="flex-1 text-left flex items-start gap-2 min-w-0 max-w-[310px]"
                       data-testid={`session-${session.id}`}
                     >
                       {session.session_type === 'task' ? (
@@ -223,7 +223,7 @@ export default function CoPilotPage() {
                       ) : (
                         <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       )}
-                      <div className="flex-1 min-w-0 max-w-[240px]">
+                      <div className="flex-1 min-w-0 max-w-[270px]">
                         <p className="text-sm font-medium truncate leading-tight w-full block">{session.title}</p>
                         <p className="text-xs text-gray-400 truncate leading-tight mt-0.5 w-full block">{session.last_message}</p>
                         <p className="text-xs text-gray-500 mt-1 leading-tight truncate w-full block">
@@ -232,15 +232,31 @@ export default function CoPilotPage() {
                       </div>
                     </button>
                     
-                    {/* DELETE BUTTON - RIGHT SIDE */}
-                    <button
-                      onClick={(e) => deleteSession(session.id, e)}
-                      className="flex-shrink-0 p-1 bg-red-500 hover:bg-red-600 rounded transition-colors"
-                      data-testid={`delete-session-${session.id}`}
-                      title="Delete chat"
-                    >
-                      <Trash2 className="w-4 h-4 text-white" />
-                    </button>
+                    {/* 3-DOT MENU - Only visible on hover */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          className="flex-shrink-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-700 rounded"
+                          data-testid={`menu-session-${session.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-40 p-1 bg-[#1a1d2e] border-gray-700" align="end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteSession(session.id, e);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                          data-testid={`delete-session-${session.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete Chat</span>
+                        </button>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 ))}
 
