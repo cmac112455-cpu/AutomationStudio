@@ -1,12 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { ListChecks, Play, CheckCircle, XCircle, Clock, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { ListChecks, Play, CheckCircle, XCircle, Clock, Eye, ChevronDown, ChevronUp, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 
 export default function CompletionsPage() {
   const [executions, setExecutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedExecution, setExpandedExecution] = useState(null);
+
+  // Helper to check if result contains media
+  const hasMedia = (result) => {
+    return result?.image_base64 || result?.video_base64;
+  };
+
+  // Helper to extract all media from execution results
+  const extractMedia = (results) => {
+    const media = [];
+    if (results) {
+      Object.entries(results).forEach(([nodeId, result]) => {
+        if (result?.image_base64) {
+          media.push({
+            type: 'image',
+            nodeId,
+            data: result.image_base64,
+            prompt: result.prompt || 'Generated Image',
+            size: result.size
+          });
+        }
+        if (result?.video_base64) {
+          media.push({
+            type: 'video',
+            nodeId,
+            data: result.video_base64,
+            prompt: result.prompt || 'Generated Video',
+            duration: result.duration,
+            size: result.size
+          });
+        }
+      });
+    }
+    return media;
+  };
 
   useEffect(() => {
     loadExecutions();
