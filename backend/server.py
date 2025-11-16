@@ -779,7 +779,7 @@ Keep it concise but comprehensive. Use markdown formatting."""
             task_id=chat_request.task_id,
             role="assistant",
             content=response,
-            model_used=f"{model_provider}/{model_name}"
+            model_used=model_used
         )
         assistant_msg_dict = assistant_msg.model_dump()
         assistant_msg_dict['created_at'] = assistant_msg_dict['created_at'].isoformat()
