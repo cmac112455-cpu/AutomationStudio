@@ -270,9 +270,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Workflow Execution API with Image Generation"
-    - "Image Generation Node Implementation"
-    - "Execution Monitoring and Progress Tracking"
+    - "Automation Studio Workflow Creation and Execution"
+    - "Completions Page Display and Data Fetching"
+    - "End-to-end workflow execution with image generation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
