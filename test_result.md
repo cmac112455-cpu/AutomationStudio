@@ -214,6 +214,45 @@ frontend:
           
           Result: Page layout now stays stationary with only the messages area scrolling.
           Header, input area, toggle, and action buttons remain fixed in viewport.
+          
+  - task: "Redesign bottom section with model selector and relocated Multi-AI toggle"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/CoPilotPage.js, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Completely redesigned the bottom section of CoPilot page per user request:
+          
+          Frontend Changes:
+          1. Removed the 3 individual model info cards (GPT-5, Claude, Gemini)
+          2. Added model selection dropdown with 4 options:
+             - Intelligent Routing (default) - auto-selects best model per query
+             - GPT-5 - for strategy & planning
+             - Claude 4 Sonnet - for data analysis
+             - Gemini 2.5 Pro - for general insights
+          3. Moved Multi-AI Collaboration toggle from above input to bottom section
+          4. Created clean 2-column layout:
+             - Left: Model selector + Multi-AI toggle (more compact)
+             - Right: Action buttons (AI Research, Update Tasks)
+          5. Added selectedModel state with localStorage persistence
+          6. Updated sendMessage to pass preferred_model to API
+          
+          Backend Changes:
+          1. Added preferred_model field to ChatRequest model
+          2. Updated copilot chat logic to respect user's model choice:
+             - If user selects specific model, use that model
+             - If user selects "intelligent", use smart routing based on query
+             - Multi-AI mode still overrides and uses all 3 models + synthesis
+          3. Model mapping: 'gpt5' -> GPT-5, 'claude' -> Claude, 'gemini' -> Gemini
+          
+          Result: Users now have full control over which AI model handles their queries.
+          Default is intelligent routing (cost-efficient). Multi-AI mode available for
+          complex queries requiring multiple perspectives.
 
 metadata:
   created_by: "main_agent"
