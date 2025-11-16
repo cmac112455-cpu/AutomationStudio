@@ -302,6 +302,7 @@ export default function AutomationStudioPage() {
   const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [triggerConfig, setTriggerConfig] = useState({});
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [selectedNodeForDeletion, setSelectedNodeForDeletion] = useState(null);
 
   const onConnect = useCallback(
     (params) =>
