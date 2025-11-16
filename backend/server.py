@@ -711,6 +711,16 @@ async def get_tasks(user_id: str = Depends(get_current_user)):
 
 @api_router.post("/tasks")
 async def create_task(task_data: TaskCreate, user_id: str = Depends(get_current_user)):
+    # Check for duplicate task (case-insensitive title match)
+    existing_task = await db.tasks.find_one({
+        "user_id": user_id,
+        "title": {"$regex": f"^{task_data.title}$", "$options": "i"},
+        "status": {"$ne": "completed"}
+    })
+    
+    if existing_task:
+        raise HTTPException(status_code=400, detail="A similar task already exists")
+    
     task = Task(
         user_id=user_id,
         **task_data.model_dump(),
