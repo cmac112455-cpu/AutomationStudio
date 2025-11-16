@@ -136,7 +136,8 @@ export default function CoPilotPage() {
       const response = await axios.post('/copilot/chat', {
         message: userMessage,
         session_id: sessionId,
-        task_id: currentTaskId
+        task_id: currentTaskId,
+        use_multi_ai: multiAiMode
       });
 
       if (!sessionId) {
