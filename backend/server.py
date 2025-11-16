@@ -792,6 +792,18 @@ async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
     priority_map = {"high": 3, "medium": 2, "low": 1}
     
     for idx, task_data in enumerate(tasks_to_create):
+        # Check for duplicate task (case-insensitive title match)
+        existing_task = await db.tasks.find_one({
+            "user_id": user_id,
+            "title": {"$regex": f"^{task_data['title']}$", "$options": "i"},
+            "status": {"$ne": "completed"}
+        })
+        
+        # Skip if duplicate exists
+        if existing_task:
+            logging.info(f"Skipping duplicate task: {task_data['title']}")
+            continue
+        
         # Calculate deadline based on priority
         days_until_deadline = 3 if task_data['priority'] == 'high' else 7 if task_data['priority'] == 'medium' else 14
         deadline = datetime.now(timezone.utc) + timedelta(days=days_until_deadline)
@@ -801,7 +813,7 @@ async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
             **task_data,
             status="todo",
             ai_generated=True,
-            priority_number=idx + 1,
+            priority_number=len(created_tasks) + 1,
             deadline=deadline
         )
         
