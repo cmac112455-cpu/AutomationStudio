@@ -191,10 +191,20 @@ export default function CoPilotPage() {
         localStorage.setItem('copilot_session_id', newSessionId);
       }
 
+      // Add generated images if present
+      const generatedImageFiles = response.data.generated_images 
+        ? response.data.generated_images.map((imgBase64, idx) => ({
+            name: `generated_image_${idx}.png`,
+            type: 'image/png',
+            url: `data:image/png;base64,${imgBase64}`
+          }))
+        : [];
+
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: response.data.response,
-        model_used: response.data.model_used
+        model_used: response.data.model_used,
+        files: generatedImageFiles.length > 0 ? generatedImageFiles : undefined
       }]);
 
       // Reload sessions to update history
