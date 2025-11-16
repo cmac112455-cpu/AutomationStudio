@@ -843,9 +843,9 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
             {"$set": {
                 "user_id": user_id,
                 "session_type": session_type,
-                "task_id": chat_request.task_id,
+                "task_id": task_id,
                 "title": session_title,
-                "last_message": chat_request.message[:100],
+                "last_message": message[:100],
                 "last_updated": datetime.now(timezone.utc).isoformat()
             }},
             upsert=True
