@@ -372,9 +372,39 @@ export default function AutomationStudioPage() {
   const [executionProgress, setExecutionProgress] = useState(0);
 
   const executeWorkflow = async () => {
-    if (!currentWorkflow?.id) {
-      toast.error('Please save the workflow first');
-      return;
+    // Auto-save before executing
+    let workflowToExecute = currentWorkflow;
+    
+    if (!workflowToExecute) {
+      // Create new workflow if none exists
+      const workflowName = `Workflow ${Date.now()}`;
+      toast.info('Saving workflow before execution...');
+      
+      try {
+        const saveResponse = await axios.post('/workflows', {
+          name: workflowName,
+          nodes,
+          edges,
+        });
+        workflowToExecute = saveResponse.data;
+        setCurrentWorkflow(workflowToExecute);
+        await loadWorkflows();
+      } catch (error) {
+        toast.error('Failed to save workflow');
+        return;
+      }
+    } else {
+      // Update existing workflow
+      try {
+        await axios.put(`/workflows/${workflowToExecute.id}`, {
+          name: workflowToExecute.name,
+          nodes,
+          edges,
+        });
+      } catch (error) {
+        toast.error('Failed to update workflow');
+        return;
+      }
     }
 
     setExecuting(true);
