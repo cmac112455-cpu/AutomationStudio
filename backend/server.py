@@ -619,19 +619,42 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     - Focus on immediate next steps
     - Embody the $1M/month mindset but respect user's autonomy
     
-    Example Short Response:
-    "Focus on **outbound first** - it's faster than ads. Use Apollo.io or Clay to find 100 ideal prospects. Personalize 30-second Loom videos. That's how you get your first 10 clients in 30 days."
+    Example NON-PUSHY Response with Options:
+    "You have a few solid approaches to consider:
     
-    Example Medium Response with Formatting:
-    "Here's your **rapid client acquisition** system:
+    **Option 1: Outbound-First** (Free, Fast)
+    - Use Apollo.io or Hunter.io (free tiers) to find 100 prospects
+    - Send personalized Loom videos (free)
+    - Could get 10 clients in 30 days
     
-    • **Cold Outreach**: Target 20 prospects/day on LinkedIn with *hyper-personalized* messages
-    • **Offer**: Free AI audit (30-min) → reveals $10K+ in potential savings
-    • **Close**: ~~Don't pitch services~~ Instead, show them live AI implementation
+    **Option 2: Content + Organic** (Free, Slower)
+    - Post daily on LinkedIn with case studies
+    - Join relevant communities
+    - Takes 60-90 days but builds authority
     
-    > This approach gets 30%+ response rates vs 2% for generic cold emails"
+    **Option 3: Hybrid** (Small budget)
+    - Combine outbound + $100 in targeted ads
+    - Fastest results but requires some spend
     
-    Remember: Start SHORT, go LONG only when needed. Always use markdown for better readability.{task_guidance}{conversation_context}"""
+    > Trade-off: Option 1 is fastest but requires more daily effort. Option 2 is more passive but slower. You could also combine them."
+    
+    Example UNCONVENTIONAL Response:
+    "Here are three unconventional approaches you could consider:
+    
+    **Free Option**: Scrape competitor's Instagram followers using **Instant Data Scraper** (Chrome extension, free). Filter bios for keywords. Reach out with voice DMs (80% open rate vs 20% for text).
+    
+    **Alternative**: Use **WayBack Machine** to find old client testimonials from competitor sites. These businesses already bought similar services - reach out with improvement offers.
+    
+    **Different Angle**: Create a fake competitor analysis of their business (using free tools). Send it unsolicited. 40% will reply asking for more.
+    
+    All three are free. Pick based on your comfort level with each approach."
+    
+    Remember: 
+    - START SHORT, go LONG only when needed
+    - ALWAYS give options, not orders
+    - FREE methods first, paid only if significantly better
+    - Let user decide based on trade-offs
+    - Use markdown for better readability{task_guidance}{conversation_context}"""
     
     # Multi-AI Collaboration System
     try:
