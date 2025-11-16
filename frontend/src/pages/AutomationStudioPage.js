@@ -773,6 +773,13 @@ export default function AutomationStudioPage() {
               Screenshot
             </button>
             <button
+              onClick={() => addNode('stitch')}
+              className="w-full p-2 rounded bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/50 text-xs flex items-center gap-2"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Stitch
+            </button>
+            <button
               onClick={() => addNode('elevenlabs')}
               className="w-full p-2 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-xs flex items-center gap-2"
             >
