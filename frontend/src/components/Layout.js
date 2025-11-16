@@ -20,6 +20,9 @@ export default function Layout({ children }) {
   const { user, logout } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const [automationExpanded, setAutomationExpanded] = React.useState(
+    location.pathname.startsWith('/automation')
+  );
 
   const handleLogout = () => {
     logout();
@@ -30,7 +33,6 @@ export default function Layout({ children }) {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/copilot', label: 'AI Co-Pilot', icon: MessageSquare },
     { path: '/tasks', label: 'Task Planner', icon: CheckSquare },
-    { path: '/automation', label: 'Automation Studio', icon: Workflow },
   ];
 
   return (
