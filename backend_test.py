@@ -582,6 +582,16 @@ class BackendTester:
                 if isinstance(executions, list):
                     self.log_result("Execution History", True, 
                                   f"Execution history retrieved successfully. {len(executions)} executions found")
+                    
+                    # Show recent executions
+                    if executions:
+                        print("\n📋 RECENT EXECUTIONS:")
+                        for i, exec_data in enumerate(executions[:3]):  # Show top 3
+                            status = exec_data.get("status", "unknown")
+                            workflow_name = exec_data.get("workflow_name", "Unknown")
+                            started_at = exec_data.get("started_at", "")
+                            print(f"   {i+1}. {workflow_name} - {status} - {started_at}")
+                    
                     return True
                 else:
                     self.log_result("Execution History", False, "Invalid execution history format")
@@ -593,6 +603,55 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("Execution History", False, f"Execution history error: {str(e)}")
+            return False
+    
+    def test_mongodb_persistence(self, execution_id):
+        """Test if execution record exists in MongoDB via API"""
+        if not self.auth_token or not execution_id:
+            self.log_result("MongoDB Persistence", False, "No auth token or execution ID available")
+            return False
+            
+        try:
+            # Get specific execution record
+            response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
+            
+            if response.status_code == 200:
+                execution_data = response.json()
+                
+                # Verify required fields exist
+                required_fields = ["id", "workflow_id", "user_id", "status", "started_at"]
+                missing_fields = [field for field in required_fields if field not in execution_data]
+                
+                if not missing_fields:
+                    status = execution_data.get("status")
+                    progress = execution_data.get("progress", 0)
+                    results = execution_data.get("results", {})
+                    
+                    self.log_result("MongoDB Persistence", True, 
+                                  f"Execution record persisted correctly in MongoDB", 
+                                  f"Status: {status}, Progress: {progress}%, Results: {len(results)} nodes")
+                    
+                    print(f"\n💾 MONGODB RECORD VERIFICATION:")
+                    print(f"   • Execution ID: {execution_data.get('id')}")
+                    print(f"   • Workflow ID: {execution_data.get('workflow_id')}")
+                    print(f"   • Status: {execution_data.get('status')}")
+                    print(f"   • Progress: {execution_data.get('progress', 0)}%")
+                    print(f"   • Started: {execution_data.get('started_at')}")
+                    print(f"   • Completed: {execution_data.get('completed_at', 'N/A')}")
+                    print(f"   • Results: {len(execution_data.get('results', {}))} node results")
+                    
+                    return True
+                else:
+                    self.log_result("MongoDB Persistence", False, 
+                                  f"Execution record missing required fields: {missing_fields}")
+                    return False
+            else:
+                self.log_result("MongoDB Persistence", False, 
+                              f"Failed to retrieve execution record: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("MongoDB Persistence", False, f"MongoDB persistence check error: {str(e)}")
             return False
     
     def test_workflow_retrieval(self, workflow_id):
