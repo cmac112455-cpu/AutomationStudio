@@ -629,30 +629,75 @@ async def chat_with_copilot(chat_request: ChatRequest, user_id: str = Depends(ge
     
     Remember: Start SHORT, go LONG only when needed. Always use markdown for better readability.{task_guidance}{conversation_context}"""
     
-    # Determine which model to use based on query type
-    query_lower = chat_request.message.lower()
-    
-    if any(word in query_lower for word in ['strategy', 'plan', 'roadmap', 'future']):
-        model_provider = 'openai'
-        model_name = 'gpt-5'
-    elif any(word in query_lower for word in ['analyze', 'data', 'performance', 'metric']):
-        model_provider = 'anthropic'
-        model_name = 'claude-4-sonnet-20250514'
-    else:
-        model_provider = 'gemini'
-        model_name = 'gemini-2.5-pro'
-    
-    # Initialize LLM Chat
+    # Multi-AI Collaboration System
     try:
-        chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY'),
-            session_id=session_id,
-            system_message=system_message
-        ).with_model(model_provider, model_name)
+        # Step 1: Get responses from all three AI models
+        models = [
+            ('openai', 'gpt-5', 'GPT-5'),
+            ('anthropic', 'claude-4-sonnet-20250514', 'Claude'),
+            ('gemini', 'gemini-2.5-pro', 'Gemini')
+        ]
         
-        # Send message
-        user_message = UserMessage(text=chat_request.message)
-        response = await chat.send_message(user_message)
+        individual_responses = []
+        
+        for provider, model, name in models:
+            try:
+                chat = LlmChat(
+                    api_key=os.environ.get('EMERGENT_LLM_KEY'),
+                    session_id=f"{session_id}_{name}",
+                    system_message=system_message
+                ).with_model(provider, model)
+                
+                user_message = UserMessage(text=chat_request.message)
+                model_response = await chat.send_message(user_message)
+                individual_responses.append({
+                    'model': name,
+                    'response': model_response
+                })
+            except Exception as e:
+                logging.error(f"{name} error: {str(e)}")
+                continue
+        
+        # Step 2: Have the models reason together to create the best response
+        if len(individual_responses) >= 2:
+            reasoning_prompt = f"""You are a meta-AI that synthesizes responses from multiple AI models.
+
+User's Question: {chat_request.message}
+
+Responses from different AI models:
+
+{chr(10).join([f"**{resp['model']}**: {resp['response']}" for resp in individual_responses])}
+
+Your task: Synthesize the BEST response by:
+1. Taking the most practical, actionable advice
+2. Combining unique insights from each model
+3. Prioritizing FREE and CHEAP methods that work well
+4. Presenting 2-3 alternative approaches (not just one solution)
+5. Being suggestive, NOT pushy - use phrases like "you could", "consider", "one option is"
+6. Including unconventional but legal strategies
+7. Letting the user decide - don't make decisions for them
+
+Format your response as:
+- **Main Recommendation** (the best combined approach)
+- **Alternative Option 1** (different approach)
+- **Alternative Option 2** (another approach if applicable)
+- Brief comparison of pros/cons
+
+Keep it concise but comprehensive. Use markdown formatting."""
+
+            reasoning_chat = LlmChat(
+                api_key=os.environ.get('EMERGENT_LLM_KEY'),
+                session_id=session_id,
+                system_message="You are a synthesis expert. Combine insights from multiple AIs to create the most helpful, option-rich response."
+            ).with_model('openai', 'gpt-5')
+            
+            reasoning_message = UserMessage(text=reasoning_prompt)
+            response = await reasoning_chat.send_message(reasoning_message)
+            model_used = "Multi-AI (GPT-5 + Claude + Gemini)"
+        else:
+            # Fallback to single model if others failed
+            response = individual_responses[0]['response'] if individual_responses else "I apologize, but I'm having trouble processing your request. Please try again."
+            model_used = individual_responses[0]['model'] if individual_responses else "fallback"
         
         # Save user message
         user_msg = ChatMessage(
