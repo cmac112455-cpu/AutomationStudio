@@ -749,8 +749,37 @@ async def chat_with_copilot(
     
     # AI Response System
     try:
+        # Handle video generation requests (prioritize over image if both detected)
+        if is_video_generation_request:
+            try:
+                # Create video generator instance
+                video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+                
+                # Generate video with Sora 2
+                video_bytes = video_gen.text_to_video(
+                    prompt=message,
+                    model="sora-2",  # Can be "sora-2" or "sora-2-pro"
+                    size="1280x720",  # Standard HD
+                    duration=4,  # 4 seconds for faster generation
+                    max_wait_time=600  # 10 minutes timeout
+                )
+                
+                if video_bytes:
+                    # Convert to base64
+                    video_base64 = base64.b64encode(video_bytes).decode('utf-8')
+                    generated_videos.append(video_base64)
+                    response = f"I've generated a video based on your request: \"{message}\"\n\nThe video is 4 seconds long in HD quality (1280x720)."
+                    model_used = "sora-2 (Video Generation)"
+                else:
+                    response = "I attempted to generate a video but encountered an issue. Please try rephrasing your request or simplifying the prompt."
+                    model_used = "sora-2"
+            except Exception as e:
+                logging.error(f"Video generation error: {str(e)}")
+                response = f"I encountered an error while generating the video. This could be due to timeout or API issues. Please try a simpler prompt or try again later."
+                model_used = "sora-2 (Error)"
+        
         # Handle image generation requests
-        if is_image_generation_request:
+        elif is_image_generation_request:
             try:
                 # Extract the image prompt from the message
                 image_gen = OpenAIImageGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
