@@ -744,14 +744,34 @@ Combine the best insights, present 2-3 options, prioritize free methods, be non-
                 model_used = individual_responses[0]['model'] if individual_responses else "fallback"
         else:
             # Single model (1x API call - default, cost-efficient)
-            query_lower = chat_request.message.lower()
-            
-            if any(word in query_lower for word in ['strategy', 'plan', 'roadmap']):
-                model_provider, model_name = 'openai', 'gpt-5'
-            elif any(word in query_lower for word in ['analyze', 'data', 'performance']):
-                model_provider, model_name = 'anthropic', 'claude-4-sonnet-20250514'
+            # Check if user has a preferred model
+            if chat_request.preferred_model and chat_request.preferred_model != 'intelligent':
+                # Use user's specific model choice
+                if chat_request.preferred_model == 'gpt5':
+                    model_provider, model_name = 'openai', 'gpt-5'
+                elif chat_request.preferred_model == 'claude':
+                    model_provider, model_name = 'anthropic', 'claude-4-sonnet-20250514'
+                elif chat_request.preferred_model == 'gemini':
+                    model_provider, model_name = 'gemini', 'gemini-2.5-pro'
+                else:
+                    # Fallback to intelligent routing
+                    query_lower = chat_request.message.lower()
+                    if any(word in query_lower for word in ['strategy', 'plan', 'roadmap']):
+                        model_provider, model_name = 'openai', 'gpt-5'
+                    elif any(word in query_lower for word in ['analyze', 'data', 'performance']):
+                        model_provider, model_name = 'anthropic', 'claude-4-sonnet-20250514'
+                    else:
+                        model_provider, model_name = 'gemini', 'gemini-2.5-pro'
             else:
-                model_provider, model_name = 'gemini', 'gemini-2.5-pro'
+                # Intelligent routing based on query content
+                query_lower = chat_request.message.lower()
+                
+                if any(word in query_lower for word in ['strategy', 'plan', 'roadmap']):
+                    model_provider, model_name = 'openai', 'gpt-5'
+                elif any(word in query_lower for word in ['analyze', 'data', 'performance']):
+                    model_provider, model_name = 'anthropic', 'claude-4-sonnet-20250514'
+                else:
+                    model_provider, model_name = 'gemini', 'gemini-2.5-pro'
             
             chat = LlmChat(
                 api_key=os.environ.get('EMERGENT_LLM_KEY'),
