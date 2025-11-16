@@ -1176,6 +1176,22 @@ export default function AutomationStudioPage() {
                       rows={4}
                     />
                   </div>
+                  <div>
+                    <Label className="text-white">Image Size</Label>
+                    <Select
+                      value={nodeConfig.size || '1024x1024'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, size: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="1024x1024">1024x1024 (Square)</SelectItem>
+                        <SelectItem value="1024x1792">1024x1792 (Portrait)</SelectItem>
+                        <SelectItem value="1792x1024">1792x1024 (Landscape)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               )}
 
