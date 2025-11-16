@@ -21,9 +21,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare, Mic, Send, Video, Image, CheckSquare, Settings, X, Clock, Copy, Calendar } from 'lucide-react';
 
 // Helper component for nodes with handles
-const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true }) => {
+const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true, nodeId, nodeType, onDelete, onConfigure }) => {
+  const [showMenu, setShowMenu] = React.useState(false);
+  
   return (
-    <div className="relative">
+    <div className="relative group">
       {hasInput && (
         <Handle 
           type="target" 
@@ -38,6 +40,51 @@ const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true }) =>
           position={Position.Right} 
           style={{ background: color, width: '12px', height: '12px', border: '2px solid #0f1218' }}
         />
+      )}
+      
+      {/* Three-dot menu - only show for non-start nodes */}
+      {nodeType !== 'start' && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            className="p-1 rounded hover:bg-white/10 transition-colors"
+            title="Node menu"
+          >
+            <MoreVertical className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+          </button>
+          
+          {showMenu && (
+            <div className="absolute right-0 top-8 bg-[#1a1d2e] border border-gray-700 rounded-lg shadow-xl z-50 min-w-[150px]">
+              {nodeType !== 'end' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    if (onConfigure) onConfigure();
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  Configure
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  if (onDelete) onDelete(nodeId);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors rounded-b-lg"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Node
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
