@@ -1883,6 +1883,8 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
     # Execute workflow
     results = {}
     execution_log = []
+    total_nodes = len(workflow['nodes'])
+    completed_nodes = 0
     
     async def execute_node(node_id: str, input_data: Any = None):
         node = nodes_dict.get(node_id)
