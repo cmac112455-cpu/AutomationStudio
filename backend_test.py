@@ -40,6 +40,52 @@ class BackendTester:
         if details:
             print(f"   Details: {details}")
     
+    def start_log_monitoring(self):
+        """Start monitoring backend logs in real-time"""
+        self.log_monitor_active = True
+        self.captured_logs = []
+        
+        def monitor_logs():
+            try:
+                # Monitor backend error logs
+                process = subprocess.Popen(
+                    ['tail', '-f', '/var/log/supervisor/backend.err.log'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    universal_newlines=True
+                )
+                
+                print("🔍 Starting REAL-TIME backend log monitoring...")
+                
+                while self.log_monitor_active:
+                    line = process.stdout.readline()
+                    if line:
+                        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+                        log_entry = f"[{timestamp}] {line.strip()}"
+                        self.captured_logs.append(log_entry)
+                        print(f"📋 LOG: {log_entry}")
+                    elif process.poll() is not None:
+                        break
+                        
+                process.terminate()
+                
+            except Exception as e:
+                print(f"⚠️  Log monitoring error: {str(e)}")
+        
+        # Start monitoring in background thread
+        self.log_thread = threading.Thread(target=monitor_logs, daemon=True)
+        self.log_thread.start()
+        time.sleep(1)  # Give thread time to start
+    
+    def stop_log_monitoring(self):
+        """Stop log monitoring and return captured logs"""
+        self.log_monitor_active = False
+        if hasattr(self, 'log_thread'):
+            self.log_thread.join(timeout=2)
+        
+        print(f"🛑 Stopped log monitoring. Captured {len(self.captured_logs)} log entries.")
+        return self.captured_logs.copy()
+    
     def test_user_registration(self):
         """Test user registration"""
         test_email = f"testuser_{int(time.time())}@example.com"
