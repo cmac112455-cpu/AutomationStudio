@@ -5,22 +5,47 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Brain, User, Sparkles } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 
 export default function CoPilotPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [sessionId, setSessionId] = useState(localStorage.getItem('copilot_session_id') || null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Welcome message
+    loadChatHistory();
+  }, []);
+
+  const loadChatHistory = async () => {
+    try {
+      if (sessionId) {
+        const response = await axios.get(`/copilot/history/${sessionId}`);
+        if (response.data.messages && response.data.messages.length > 0) {
+          setMessages(response.data.messages);
+        } else {
+          showWelcomeMessage();
+        }
+      } else {
+        showWelcomeMessage();
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+      showWelcomeMessage();
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const showWelcomeMessage = () => {
     setMessages([{
       role: 'assistant',
-      content: 'Hello! I\'m your AI Business Co-Pilot. I can help you with:\n\n• Strategic business planning\n• Ad campaign optimization\n• Financial analysis\n• Growth strategies\n• Automation recommendations\n\n💾 All conversations are automatically saved and analyzed to generate priority tasks for you.\n\nWhat would you like to discuss today?',
+      content: 'Hello! I\'m your AI Business Co-Pilot. I can help you with:\n\n• **Strategic business planning**\n• **Ad campaign optimization**\n• **Financial analysis**\n• **Growth strategies**\n• **Automation recommendations**\n\n💾 All conversations are automatically saved and analyzed to generate priority tasks for you.\n\nWhat would you like to discuss today?',
       model_used: 'system'
     }]);
-  }, []);
+  };
 
   useEffect(() => {
     scrollToBottom();
