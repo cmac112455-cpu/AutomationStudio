@@ -39,18 +39,50 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       const response = await axios.get('/tasks');
+      
+      // Remove duplicates on client side (case-insensitive title)
+      const uniqueTasks = [];
+      const seenTitles = new Set();
+      
+      for (const task of response.data.tasks) {
+        const titleLower = task.title.toLowerCase().trim();
+        if (!seenTitles.has(titleLower)) {
+          seenTitles.add(titleLower);
+          uniqueTasks.push(task);
+        }
+      }
+      
       // Sort by priority: high > medium > low, then by created date
       const priorityOrder = { high: 3, medium: 2, low: 1 };
-      const sorted = response.data.tasks.sort((a, b) => {
+      const sorted = uniqueTasks.sort((a, b) => {
         const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
         if (priorityDiff !== 0) return priorityDiff;
         return new Date(b.created_at) - new Date(a.created_at);
       });
+      
+      // Re-assign priority numbers (1-10 for active tasks)
+      const activeTasks = sorted.filter(t => t.status !== 'completed');
+      activeTasks.forEach((task, idx) => {
+        if (idx < 10) {
+          task.priority_number = idx + 1;
+        }
+      });
+      
       setTasks(sorted);
     } catch (error) {
       toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const removeDuplicates = async () => {
+    try {
+      const response = await axios.post('/tasks/remove-duplicates');
+      toast.success(response.data.message);
+      fetchTasks();
+    } catch (error) {
+      toast.error('Failed to remove duplicates');
     }
   };
 
