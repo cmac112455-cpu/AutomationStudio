@@ -231,6 +231,22 @@ const ScreenshotNode = ({ data }) => {
   );
 };
 
+const StitchNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#ec4899" hasInput={true} nodeType="stitch">
+      <div className="px-4 py-3 rounded-lg border-2 border-pink-500 bg-pink-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Copy className="w-4 h-4 text-pink-500" />
+          <div className="font-semibold text-white">Stitch Videos</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Combine multiple videos
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
 const TaskPlannerNode = ({ data }) => {
   return (
     <NodeWrapper color="#10b981" hasInput={true} nodeType="taskplanner">
