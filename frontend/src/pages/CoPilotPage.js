@@ -402,7 +402,7 @@ export default function CoPilotPage() {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2 mb-3">
               <p className="text-xs text-gray-500">
                 Press Enter to send, Shift+Enter for new line
               </p>
@@ -411,11 +411,9 @@ export default function CoPilotPage() {
                 Chat auto-saved
               </p>
             </div>
-          </div>
-        </div>
 
-        {/* AI Settings & Actions - Sleek Modern Design */}
-        <div className="mt-6 flex-shrink-0">
+            {/* AI Settings & Actions - Integrated Below Input */}
+            <div className="pt-3 border-t border-gray-800/50">
           <div className="flex items-center justify-between gap-4">
             {/* Model Selection - Sleek Dropdown */}
             <div className="flex-1">
