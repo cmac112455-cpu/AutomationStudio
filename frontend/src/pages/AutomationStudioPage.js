@@ -215,6 +215,22 @@ const ImageGenNode = ({ data }) => {
   );
 };
 
+const ScreenshotNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#a855f7" hasInput={true} nodeType="screenshot">
+      <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Camera className="w-4 h-4 text-purple-500" />
+          <div className="font-semibold text-white">Screenshot</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Extract last frame from video
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
 const TaskPlannerNode = ({ data }) => {
   return (
     <NodeWrapper color="#10b981" hasInput={true} nodeType="taskplanner">
