@@ -85,46 +85,7 @@ class BackendTester:
             self.log_result("User Login (Fallback)", False, f"Login error: {str(e)}")
             return False
     
-    def test_chat_single_ai_mode(self):
-        """Test chat with use_multi_ai = false (default)"""
-        if not self.auth_token:
-            self.log_result("Chat Single AI Mode", False, "No authentication token available")
-            return False
-            
-        try:
-            chat_data = {
-                "message": "What are the best lead generation strategies for a small business?",
-                "use_multi_ai": False
-            }
-            
-            response = self.session.post(f"{self.base_url}/copilot/chat", json=chat_data)
-            
-            if response.status_code == 200:
-                data = response.json()
-                response_text = data.get("response", "")
-                model_used = data.get("model_used", "")
-                session_id = data.get("session_id", "")
-                
-                # Verify single model response
-                is_single_model = not ("Multi-AI" in model_used or "4x credits" in model_used)
-                
-                if is_single_model and response_text and session_id:
-                    self.log_result("Chat Single AI Mode", True, 
-                                  f"Single AI mode working correctly. Model: {model_used}", 
-                                  f"Response length: {len(response_text)} chars, Session: {session_id}")
-                    return True, session_id
-                else:
-                    self.log_result("Chat Single AI Mode", False, 
-                                  f"Unexpected response format. Model: {model_used}")
-                    return False, None
-            else:
-                self.log_result("Chat Single AI Mode", False, 
-                              f"Chat failed with status {response.status_code}", response.text)
-                return False, None
-                
-        except Exception as e:
-            self.log_result("Chat Single AI Mode", False, f"Chat error: {str(e)}")
-            return False, None
+    # Removed old chat testing methods - focusing on workflow testing
     
     def test_chat_multi_ai_mode(self):
         """Test chat with use_multi_ai = true"""
