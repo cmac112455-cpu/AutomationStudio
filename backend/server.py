@@ -1978,6 +1978,106 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 else:
                     result = {"status": "Task action executed", "action": action}
             
+            elif node_type == 'condition':
+                # Execute conditional logic
+                operator = node_data.get('operator', 'equals')
+                compare_value = node_data.get('compareValue', '')
+                
+                # Get value from previous node
+                check_value = input_data.get('response') if isinstance(input_data, dict) else str(input_data)
+                
+                condition_met = False
+                if operator == 'equals':
+                    condition_met = str(check_value) == str(compare_value)
+                elif operator == 'not_equals':
+                    condition_met = str(check_value) != str(compare_value)
+                elif operator == 'greater_than':
+                    try:
+                        condition_met = float(check_value) > float(compare_value)
+                    except:
+                        condition_met = False
+                elif operator == 'less_than':
+                    try:
+                        condition_met = float(check_value) < float(compare_value)
+                    except:
+                        condition_met = False
+                elif operator == 'contains':
+                    condition_met = str(compare_value).lower() in str(check_value).lower()
+                
+                result = {
+                    "condition_met": condition_met,
+                    "branch": "true" if condition_met else "false",
+                    "checked_value": check_value
+                }
+            
+            elif node_type == 'switch':
+                # Execute switch logic
+                switch_value = node_data.get('switchValue', '')
+                cases_str = node_data.get('cases', '[]')
+                
+                try:
+                    cases = json_lib.loads(cases_str) if isinstance(cases_str, str) else cases_str
+                except:
+                    cases = []
+                
+                # Get value from previous node
+                check_value = input_data.get('response') if isinstance(input_data, dict) else str(input_data)
+                
+                matched_case = None
+                for case in cases:
+                    if str(case).lower() in str(check_value).lower():
+                        matched_case = case
+                        break
+                
+                result = {
+                    "matched_case": matched_case or "default",
+                    "checked_value": check_value
+                }
+            
+            elif node_type == 'loop':
+                # Execute loop logic
+                loop_type = node_data.get('loopType', 'forEach')
+                
+                if loop_type == 'forEach':
+                    array_data = input_data.get('data', []) if isinstance(input_data, dict) else []
+                    result = {
+                        "loop_type": "forEach",
+                        "iterations": len(array_data),
+                        "items": array_data
+                    }
+                elif loop_type == 'count':
+                    iterations = int(node_data.get('iterations', 1))
+                    result = {
+                        "loop_type": "count",
+                        "iterations": iterations,
+                        "current": 0
+                    }
+                else:
+                    result = {
+                        "loop_type": loop_type,
+                        "status": "Loop executed"
+                    }
+            
+            elif node_type == 'delay':
+                # Execute delay
+                duration = int(node_data.get('duration', 1))
+                unit = node_data.get('unit', 'seconds')
+                
+                # Convert to seconds
+                seconds = duration
+                if unit == 'minutes':
+                    seconds = duration * 60
+                elif unit == 'hours':
+                    seconds = duration * 3600
+                
+                import asyncio
+                await asyncio.sleep(min(seconds, 10))  # Cap at 10 seconds for demo
+                
+                result = {
+                    "delayed": f"{duration} {unit}",
+                    "seconds": seconds
+                }
+            
             elif node_type == 'end':
                 result = {"status": "completed", "final_data": input_data}
             
