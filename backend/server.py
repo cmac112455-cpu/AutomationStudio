@@ -1986,18 +1986,20 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             elif node_type == 'imagegen':
                 # Execute Image Generation
                 prompt = node_data.get('prompt', '')
+                size = node_data.get('size', '1024x1024')  # Get size from node config
                 
                 try:
                     image_gen = OpenAIImageGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
                     images = await image_gen.generate_images(
                         prompt=prompt,
                         model="gpt-image-1",
-                        number_of_images=1
+                        number_of_images=1,
+                        size=size
                     )
                     
                     if images and len(images) > 0:
                         image_base64 = base64.b64encode(images[0]).decode('utf-8')
-                        result = {"status": "success", "image_base64": image_base64[:100] + "..."}
+                        result = {"status": "success", "image_base64": image_base64[:100] + "...", "size": size}
                     else:
                         result = {"status": "failed", "error": "Image generation failed"}
                 except Exception as e:
