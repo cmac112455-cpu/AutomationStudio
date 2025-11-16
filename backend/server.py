@@ -738,7 +738,14 @@ async def chat_with_copilot(
                          'show me image', 'show me picture', 'image of', 'picture of']
     is_image_generation_request = any(keyword in message.lower() for keyword in image_gen_keywords)
     
+    # Check if user is requesting video generation
+    video_gen_keywords = ['generate video', 'create video', 'make video', 'generate animation',
+                         'create animation', 'make animation', 'video of', 'animate',
+                         'generate clip', 'create clip', 'make clip', 'show me video']
+    is_video_generation_request = any(keyword in message.lower() for keyword in video_gen_keywords)
+    
     generated_images = []
+    generated_videos = []
     
     # AI Response System
     try:
