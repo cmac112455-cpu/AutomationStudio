@@ -70,7 +70,9 @@ export default function CoPilotPage() {
       });
 
       if (!sessionId) {
-        setSessionId(response.data.session_id);
+        const newSessionId = response.data.session_id;
+        setSessionId(newSessionId);
+        localStorage.setItem('copilot_session_id', newSessionId);
       }
 
       setMessages(prev => [...prev, {
