@@ -200,11 +200,23 @@ export default function CoPilotPage() {
           }))
         : [];
 
+      // Add generated videos if present
+      const generatedVideoFiles = response.data.generated_videos
+        ? response.data.generated_videos.map((videoBase64, idx) => ({
+            name: `generated_video_${idx}.mp4`,
+            type: 'video/mp4',
+            url: `data:video/mp4;base64,${videoBase64}`
+          }))
+        : [];
+
+      // Combine all generated media
+      const allGeneratedFiles = [...generatedImageFiles, ...generatedVideoFiles];
+
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: response.data.response,
         model_used: response.data.model_used,
-        files: generatedImageFiles.length > 0 ? generatedImageFiles : undefined
+        files: allGeneratedFiles.length > 0 ? allGeneratedFiles : undefined
       }]);
 
       // Reload sessions to update history
