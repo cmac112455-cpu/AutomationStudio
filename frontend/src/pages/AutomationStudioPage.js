@@ -71,6 +71,76 @@ const DatabaseNode = ({ data }) => {
   );
 };
 
+const ElevenLabsNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <Mic className="w-4 h-4 text-orange-500" />
+        <div className="font-semibold text-white">ElevenLabs TTS</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Voice: {data.voice || 'Not configured'}
+      </div>
+    </div>
+  );
+};
+
+const ManyChatNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-pink-500 bg-pink-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <Send className="w-4 h-4 text-pink-500" />
+        <div className="font-semibold text-white">ManyChat</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Action: {data.action || 'Send Message'}
+      </div>
+    </div>
+  );
+};
+
+const VideoGenNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-indigo-500 bg-indigo-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <Video className="w-4 h-4 text-indigo-500" />
+        <div className="font-semibold text-white">Video Generation</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Sora 2: {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Not configured'}
+      </div>
+    </div>
+  );
+};
+
+const ImageGenNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-yellow-500 bg-yellow-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <Image className="w-4 h-4 text-yellow-500" />
+        <div className="font-semibold text-white">Image Generation</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Not configured'}
+      </div>
+    </div>
+  );
+};
+
+const TaskPlannerNode = ({ data }) => {
+  return (
+    <div className="px-4 py-3 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 backdrop-blur-sm min-w-[200px]">
+      <div className="flex items-center gap-2">
+        <CheckSquare className="w-4 h-4 text-emerald-500" />
+        <div className="font-semibold text-white">Task Planner</div>
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Action: {data.action || 'Create Task'}
+      </div>
+    </div>
+  );
+};
+
 const EndNode = ({ data }) => {
   return (
     <div className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-500/10 backdrop-blur-sm">
