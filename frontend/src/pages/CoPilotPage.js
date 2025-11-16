@@ -280,9 +280,9 @@ export default function CoPilotPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 flex-shrink-0">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00d4ff] to-[#4785ff] flex items-center justify-center glow-effect">
               <Brain className="w-6 h-6 text-white" />
@@ -295,9 +295,9 @@ export default function CoPilotPage() {
         </div>
 
         {/* Chat Container */}
-        <div className="flex-1 glass-morph rounded-2xl p-6 flex flex-col">
+        <div className="flex-1 glass-morph rounded-2xl p-6 flex flex-col min-h-0">
           {/* Messages */}
-          <ScrollArea className="flex-1 pr-4 mb-4" data-testid="chat-messages">
+          <ScrollArea className="flex-1 pr-4 mb-4 overflow-y-auto" data-testid="chat-messages">
             <div className="space-y-4">
               {loadingHistory ? (
                 <div className="flex items-center justify-center py-8">
