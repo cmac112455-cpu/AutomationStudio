@@ -203,6 +203,7 @@ class ChatResponse(BaseModel):
     session_id: str
     model_used: str
     generated_images: Optional[List[str]] = None  # Base64 encoded images
+    generated_videos: Optional[List[str]] = None  # Base64 encoded videos
 
 class UploadedFile(BaseModel):
     model_config = ConfigDict(extra="ignore")
