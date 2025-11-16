@@ -764,6 +764,33 @@ async def delete_task(task_id: str, user_id: str = Depends(get_current_user)):
     
     return {"message": "Task deleted successfully"}
 
+@api_router.post("/tasks/remove-duplicates")
+async def remove_duplicate_tasks(user_id: str = Depends(get_current_user)):
+    # Get all active tasks for user
+    all_tasks = list(await db.tasks.find(
+        {"user_id": user_id, "status": {"$ne": "completed"}},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000))
+    
+    seen_titles = set()
+    duplicates_removed = 0
+    
+    for task in all_tasks:
+        title_lower = task['title'].lower().strip()
+        
+        if title_lower in seen_titles:
+            # This is a duplicate, delete it
+            await db.tasks.delete_one({"id": task['id']})
+            duplicates_removed += 1
+            logging.info(f"Removed duplicate task: {task['title']}")
+        else:
+            seen_titles.add(title_lower)
+    
+    return {
+        "duplicates_removed": duplicates_removed,
+        "message": f"Removed {duplicates_removed} duplicate tasks"
+    }
+
 @api_router.post("/tasks/generate")
 async def generate_ai_tasks(user_id: str = Depends(get_current_user)):
     # Get business profile and dashboard data
