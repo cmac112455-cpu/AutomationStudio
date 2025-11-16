@@ -420,12 +420,10 @@ export default function CoPilotPage() {
 
               {/* Model Selection - Compact */}
               <div className="flex-1 min-w-[200px]">
-            {/* Model Selection - Sleek Dropdown */}
-            <div className="flex-1">
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="h-10 bg-[#2a2d3a]/50 border-gray-700/50 hover:border-gray-600 transition-colors text-white rounded-lg backdrop-blur-sm">
-                  <SelectValue placeholder="Select Model" />
-                </SelectTrigger>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger className="h-8 bg-[#2a2d3a]/30 border-gray-700/30 hover:border-gray-600/50 transition-colors text-white text-sm rounded-md">
+                    <SelectValue placeholder="Select Model" />
+                  </SelectTrigger>
                 <SelectContent className="bg-[#1a1d2e] border-gray-700 rounded-lg">
                   <SelectItem value="intelligent" className="text-white hover:bg-gray-800/50 cursor-pointer">
                     <div className="flex items-center gap-2 py-1">
