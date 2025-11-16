@@ -736,7 +736,7 @@ async def chat_with_copilot(
                         system_message=system_message
                     ).with_model(provider, model)
                     
-                    user_message = UserMessage(text=chat_request.message)
+                    user_message = UserMessage(text=full_message)
                     model_response = await chat.send_message(user_message)
                     individual_responses.append({
                         'model': name,
