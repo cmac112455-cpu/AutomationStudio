@@ -392,3 +392,28 @@ agent_communication:
       The workflow execution system with image generation is fully operational and production-ready.
       Real-time monitoring confirms no silent failures or hidden issues.
       All components working in harmony: API -> Workflow Engine -> Image Generation -> Database Storage.
+  - agent: "testing"
+    message: |
+      STARTING FRONTEND WORKFLOW EXECUTION TESTING
+      
+      🎯 TEST FOCUS: Complete workflow execution and completions display flow
+      📋 TEST SCENARIO: End-to-end workflow execution with image generation
+      
+      TESTING STEPS:
+      1. Login/Register a new user
+      2. Navigate to Automation Studio (/automation/studio)
+      3. Create workflow: Start -> Image Gen -> End
+      4. Configure Image Gen node: prompt "a cute cat playing with yarn", size 1024x1024
+      5. Save the workflow
+      6. Execute workflow and monitor progress (20-30 seconds expected)
+      7. Check for success toast notification
+      8. Navigate to Completions page (/automation/completions)
+      9. Verify execution appears with proper status, progress, and results
+      
+      FOCUS AREAS:
+      - JavaScript errors in console
+      - Polling mechanism functionality
+      - Completions page data fetching
+      - UI update timing issues
+      - Authentication and API call integrity
+      - Image generation result display
