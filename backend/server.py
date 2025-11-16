@@ -640,6 +640,14 @@ async def get_chat_history(session_id: str, user_id: str = Depends(get_current_u
     ).sort("created_at", 1).to_list(100))
     return {"messages": messages}
 
+@api_router.get("/copilot/sessions")
+async def get_chat_sessions(user_id: str = Depends(get_current_user)):
+    sessions = list(await db.chat_sessions.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("last_updated", -1).to_list(50))
+    return {"sessions": sessions}
+
 # ============ TASK PLANNER ENDPOINTS ============
 
 @api_router.get("/tasks")
