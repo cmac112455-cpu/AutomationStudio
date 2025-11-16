@@ -2006,18 +2006,37 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 # Get prompt from node config OR from previous node's response
                 prompt = node_data.get('prompt', '')
                 
-                # If no prompt in config, try to get from previous node's output
+                # If no prompt in config, try to get from input or from any previous AI node
                 if not prompt and isinstance(input_data, dict):
                     prompt = input_data.get('response', input_data.get('prompt', ''))
                 
-                # Fallback to input_data as string if it's a direct prompt
                 if not prompt and isinstance(input_data, str):
                     prompt = input_data
                 
-                # Get image from previous node (should be from screenshot node)
-                image_base64 = None
-                if isinstance(input_data, dict):
+                # If still no prompt, search previous AI chat nodes
+                if not prompt:
+                    for node_id, result in results.items():
+                        if isinstance(result, dict) and result.get('model') and result.get('response'):
+                            prompt = result.get('response')
+                            break
+                
+                # Get image from uploaded config, previous node, or search all screenshot nodes
+                image_base64 = node_data.get('uploadedImage')  # Check for uploaded image first
+                
+                # Remove data URL prefix if present
+                if image_base64 and 'base64,' in image_base64:
+                    image_base64 = image_base64.split('base64,')[1]
+                
+                # If no uploaded image, try to get from input
+                if not image_base64 and isinstance(input_data, dict):
                     image_base64 = input_data.get('image_base64')
+                
+                # If still no image, search all previous screenshot nodes
+                if not image_base64:
+                    for node_id, result in results.items():
+                        if isinstance(result, dict) and result.get('image_base64'):
+                            image_base64 = result.get('image_base64')
+                            break
                 
                 duration = node_data.get('duration', 4)
                 size = node_data.get('size', '1280x720')
