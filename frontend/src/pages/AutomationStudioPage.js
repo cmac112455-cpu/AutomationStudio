@@ -861,22 +861,51 @@ export default function AutomationStudioPage() {
             <Background variant="dots" gap={12} size={1} color="#374151" />
           </ReactFlow>
 
-          {/* Floating Delete Button */}
-          {selectedNodeForDeletion && selectedNodeForDeletion.type !== 'start' && (
-            <div className="absolute top-4 right-4 z-10">
-              <div className="bg-[#1a1d2e] border border-gray-700 rounded-lg p-3 shadow-xl">
-                <p className="text-xs text-gray-400 mb-2">Selected: <span className="text-white font-semibold">{selectedNodeForDeletion.type}</span></p>
-                <Button
-                  onClick={deleteSelectedNode}
-                  className="w-full bg-red-600 hover:bg-red-700"
-                  size="sm"
+          {/* Right-Click Context Menu */}
+          {contextMenu && contextMenu.node.type !== 'start' && (
+            <>
+              <div 
+                className="fixed inset-0 z-40"
+                onClick={() => setContextMenu(null)}
+              />
+              <div
+                className="absolute bg-[#1a1d2e] border border-gray-700 rounded-lg shadow-2xl z-50 min-w-[180px]"
+                style={{
+                  left: `${contextMenu.x}px`,
+                  top: `${contextMenu.y}px`,
+                }}
+              >
+                <div className="px-3 py-2 border-b border-gray-700">
+                  <p className="text-xs text-gray-400">
+                    {contextMenu.node.type} node
+                  </p>
+                </div>
+                {contextMenu.node.type !== 'end' && (
+                  <button
+                    onClick={() => {
+                      setSelectedNode(contextMenu.node);
+                      setNodeConfig(contextMenu.node.data || {});
+                      setShowConfigModal(true);
+                      setContextMenu(null);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Configure
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    deleteNode(contextMenu.node.id);
+                    setContextMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors rounded-b-lg"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-4 h-4" />
                   Delete Node
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">or press Delete key</p>
+                </button>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
