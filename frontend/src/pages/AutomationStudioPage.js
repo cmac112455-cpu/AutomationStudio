@@ -766,6 +766,24 @@ export default function AutomationStudioPage() {
             />
             <Background variant="dots" gap={12} size={1} color="#374151" />
           </ReactFlow>
+
+          {/* Floating Delete Button */}
+          {selectedNodeForDeletion && selectedNodeForDeletion.type !== 'start' && (
+            <div className="absolute top-4 right-4 z-10">
+              <div className="bg-[#1a1d2e] border border-gray-700 rounded-lg p-3 shadow-xl">
+                <p className="text-xs text-gray-400 mb-2">Selected: <span className="text-white font-semibold">{selectedNodeForDeletion.type}</span></p>
+                <Button
+                  onClick={deleteSelectedNode}
+                  className="w-full bg-red-600 hover:bg-red-700"
+                  size="sm"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Node
+                </Button>
+                <p className="text-xs text-gray-500 mt-2 text-center">or press Delete key</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
