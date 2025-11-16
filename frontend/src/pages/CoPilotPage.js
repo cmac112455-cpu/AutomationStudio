@@ -177,8 +177,8 @@ export default function CoPilotPage() {
         </div>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      {/* Info Cards & Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <div className="glass-morph p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -200,6 +200,21 @@ export default function CoPilotPage() {
           </div>
           <p className="text-xs text-gray-400">General optimization & insights</p>
         </div>
+        <Button
+          onClick={async () => {
+            try {
+              const response = await axios.post('/tasks/generate-from-chat');
+              toast.success(response.data.message || 'Tasks generated from conversation!');
+            } catch (error) {
+              toast.error('Failed to generate tasks from chat');
+            }
+          }}
+          className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] hover:opacity-90 h-full"
+          data-testid="generate-tasks-from-chat-button"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Generate Tasks from Chat
+        </Button>
       </div>
     </div>
   );
