@@ -416,13 +416,28 @@ export default function TasksPage() {
                               <Sparkles className="w-4 h-4 text-[#00d4ff]" title="AI Generated" />
                             )}
                           </div>
-                          <p className="text-sm text-gray-400">{task.description}</p>
+                          <p className="text-sm text-gray-400 mb-2">{task.description}</p>
+                          {task.deadline && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <CalendarIcon className="w-3 h-3" />
+                              <span>Due: {format(new Date(task.deadline), 'MMM dd, yyyy')}</span>
+                            </div>
+                          )}
                         </div>
                         <span className={`text-xs px-3 py-1 rounded-full ${getPriorityBadge(task.priority)}`}>
                           {task.priority.toUpperCase()}
                         </span>
                       </div>
                       <div className="flex gap-2 mt-3">
+                        <Button
+                          size="sm"
+                          onClick={() => chatWithAI(task)}
+                          className="bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black flex-1"
+                          data-testid={`chat-task-${index}`}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          Chat with AI
+                        </Button>
                         <Button
                           size="sm"
                           onClick={() => updateTaskStatus(task.id, task.status === 'todo' ? 'in_progress' : 'completed')}
