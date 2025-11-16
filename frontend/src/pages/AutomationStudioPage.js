@@ -122,125 +122,143 @@ const ElevenLabsNode = ({ data }) => {
 
 const ManyChatNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-pink-500 bg-pink-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Send className="w-4 h-4 text-pink-500" />
-        <div className="font-semibold text-white">ManyChat</div>
+    <NodeWrapper color="#ec4899" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-pink-500 bg-pink-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Send className="w-4 h-4 text-pink-500" />
+          <div className="font-semibold text-white">ManyChat</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Action: {data.action || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Action: {data.action || 'Send Message'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const VideoGenNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-indigo-500 bg-indigo-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Video className="w-4 h-4 text-indigo-500" />
-        <div className="font-semibold text-white">Video Generation</div>
+    <NodeWrapper color="#6366f1" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-indigo-500 bg-indigo-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Video className="w-4 h-4 text-indigo-500" />
+          <div className="font-semibold text-white">Video Generation</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Sora 2: {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Sora 2: {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const ImageGenNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-yellow-500 bg-yellow-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <Image className="w-4 h-4 text-yellow-500" />
-        <div className="font-semibold text-white">Image Generation</div>
+    <NodeWrapper color="#eab308" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-yellow-500 bg-yellow-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Image className="w-4 h-4 text-yellow-500" />
+          <div className="font-semibold text-white">Image Generation</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        {data.prompt ? data.prompt.substring(0, 30) + '...' : 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const TaskPlannerNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <CheckSquare className="w-4 h-4 text-emerald-500" />
-        <div className="font-semibold text-white">Task Planner</div>
+    <NodeWrapper color="#10b981" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <CheckSquare className="w-4 h-4 text-emerald-500" />
+          <div className="font-semibold text-white">Task Planner</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Action: {data.action || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Action: {data.action || 'Create Task'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const ConditionNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 text-amber-500 font-bold">?</div>
-        <div className="font-semibold text-white">IF Condition</div>
+    <NodeWrapper color="#f59e0b" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-amber-500 font-bold">?</div>
+          <div className="font-semibold text-white">IF Condition</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.condition || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        {data.condition || 'Not configured'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const SwitchNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-fuchsia-500 bg-fuchsia-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 text-fuchsia-500 font-bold">≡</div>
-        <div className="font-semibold text-white">Switch</div>
+    <NodeWrapper color="#d946ef" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-fuchsia-500 bg-fuchsia-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-fuchsia-500 font-bold">≡</div>
+          <div className="font-semibold text-white">Switch</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Cases: {data.cases?.length || 0}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Cases: {data.cases?.length || 0}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const LoopNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-violet-500 bg-violet-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 text-violet-500 font-bold">↻</div>
-        <div className="font-semibold text-white">Loop</div>
+    <NodeWrapper color="#8b5cf6" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-violet-500 bg-violet-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-violet-500 font-bold">↻</div>
+          <div className="font-semibold text-white">Loop</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.loopType || 'Click to configure'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        {data.loopType || 'For Each'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const DelayNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-slate-500 bg-slate-500/10 backdrop-blur-sm min-w-[200px]">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 text-slate-500">⏱</div>
-        <div className="font-semibold text-white">Delay</div>
+    <NodeWrapper color="#64748b" hasInput={true}>
+      <div className="px-4 py-3 rounded-lg border-2 border-slate-500 bg-slate-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-slate-500">⏱</div>
+          <div className="font-semibold text-white">Delay</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Wait: {data.duration || '1'} {data.unit || 'seconds'}
+        </div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Wait: {data.duration || '1'} {data.unit || 'seconds'}
-      </div>
-    </div>
+    </NodeWrapper>
   );
 };
 
 const EndNode = ({ data }) => {
   return (
-    <div className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-500/10 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <Zap className="w-4 h-4 text-red-500" />
-        <div className="font-semibold text-white">End</div>
+    <NodeWrapper color="#ef4444" hasInput={true} hasOutput={false}>
+      <div className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-500/10 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-red-500" />
+          <div className="font-semibold text-white">End</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">Workflow completes</div>
       </div>
-      <div className="text-xs text-gray-400 mt-1">Workflow completes</div>
-    </div>
+    </NodeWrapper>
   );
 };
 
