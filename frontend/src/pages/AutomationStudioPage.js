@@ -515,6 +515,330 @@ export default function AutomationStudioPage() {
           </ReactFlow>
         </div>
       </div>
+
+      {/* Node Configuration Modal */}
+      {showConfigModal && selectedNode && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#1a1d2e] border border-gray-700 rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Configure {selectedNode.type} Node
+              </h2>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Gemini Node Config */}
+              {selectedNode.type === 'gemini' && (
+                <>
+                  <div>
+                    <Label className="text-white">AI Prompt</Label>
+                    <Textarea
+                      value={nodeConfig.prompt || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                      placeholder="Enter your prompt for the AI..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Model</Label>
+                    <Select
+                      value={nodeConfig.model || 'gemini-2.5-pro'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, model: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro</SelectItem>
+                        <SelectItem value="gpt-5">GPT-5</SelectItem>
+                        <SelectItem value="claude-4-sonnet">Claude 4 Sonnet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
+              {/* HTTP Node Config */}
+              {selectedNode.type === 'http' && (
+                <>
+                  <div>
+                    <Label className="text-white">URL</Label>
+                    <Input
+                      value={nodeConfig.url || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, url: e.target.value })}
+                      placeholder="https://api.example.com/endpoint"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Method</Label>
+                    <Select
+                      value={nodeConfig.method || 'GET'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, method: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="GET">GET</SelectItem>
+                        <SelectItem value="POST">POST</SelectItem>
+                        <SelectItem value="PUT">PUT</SelectItem>
+                        <SelectItem value="DELETE">DELETE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white">Body (JSON)</Label>
+                    <Textarea
+                      value={nodeConfig.body || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, body: e.target.value })}
+                      placeholder='{"key": "value"}'
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Headers (JSON)</Label>
+                    <Textarea
+                      value={nodeConfig.headers || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, headers: e.target.value })}
+                      placeholder='{"Authorization": "Bearer token"}'
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Database Node Config */}
+              {selectedNode.type === 'database' && (
+                <>
+                  <div>
+                    <Label className="text-white">Collection</Label>
+                    <Input
+                      value={nodeConfig.collection || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, collection: e.target.value })}
+                      placeholder="users"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Query (JSON)</Label>
+                    <Textarea
+                      value={nodeConfig.query || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, query: e.target.value })}
+                      placeholder='{"status": "active"}'
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* ElevenLabs Node Config */}
+              {selectedNode.type === 'elevenlabs' && (
+                <>
+                  <div>
+                    <Label className="text-white">Text to Convert</Label>
+                    <Textarea
+                      value={nodeConfig.text || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, text: e.target.value })}
+                      placeholder="Enter text to convert to speech..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Voice ID</Label>
+                    <Input
+                      value={nodeConfig.voice || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, voice: e.target.value })}
+                      placeholder="rachel or voice_id"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">API Key</Label>
+                    <Input
+                      type="password"
+                      value={nodeConfig.apiKey || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, apiKey: e.target.value })}
+                      placeholder="Your ElevenLabs API key"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* ManyChat Node Config */}
+              {selectedNode.type === 'manychat' && (
+                <>
+                  <div>
+                    <Label className="text-white">Action</Label>
+                    <Select
+                      value={nodeConfig.action || 'send_message'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, action: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="send_message">Send Message</SelectItem>
+                        <SelectItem value="add_tag">Add Tag</SelectItem>
+                        <SelectItem value="remove_tag">Remove Tag</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white">Message</Label>
+                    <Textarea
+                      value={nodeConfig.message || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, message: e.target.value })}
+                      placeholder="Message to send..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">API Key</Label>
+                    <Input
+                      type="password"
+                      value={nodeConfig.apiKey || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, apiKey: e.target.value })}
+                      placeholder="Your ManyChat API key"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Video Generation Node Config */}
+              {selectedNode.type === 'videogen' && (
+                <>
+                  <div>
+                    <Label className="text-white">Video Prompt</Label>
+                    <Textarea
+                      value={nodeConfig.prompt || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                      placeholder="Describe the video you want to generate..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Duration (seconds)</Label>
+                    <Select
+                      value={String(nodeConfig.duration || '4')}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, duration: parseInt(value) })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="4">4 seconds</SelectItem>
+                        <SelectItem value="8">8 seconds</SelectItem>
+                        <SelectItem value="12">12 seconds</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
+              {/* Image Generation Node Config */}
+              {selectedNode.type === 'imagegen' && (
+                <>
+                  <div>
+                    <Label className="text-white">Image Prompt</Label>
+                    <Textarea
+                      value={nodeConfig.prompt || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                      placeholder="Describe the image you want to generate..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Task Planner Node Config */}
+              {selectedNode.type === 'taskplanner' && (
+                <>
+                  <div>
+                    <Label className="text-white">Action</Label>
+                    <Select
+                      value={nodeConfig.action || 'create'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, action: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="create">Create Task</SelectItem>
+                        <SelectItem value="update">Update Task</SelectItem>
+                        <SelectItem value="complete">Complete Task</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white">Task Title</Label>
+                    <Input
+                      value={nodeConfig.title || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, title: e.target.value })}
+                      placeholder="Task title"
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Task Description</Label>
+                    <Textarea
+                      value={nodeConfig.description || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, description: e.target.value })}
+                      placeholder="Task description..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white">Priority (1-10)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={nodeConfig.priority || '5'}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, priority: parseInt(e.target.value) })}
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={() => setShowConfigModal(false)}
+                variant="outline"
+                className="border-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveNodeConfig}
+                className="bg-gradient-to-r from-purple-500 to-pink-500"
+              >
+                Save Configuration
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
