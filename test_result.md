@@ -230,14 +230,16 @@ frontend:
           5. Execution history view
 
 metadata:
-  created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 0
+  created_by: "testing_agent"
+  version: "2.0"
+  test_sequence: 1
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Multi-AI Collaboration toggle button in CoPilotPage"
+    - "Workflow Execution API with Image Generation"
+    - "Image Generation Node Implementation"
+    - "Execution Monitoring and Progress Tracking"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
