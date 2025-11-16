@@ -2003,7 +2003,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     
                     if images and len(images) > 0:
                         image_base64 = base64.b64encode(images[0]).decode('utf-8')
-                        result = {"status": "success", "image_base64": image_base64[:100] + "...", "size": size}
+                        result = {"status": "success", "image_base64": image_base64, "size": size, "prompt": prompt}
                     else:
                         result = {"status": "failed", "error": "Image generation failed"}
                 except Exception as e:
