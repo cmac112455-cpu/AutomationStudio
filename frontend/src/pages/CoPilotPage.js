@@ -214,7 +214,7 @@ export default function CoPilotPage() {
                     {/* CHAT INFO - Takes available space */}
                     <button
                       onClick={() => switchSession(session.id)}
-                      className="flex-1 text-left flex items-start gap-2 min-w-0 overflow-hidden"
+                      className="flex-1 text-left flex items-start gap-2 min-w-0 max-w-[280px]"
                       data-testid={`session-${session.id}`}
                     >
                       {session.session_type === 'task' ? (
@@ -222,10 +222,10 @@ export default function CoPilotPage() {
                       ) : (
                         <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       )}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <p className="text-sm font-medium truncate leading-tight">{session.title}</p>
-                        <p className="text-xs text-gray-400 truncate leading-tight mt-0.5">{session.last_message}</p>
-                        <p className="text-xs text-gray-500 mt-1 leading-tight">
+                      <div className="flex-1 min-w-0 max-w-[240px]">
+                        <p className="text-sm font-medium truncate leading-tight w-full block">{session.title}</p>
+                        <p className="text-xs text-gray-400 truncate leading-tight mt-0.5 w-full block">{session.last_message}</p>
+                        <p className="text-xs text-gray-500 mt-1 leading-tight truncate w-full block">
                           {new Date(session.last_updated).toLocaleDateString()}
                         </p>
                       </div>
