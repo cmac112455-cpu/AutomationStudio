@@ -411,7 +411,7 @@ export default function AutomationStudioPage() {
     setExecutionProgress(0);
     
     try {
-      const response = await axios.post(`/workflows/${currentWorkflow.id}/execute`);
+      const response = await axios.post(`/workflows/${workflowToExecute.id}/execute`);
       setExecutionId(response.data.execution_id);
       
       // Poll for progress
