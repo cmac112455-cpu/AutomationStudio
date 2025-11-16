@@ -26,6 +26,8 @@ export default function CoPilotPage() {
   const [selectedModel, setSelectedModel] = useState(() => {
     return localStorage.getItem('selected_model') || 'intelligent'; // Default to intelligent routing
   });
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
