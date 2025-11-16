@@ -219,6 +219,10 @@ const nodeTypes = {
   videogen: VideoGenNode,
   imagegen: ImageGenNode,
   taskplanner: TaskPlannerNode,
+  condition: ConditionNode,
+  switch: SwitchNode,
+  loop: LoopNode,
+  delay: DelayNode,
   end: EndNode,
 };
 
