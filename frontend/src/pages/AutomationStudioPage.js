@@ -437,12 +437,41 @@ export default function AutomationStudioPage() {
   };
 
   const onNodeClick = useCallback((event, node) => {
+    setSelectedNodeForDeletion(node);
     if (node.type !== 'start' && node.type !== 'end') {
       setSelectedNode(node);
       setNodeConfig(node.data || {});
       setShowConfigModal(true);
     }
   }, []);
+
+  const deleteNode = useCallback((nodeId) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    setSelectedNodeForDeletion(null);
+    toast.success('Node deleted');
+  }, [setNodes, setEdges]);
+
+  const deleteSelectedNode = useCallback(() => {
+    if (selectedNodeForDeletion && selectedNodeForDeletion.type !== 'start') {
+      deleteNode(selectedNodeForDeletion.id);
+    }
+  }, [selectedNodeForDeletion, deleteNode]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeForDeletion) {
+        if (selectedNodeForDeletion.type !== 'start') {
+          event.preventDefault();
+          deleteSelectedNode();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNodeForDeletion, deleteSelectedNode]);
 
   const saveNodeConfig = () => {
     if (!selectedNode) return;
