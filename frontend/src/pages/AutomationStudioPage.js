@@ -731,7 +731,7 @@ export default function AutomationStudioPage() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1" style={{ height: 'calc(100vh - 73px)' }}>
+        <div className="flex-1 relative" style={{ height: 'calc(100vh - 73px)' }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -739,6 +739,7 @@ export default function AutomationStudioPage() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
+            onPaneClick={() => setSelectedNodeForDeletion(null)}
             nodeTypes={nodeTypes}
             fitView
             className="bg-gradient-to-br from-[#0f1218] to-[#1a1d2e]"
