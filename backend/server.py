@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 import random
 from fastapi import UploadFile, File
 import base64
