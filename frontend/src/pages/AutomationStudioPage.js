@@ -815,10 +815,17 @@ export default function AutomationStudioPage() {
             </button>
             <button
               onClick={() => addNode('videogen')}
-              className="w-full p-2 rounded bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/50 text-xs flex items-center gap-2"
+              className="w-full p-2 rounded bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-xs flex items-center gap-2"
             >
               <Video className="w-3.5 h-3.5" />
               Video Gen
+            </button>
+            <button
+              onClick={() => addNode('imagetovideo')}
+              className="w-full p-2 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-xs flex items-center gap-2"
+            >
+              <Video className="w-3.5 h-3.5" />
+              Image → Video
             </button>
             <button
               onClick={() => addNode('screenshot')}
