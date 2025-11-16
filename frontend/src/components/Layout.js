@@ -8,7 +8,8 @@ import {
   CheckSquare, 
   LogOut, 
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Workflow
 } from 'lucide-react';
 
 export default function Layout({ children }) {
