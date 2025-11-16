@@ -337,6 +337,9 @@ const initialNodes = [
 
 const initialEdges = [];
 
+// Create a context for node actions
+const NodeActionsContext = React.createContext(null);
+
 export default function AutomationStudioPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
