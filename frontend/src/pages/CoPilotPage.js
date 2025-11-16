@@ -205,18 +205,18 @@ export default function CoPilotPage() {
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`relative group w-full text-left p-2.5 rounded-lg transition-colors ${
+                    className={`w-full rounded-lg transition-colors ${
                       sessionId === session.id
                         ? 'bg-[#00d4ff]/20 border border-[#00d4ff]'
                         : 'hover:bg-gray-800'
                     }`}
                   >
-                    <button
-                      onClick={() => switchSession(session.id)}
-                      className="w-full text-left pr-10"
-                      data-testid={`session-${session.id}`}
-                    >
-                      <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-2 p-2.5">
+                      <button
+                        onClick={() => switchSession(session.id)}
+                        className="flex-1 text-left flex items-start gap-2 min-w-0"
+                        data-testid={`session-${session.id}`}
+                      >
                         {session.session_type === 'task' ? (
                           <Target className="w-4 h-4 text-[#00d4ff] mt-0.5 flex-shrink-0" />
                         ) : (
@@ -229,16 +229,16 @@ export default function CoPilotPage() {
                             {new Date(session.last_updated).toLocaleDateString()}
                           </p>
                         </div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => deleteSession(session.id, e)}
-                      className="absolute top-2 right-2 p-1 hover:bg-red-500/20 rounded transition-colors"
-                      data-testid={`delete-session-${session.id}`}
-                      title="Delete chat"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-400 hover:text-red-500" />
-                    </button>
+                      </button>
+                      <button
+                        onClick={(e) => deleteSession(session.id, e)}
+                        className="flex-shrink-0 p-1.5 bg-red-500/10 hover:bg-red-500/30 rounded border border-red-500/30 transition-colors"
+                        data-testid={`delete-session-${session.id}`}
+                        title="Delete chat"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
                   </div>
                 ))}
 
