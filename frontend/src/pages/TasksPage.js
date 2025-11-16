@@ -160,7 +160,10 @@ export default function TasksPage() {
   const chatWithAI = async (task) => {
     // Create or get task chat session
     try {
-      const message = `Help me complete this task: ${task.title}. ${task.description}. I need to do this fast, efficiently, and cost-effectively.`;
+      console.log('Starting chat for task:', task);
+      const message = `Help me complete this task: ${task.title}. ${task.description}. Give me unconventional but effective strategies.`;
+      
+      toast.info('Starting AI chat for this task...');
       
       const response = await axios.post('/copilot/chat', {
         message: message,
@@ -168,19 +171,31 @@ export default function TasksPage() {
         session_id: task.chat_session_id || null
       });
 
-      // Update task with chat session ID
+      console.log('Chat response:', response.data);
+
+      // Update task with chat session ID if needed
       if (!task.chat_session_id && response.data.session_id) {
-        await axios.patch(`/tasks/${task.id}`, {
-          chat_session_id: response.data.session_id
-        });
+        try {
+          await axios.patch(`/tasks/${task.id}`, {
+            chat_session_id: response.data.session_id
+          });
+        } catch (patchError) {
+          console.error('Failed to update task with session:', patchError);
+        }
       }
 
       // Navigate to Co-Pilot with session
       localStorage.setItem('copilot_session_id', response.data.session_id);
+      localStorage.setItem('copilot_task_id', task.id);
+      
+      // Small delay to ensure localStorage is set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       navigate('/copilot');
-      toast.success('Starting task-focused chat...');
+      toast.success('Task-focused chat started!');
     } catch (error) {
-      toast.error('Failed to start chat');
+      console.error('Chat error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to start chat');
     }
   };
 
