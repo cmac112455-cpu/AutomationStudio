@@ -1911,7 +1911,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 # Use execution-specific session to maintain conversation history within workflow
                 chat = LlmChat(
                     api_key=os.environ.get('EMERGENT_LLM_KEY'),
-                    session_id=f"{workflow_id}_{execution.id}",  # Unique per workflow execution
+                    session_id=f"{workflow_id}_{execution_id}",  # Unique per workflow execution
                     system_message="You are a helpful AI assistant in an automation workflow."
                 ).with_model('gemini', model)
                 
