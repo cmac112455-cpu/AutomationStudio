@@ -392,6 +392,34 @@ export default function CoPilotPage() {
                         ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30'
                         : 'bg-gradient-to-br from-[#00d4ff]/10 to-[#4785ff]/10 border border-[#00d4ff]/30'
                     }`}>
+                      {/* Display attached files (images/videos) */}
+                      {message.files && message.files.length > 0 && (
+                        <div className="mb-3 space-y-2">
+                          {message.files.map((file, idx) => (
+                            <div key={idx} className="rounded-lg overflow-hidden">
+                              {file.type.startsWith('image/') ? (
+                                <img 
+                                  src={file.url} 
+                                  alt={file.name}
+                                  className="max-w-full max-h-[400px] rounded-lg"
+                                />
+                              ) : file.type.startsWith('video/') ? (
+                                <video 
+                                  src={file.url} 
+                                  controls
+                                  className="max-w-full max-h-[400px] rounded-lg"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 rounded">
+                                  <Paperclip className="w-4 h-4" />
+                                  <span className="text-sm">{file.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
                       <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
