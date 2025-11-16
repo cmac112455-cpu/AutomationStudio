@@ -169,9 +169,22 @@ class ChatMessage(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     session_id: str
+    session_type: str = "general"  # "general" or "task"
+    task_id: Optional[str] = None  # If session_type is "task"
     role: str  # "user" or "assistant"
     content: str
     model_used: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChatSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_type: str  # "general" or "task"
+    task_id: Optional[str] = None
+    title: str
+    last_message: str
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ChatRequest(BaseModel):
