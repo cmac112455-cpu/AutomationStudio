@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BACKEND_URL = "https://smart-advisor-27.preview.emergentagent.com/api"
+BACKEND_URL = "https://workflow-wizard-37.preview.emergentagent.com/api"
 
 def main():
     session = requests.Session()
