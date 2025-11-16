@@ -161,7 +161,7 @@ export default function CoPilotPage() {
   return (
     <div className="h-[calc(100vh-4rem)] flex gap-4" data-testid="copilot-page">
       {/* Chat History Sidebar */}
-      <div className={`glass-morph rounded-2xl p-4 transition-all duration-300 ${showHistory ? 'w-80' : 'w-16'}`}>
+      <div className={`glass-morph rounded-2xl p-4 transition-all duration-300 ${showHistory ? 'w-96' : 'w-16'}`}>
         <div className="flex items-center justify-between mb-4">
           {showHistory ? (
             <>
