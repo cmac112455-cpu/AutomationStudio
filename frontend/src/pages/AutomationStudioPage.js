@@ -517,6 +517,27 @@ export default function AutomationStudioPage() {
         </div>
       </div>
 
+      {/* Execution Progress Bar */}
+      {executing && (
+        <div className="absolute top-[73px] left-0 right-0 bg-[#1a1d2e] border-b border-gray-700 px-4 py-3 z-10">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-blue-400 animate-spin" />
+              <span className="text-sm text-white">Executing workflow...</span>
+              <span className="text-xs text-gray-400">{executionProgress}% complete</span>
+            </div>
+          </div>
+          <div className="max-w-7xl mx-auto mt-2">
+            <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                style={{ width: `${executionProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar - Workflows List */}
         <div className="w-64 border-r border-gray-800 p-4 overflow-y-auto">
