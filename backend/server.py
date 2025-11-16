@@ -308,7 +308,9 @@ async def create_business_profile(profile_data: BusinessProfileCreate, user_id: 
         {"$set": {"profile_completed": True}}
     )
     
-    return profile_dict
+    # Return profile without _id
+    created_profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    return created_profile
 
 @api_router.get("/profile")
 async def get_business_profile(user_id: str = Depends(get_current_user)):
