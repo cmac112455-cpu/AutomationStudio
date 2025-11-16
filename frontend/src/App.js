@@ -87,6 +87,7 @@ function App() {
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/copilot" element={<CoPilotPage />} />
                         <Route path="/tasks" element={<TasksPage />} />
+                        <Route path="/automation" element={<AutomationStudioPage />} />
                         <Route path="/" element={<Navigate to="/dashboard" />} />
                       </Routes>
                     </Layout>
