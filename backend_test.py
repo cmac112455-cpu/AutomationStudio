@@ -366,7 +366,7 @@ class BackendTester:
                         "type": "imagegen",
                         "position": {"x": 300, "y": 100},
                         "data": {
-                            "prompt": "generate me a cow on a beach",
+                            "prompt": "a cute cow on a beach",
                             "size": "1024x1024"
                         }
                     },
