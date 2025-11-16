@@ -424,41 +424,37 @@ export default function CoPilotPage() {
                   <SelectTrigger className="h-8 bg-[#2a2d3a]/30 border-gray-700/30 hover:border-gray-600/50 transition-colors text-white text-sm rounded-md">
                     <SelectValue placeholder="Select Model" />
                   </SelectTrigger>
-                <SelectContent className="bg-[#1a1d2e] border-gray-700 rounded-lg">
-                  <SelectItem value="intelligent" className="text-white hover:bg-gray-800/50 cursor-pointer">
-                    <div className="flex items-center gap-2 py-1">
-                      <Brain className="w-4 h-4 text-[#00d4ff]" />
-                      <span className="font-medium">Intelligent Routing</span>
-                      <span className="text-xs text-gray-500 ml-auto">Auto</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="gpt5" className="text-white hover:bg-gray-800/50 cursor-pointer">
-                    <div className="flex items-center gap-2 py-1">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="font-medium">GPT-5</span>
-                      <span className="text-xs text-gray-500 ml-auto">Strategy</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="claude" className="text-white hover:bg-gray-800/50 cursor-pointer">
-                    <div className="flex items-center gap-2 py-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span className="font-medium">Claude 4 Sonnet</span>
-                      <span className="text-xs text-gray-500 ml-auto">Analysis</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="gemini" className="text-white hover:bg-gray-800/50 cursor-pointer">
-                    <div className="flex items-center gap-2 py-1">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                      <span className="font-medium">Gemini 2.5 Pro</span>
-                      <span className="text-xs text-gray-500 ml-auto">Insights</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <SelectContent className="bg-[#1a1d2e] border-gray-700 rounded-lg">
+                    <SelectItem value="intelligent" className="text-white hover:bg-gray-800/50 cursor-pointer text-sm">
+                      <div className="flex items-center gap-2">
+                        <Brain className="w-3.5 h-3.5 text-[#00d4ff]" />
+                        <span>Intelligent Routing</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gpt5" className="text-white hover:bg-gray-800/50 cursor-pointer text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span>GPT-5</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="claude" className="text-white hover:bg-gray-800/50 cursor-pointer text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span>Claude 4 Sonnet</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gemini" className="text-white hover:bg-gray-800/50 cursor-pointer text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <span>Gemini 2.5 Pro</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Multi-AI Toggle - Compact & Sleek */}
-            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[#2a2d3a]/30 border border-gray-700/30 hover:border-gray-600/50 transition-colors backdrop-blur-sm">
+              {/* Multi-AI Toggle - Compact */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#2a2d3a]/20 border border-gray-700/20 hover:border-gray-600/30 transition-colors">
               <Zap className={`w-4 h-4 transition-colors ${multiAiMode ? 'text-purple-400' : 'text-gray-500'}`} />
               <div className="flex items-center gap-2">
                 <label htmlFor="multi-ai-toggle" className="text-sm text-gray-300 cursor-pointer whitespace-nowrap">
