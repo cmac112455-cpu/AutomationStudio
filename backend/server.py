@@ -455,14 +455,26 @@ async def chat_with_copilot(
     
     # Process uploaded files
     file_contents = []
+    image_contents = []
+    has_vision_files = False
+    
     if files:
         for file in files:
             content = await file.read()
-            file_contents.append({
+            file_info = {
                 'filename': file.filename,
                 'content': base64.b64encode(content).decode('utf-8'),
                 'content_type': file.content_type
-            })
+            }
+            file_contents.append(file_info)
+            
+            # Check if it's an image or video that requires vision
+            if file.content_type and (file.content_type.startswith('image/') or file.content_type.startswith('video/')):
+                has_vision_files = True
+                # Create ImageContent for vision models
+                image_contents.append(ImageContent(
+                    image_base64=file_info['content']
+                ))
     
     # Get user's business profile for context
     profile = await db.business_profiles.find_one({"user_id": user_id}, {"_id": 0})
