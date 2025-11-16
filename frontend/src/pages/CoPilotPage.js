@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target } from 'lucide-react';
+import { Send, Brain, User, Sparkles, MessageSquare, Clock, Target, Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 
