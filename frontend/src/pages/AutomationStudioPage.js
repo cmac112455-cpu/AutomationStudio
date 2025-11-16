@@ -439,6 +439,7 @@ export default function AutomationStudioPage() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={onNodeClick}
             nodeTypes={nodeTypes}
             fitView
             className="bg-gradient-to-br from-[#0f1218] to-[#1a1d2e]"
