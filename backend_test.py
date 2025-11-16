@@ -691,13 +691,15 @@ class BackendTester:
             self.log_result("Workflow Retrieval", False, f"Workflow retrieval error: {str(e)}")
             return False
 
-    def run_all_tests(self):
-        """Run all workflow tests"""
-        print("🚀 Starting Backend API Tests for Workflow Execution with Image Generation")
+    def run_comprehensive_workflow_test(self):
+        """Run comprehensive workflow test with real-time log monitoring"""
+        print("🚀 COMPREHENSIVE WORKFLOW EXECUTION TEST WITH REAL-TIME LOG MONITORING")
         print(f"Backend URL: {self.base_url}")
+        print("Test Scenario: Start -> Image Gen (prompt: 'a cute cow on a beach') -> End")
         print("=" * 80)
         
-        # Authentication
+        # Step 1: Authentication
+        print("\n📝 STEP 1: USER AUTHENTICATION")
         auth_success = self.test_user_registration()
         if not auth_success:
             print("Registration failed, trying fallback login...")
@@ -707,22 +709,39 @@ class BackendTester:
             print("❌ Authentication failed. Cannot proceed with workflow tests.")
             return self.generate_summary()
         
-        # Workflow tests
+        # Step 2: Workflow Creation
+        print("\n🔧 STEP 2: WORKFLOW CREATION")
         workflow_success, workflow_id = self.test_workflow_creation()
         
-        if workflow_success and workflow_id:
-            # Test workflow retrieval
-            self.test_workflow_retrieval(workflow_id)
-            
-            # Test workflow execution
-            execution_success, execution_id = self.test_workflow_execution(workflow_id)
-            
-            if execution_success and execution_id:
-                # Monitor execution progress
-                self.test_execution_monitoring(execution_id)
-            
-            # Test execution history
-            self.test_execution_history()
+        if not workflow_success or not workflow_id:
+            print("❌ Workflow creation failed. Cannot proceed.")
+            return self.generate_summary()
+        
+        # Step 3: Workflow Retrieval Verification
+        print("\n🔍 STEP 3: WORKFLOW RETRIEVAL VERIFICATION")
+        self.test_workflow_retrieval(workflow_id)
+        
+        # Step 4: Workflow Execution with Real-time Log Monitoring
+        print("\n⚡ STEP 4: WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
+        execution_success, execution_id = self.test_workflow_execution_with_logs(workflow_id)
+        
+        if execution_id:
+            # Step 5: MongoDB Persistence Check
+            print("\n💾 STEP 5: MONGODB PERSISTENCE VERIFICATION")
+            self.test_mongodb_persistence(execution_id)
+        
+        # Step 6: Execution History Check
+        print("\n📋 STEP 6: EXECUTION HISTORY VERIFICATION")
+        self.test_execution_history()
+        
+        # Step 7: Log Analysis
+        print("\n📊 STEP 7: LOG ANALYSIS")
+        if self.captured_logs:
+            print(f"Captured {len(self.captured_logs)} log entries during execution:")
+            for log in self.captured_logs[-10:]:  # Show last 10 logs
+                print(f"   {log}")
+        else:
+            print("No backend logs captured during execution.")
         
         return self.generate_summary()
     
