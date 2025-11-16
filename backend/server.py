@@ -811,7 +811,7 @@ Keep it concise but comprehensive. Use markdown formatting."""
         return ChatResponse(
             response=response,
             session_id=session_id,
-            model_used=f"{model_provider}/{model_name}"
+            model_used=model_used
         )
     except Exception as e:
         logging.error(f"AI Co-Pilot error: {str(e)}")
