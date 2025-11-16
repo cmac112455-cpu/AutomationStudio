@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { ListChecks, Play, CheckCircle, XCircle, Clock, Eye, ChevronDown, ChevronUp, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
+import { ListChecks, Play, CheckCircle, XCircle, Clock, Eye, ChevronDown, ChevronUp, Image as ImageIcon, Video as VideoIcon, Maximize2, Download, X } from 'lucide-react';
 
 export default function CompletionsPage() {
   const [executions, setExecutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedExecution, setExpandedExecution] = useState(null);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
 
   // Helper to check if result contains media
   const hasMedia = (result) => {
