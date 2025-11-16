@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import CoPilotPage from './pages/CoPilotPage';
 import TasksPage from './pages/TasksPage';
 import AutomationStudioPage from './pages/AutomationStudioPage';
+import CompletionsPage from './pages/CompletionsPage';
 import Layout from './components/Layout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
