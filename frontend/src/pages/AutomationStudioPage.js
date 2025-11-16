@@ -285,6 +285,30 @@ export default function AutomationStudioPage() {
     }
   };
 
+  const onNodeClick = useCallback((event, node) => {
+    if (node.type !== 'start' && node.type !== 'end') {
+      setSelectedNode(node);
+      setNodeConfig(node.data || {});
+      setShowConfigModal(true);
+    }
+  }, []);
+
+  const saveNodeConfig = () => {
+    if (!selectedNode) return;
+    
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === selectedNode.id) {
+          return { ...node, data: nodeConfig };
+        }
+        return node;
+      })
+    );
+    
+    setShowConfigModal(false);
+    toast.success('Node configuration saved');
+  };
+
   useEffect(() => {
     loadWorkflows();
   }, []);
