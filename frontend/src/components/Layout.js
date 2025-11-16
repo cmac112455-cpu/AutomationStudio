@@ -94,6 +94,53 @@ export default function Layout({ children }) {
               </Link>
             );
           })}
+
+          {/* Automation Studio Section with Sub-items */}
+          <div>
+            <button
+              onClick={() => setAutomationExpanded(!automationExpanded)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                location.pathname.startsWith('/automation')
+                  ? 'bg-gradient-to-r from-[#00d4ff]/20 to-[#4785ff]/20 border-l-4 border-[#00d4ff] text-[#00d4ff]'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Workflow className="w-5 h-5" />
+              <span className="font-medium flex-1 text-left">Automation Studio</span>
+              {automationExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+
+            {automationExpanded && (
+              <div className="ml-8 mt-2 space-y-1">
+                <Link
+                  to="/automation/studio"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/automation/studio'
+                      ? 'bg-white/10 text-[#00d4ff]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <PlaySquare className="w-4 h-4" />
+                  Workflow Studio
+                </Link>
+                <Link
+                  to="/automation/completions"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/automation/completions'
+                      ? 'bg-white/10 text-[#00d4ff]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <ListChecks className="w-4 h-4" />
+                  Completions
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* User Info & Logout */}
