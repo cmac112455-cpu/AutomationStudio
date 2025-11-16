@@ -9,7 +9,11 @@ import {
   LogOut, 
   Sparkles,
   AlertCircle,
-  Workflow
+  Workflow,
+  ChevronDown,
+  ChevronRight,
+  PlaySquare,
+  ListChecks
 } from 'lucide-react';
 
 export default function Layout({ children }) {
