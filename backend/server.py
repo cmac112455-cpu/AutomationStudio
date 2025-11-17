@@ -2523,11 +2523,16 @@ async def sync_elevenlabs_agents(user_id: str = Depends(get_current_user)):
             agent_id = el_agent.get("agent_id")
             agent_name = el_agent.get("name", "Unnamed Agent")
             
+            logging.info(f"[CONVERSATIONAL_AI] Processing agent: {agent_name} (ID: {agent_id})")
+            logging.info(f"[CONVERSATIONAL_AI] Agent data: {el_agent}")
+            
             # Check if agent already exists
             existing = await db.conversational_agents.find_one(
                 {"user_id": user_id, "elevenlabs_agent_id": agent_id},
                 {"_id": 0}
             )
+            
+            logging.info(f"[CONVERSATIONAL_AI] Existing agent found: {bool(existing)}")
             
             agent_data = {
                 "name": agent_name,
@@ -2542,14 +2547,16 @@ async def sync_elevenlabs_agents(user_id: str = Depends(get_current_user)):
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
             
+            logging.info(f"[CONVERSATIONAL_AI] Prepared agent data: {agent_data}")
+            
             if existing:
                 # Update existing agent
-                await db.conversational_agents.update_one(
+                result = await db.conversational_agents.update_one(
                     {"user_id": user_id, "elevenlabs_agent_id": agent_id},
                     {"$set": agent_data}
                 )
                 updated_count += 1
-                logging.info(f"[CONVERSATIONAL_AI] Updated agent: {agent_name} ({agent_id})")
+                logging.info(f"[CONVERSATIONAL_AI] ✅ Updated agent: {agent_name} ({agent_id}) - Modified: {result.modified_count}")
             else:
                 # Create new agent
                 new_agent = {
@@ -2564,9 +2571,9 @@ async def sync_elevenlabs_agents(user_id: str = Depends(get_current_user)):
                     "status": "active",
                     "created_at": datetime.now(timezone.utc).isoformat()
                 }
-                await db.conversational_agents.insert_one(new_agent)
+                result = await db.conversational_agents.insert_one(new_agent)
                 synced_count += 1
-                logging.info(f"[CONVERSATIONAL_AI] Created new agent: {agent_name} ({agent_id})")
+                logging.info(f"[CONVERSATIONAL_AI] ✅ Created new agent: {agent_name} ({agent_id}) - Inserted ID: {result.inserted_id}")
         
         return {
             "message": f"Successfully synced {synced_count} new agents and updated {updated_count} existing agents",
