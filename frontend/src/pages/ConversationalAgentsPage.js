@@ -487,12 +487,109 @@ const ConversationalAgentsPage = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      console.log('Manually stopping recording...');
-      mediaRecorder.stop();
+  const stopRecording = async () => {
+    if (!mediaRecorder) return;
+    
+    console.log('🛑 Stopping Web Audio recording...');
+    
+    const { stream, processor, levelCheckInterval } = mediaRecorder;
+    
+    // Stop processor
+    if (processor) {
+      processor.disconnect();
     }
-    // State will be cleaned up in recorder.onstop handler
+    
+    // Stop stream
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    
+    // Clear interval
+    if (levelCheckInterval) {
+      clearInterval(levelCheckInterval);
+    }
+    
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setAudioLevel(0);
+    setMicWorking(false);
+    
+    // Process the captured audio
+    const audioChunks = audioChunksBuffer.current;
+    console.log('📊 Captured audio chunks:', audioChunks.length);
+    
+    if (audioChunks.length === 0) {
+      console.error('❌ No audio data captured!');
+      toast.error('No audio recorded');
+      return;
+    }
+    
+    // Calculate total length
+    const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    console.log('📊 Total audio samples:', totalLength);
+    
+    // Merge all chunks
+    const mergedAudio = new Int16Array(totalLength);
+    let offset = 0;
+    for (const chunk of audioChunks) {
+      mergedAudio.set(chunk, offset);
+      offset += chunk.length;
+    }
+    
+    // Create WAV file
+    const wavBlob = createWavBlob(mergedAudio, 16000);
+    console.log('🎵 WAV blob created:', wavBlob.size, 'bytes');
+    
+    if (wavBlob.size < 1000) {
+      console.error('❌ Audio too small');
+      toast.error('Audio too short. Please speak for at least 3 seconds.');
+      setTimeout(() => {
+        if (callActive) startRecording();
+      }, 1000);
+      return;
+    }
+    
+    // Clean up audio context
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    
+    await processVoiceInput(wavBlob);
+  };
+  
+  const createWavBlob = (audioData, sampleRate) => {
+    const buffer = new ArrayBuffer(44 + audioData.length * 2);
+    const view = new DataView(buffer);
+    
+    // WAV header
+    const writeString = (offset, string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+    
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + audioData.length * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true); // fmt chunk size
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); // byte rate
+    view.setUint16(32, 2, true); // block align
+    view.setUint16(34, 16, true); // bits per sample
+    writeString(36, 'data');
+    view.setUint32(40, audioData.length * 2, true);
+    
+    // Write audio data
+    const dataOffset = 44;
+    for (let i = 0; i < audioData.length; i++) {
+      view.setInt16(dataOffset + i * 2, audioData[i], true);
+    }
+    
+    return new Blob([buffer], { type: 'audio/wav' });
   };
 
   const processVoiceInput = async (audioBlob) => {
