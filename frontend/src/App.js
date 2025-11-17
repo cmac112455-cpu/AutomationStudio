@@ -11,6 +11,9 @@ import TasksPage from './pages/TasksPage';
 import AutomationStudioPage from './pages/AutomationStudioPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import CompletionsPage from './pages/CompletionsPage';
+import VoicesPage from './pages/VoicesPage';
+import MusicPage from './pages/MusicPage';
+import VoiceCompletionsPage from './pages/VoiceCompletionsPage';
 import Layout from './components/Layout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
