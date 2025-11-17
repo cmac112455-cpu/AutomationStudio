@@ -206,8 +206,8 @@ const MusicPage = () => {
 
             {/* Audio Player */}
             {audioUrl && (
-              <div className="bg-gray-900 rounded-2xl border border-gray-800/50 shadow-2xl overflow-hidden">
-                <div className="p-6 space-y-4">
+              <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-white">Generated Music</h3>
                     <Button
@@ -222,7 +222,7 @@ const MusicPage = () => {
                   </div>
 
                   {/* Custom Audio Controls */}
-                  <div className="bg-gray-800/50 rounded-xl p-4 space-y-4">
+                  <div className="bg-[#0a0b0d] rounded-lg p-4 border border-gray-800">
                     <div className="flex items-center gap-4">
                       <button
                         onClick={togglePlayPause}
