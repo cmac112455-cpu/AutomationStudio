@@ -555,6 +555,89 @@ frontend:
           🚀 PRODUCTION READINESS: CONFIRMED
           The Completions page is fully functional and production-ready for displaying workflow execution history and results.
 
+  - task: "Integrations Page - ElevenLabs API Key Management"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/IntegrationsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW PAGE: Integrations management interface
+          - Route: /integrations
+          - ElevenLabs API key input and validation
+          - Save/delete integration functionality
+          - Error handling for invalid keys and auth issues
+          - Fixed token retrieval bug (apoe_token vs token)
+          Needs testing to verify UI and API integration
+
+  - task: "AutomationStudioPage - Text-to-Speech Node"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/AutomationStudioPage.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: |
+          ❌ CRITICAL BUG REPORTED: ReferenceError: previewVoice is not defined
+          - Clicking Text-to-Speech node crashes entire application
+          - Error message takes over screen
+          - Application becomes unusable
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ FIX APPLIED: Moved previewVoice function to correct scope
+          - Function was mistakenly inside deleteWorkflow function
+          - Moved to main component body alongside other handlers
+          - Fixed corrupted closing braces
+          - Frontend service restarted to apply changes
+          - TTS node configuration panel includes:
+            * Voice selection dropdown (all ElevenLabs voices)
+            * Stability and similarity_boost sliders
+            * Preview button to test voices
+            * Text input for TTS content
+          Needs testing to verify fix and functionality
+
+  - task: "AutomationStudioPage - Audio Overlay Node"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/AutomationStudioPage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW NODE: Audio Overlay node added to palette
+          - Node type: 'audiooverlay'
+          - Configuration panel for audio overlay settings
+          - Mode selection: replace or mix audio
+          Needs testing to verify configuration and execution
+
+  - task: "AutomationStudioPage - Backspace Delete Fix"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/AutomationStudioPage.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          UX IMPROVEMENT: Disabled backspace key for node deletion
+          - Set deleteKeyCode to null in ReactFlow component
+          - Prevents accidental node deletion when typing
+          - Users must use delete button or menu to remove nodes
+          Low priority testing needed
+
 metadata:
   created_by: "testing_agent"
   version: "2.0"
