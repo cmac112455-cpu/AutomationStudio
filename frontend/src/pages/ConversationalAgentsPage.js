@@ -2067,7 +2067,8 @@ const ConversationalAgentsPage = () => {
                                   const newTools = e.target.checked
                                     ? [...builtInTools, 'skip_turn']
                                     : builtInTools.filter(t => t !== 'skip_turn');
-                                  updateAgentTools(newTools, toolIds);
+                                  setBuiltInTools(newTools);
+                                  setUnsavedToolsChanges(true);
                                 }}
                                 className="sr-only peer"
                               />
