@@ -2934,35 +2934,34 @@ const ConversationalAgentsPage = () => {
             {/* Modal Content */}
             <div className="p-6 space-y-4">
               <div>
-                <Label>Identifier*</Label>
+                <Label>Name*</Label>
                 <input
                   type="text"
-                  value={criteriaForm.identifier}
-                  onChange={(e) => setCriteriaForm({ ...criteriaForm, identifier: e.target.value })}
-                  placeholder="e.g., customer_satisfaction"
-                  disabled={!!editingCriteria}
-                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  value={criteriaForm.name}
+                  onChange={(e) => setCriteriaForm({ ...criteriaForm, name: e.target.value })}
+                  placeholder="e.g., Customer Satisfaction"
+                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white"
                 />
-                <p className="text-xs text-gray-500 mt-1">Unique identifier (cannot be changed after creation)</p>
+                <p className="text-xs text-gray-500 mt-1">Display name for this evaluation criteria</p>
               </div>
 
               <div>
-                <Label>Description / Prompt*</Label>
+                <Label>Conversation Goal Prompt*</Label>
                 <Textarea
-                  value={criteriaForm.description}
-                  onChange={(e) => setCriteriaForm({ ...criteriaForm, description: e.target.value })}
+                  value={criteriaForm.conversation_goal_prompt}
+                  onChange={(e) => setCriteriaForm({ ...criteriaForm, conversation_goal_prompt: e.target.value })}
                   placeholder="Describe what indicates success. Example: Mark successful if the customer expresses satisfaction or their issue was resolved."
                   rows={6}
                   className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white resize-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This prompt will be used by an LLM to evaluate conversation success
+                  This prompt will be used by an LLM to evaluate if the conversation goal was achieved
                 </p>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                 <p className="text-sm text-blue-300">
-                  💡 <strong>Tip:</strong> Be specific about what constitutes success. The AI will analyze the conversation transcript based on your description.
+                  💡 <strong>Tip:</strong> Be specific about what constitutes success. The AI will analyze the conversation transcript based on your prompt.
                 </p>
               </div>
             </div>
@@ -2973,7 +2972,7 @@ const ConversationalAgentsPage = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddCriteriaModal(false);
-                  setCriteriaForm({ identifier: '', description: '' });
+                  setCriteriaForm({ id: '', name: '', conversation_goal_prompt: '' });
                   setEditingCriteria(null);
                 }}
                 className="flex-1"
@@ -2983,7 +2982,7 @@ const ConversationalAgentsPage = () => {
               <Button
                 onClick={addEvaluationCriteria}
                 className="flex-1"
-                disabled={!criteriaForm.identifier || !criteriaForm.description}
+                disabled={!criteriaForm.name || !criteriaForm.conversation_goal_prompt}
               >
                 {editingCriteria ? 'Update' : 'Add'} Criteria
               </Button>
