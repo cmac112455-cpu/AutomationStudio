@@ -2306,17 +2306,27 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
             elif node_type == 'stitch':
                 # Execute Video Stitching - combine multiple videos
                 try:
+                    logging.info(f"[STITCH] Node {node_id} executing")
+                    logging.info(f"[STITCH] Searching for videos in {len(results)} previous nodes")
+                    
                     # Get video data from node config or collect from results
                     # The stitch node should collect all videos from previous nodes in the workflow
                     video_list = []
+                    video_sources = []
                     
                     # Collect video_base64 from all previous nodes' results
-                    for node_id, node_result in results.items():
+                    for node_id_search, node_result in results.items():
                         if isinstance(node_result, dict) and node_result.get('video_base64'):
-                            video_list.append(node_result['video_base64'])
+                            video_data = node_result['video_base64']
+                            video_list.append(video_data)
+                            video_sources.append(node_id_search)
+                            logging.info(f"[STITCH] Found video from node: {node_id_search} ({len(video_data)} chars)")
+                    
+                    logging.info(f"[STITCH] Total videos found: {len(video_list)}")
+                    logging.info(f"[STITCH] Video sources: {video_sources}")
                     
                     if len(video_list) < 2:
-                        result = {"status": "error", "error": f"Need at least 2 videos to stitch. Found {len(video_list)} videos."}
+                        result = {"status": "error", "error": f"Need at least 2 videos to stitch. Found {len(video_list)} videos from nodes: {video_sources}"}
                     else:
                         import subprocess
                         import tempfile
