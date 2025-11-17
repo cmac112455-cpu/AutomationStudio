@@ -814,20 +814,34 @@ const ConversationalAgentsPage = () => {
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  placeholder="Type your message..."
+                  placeholder="Type your message or use voice..."
                   className="flex-1 px-4 py-3 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
-                  disabled={isSending}
+                  disabled={isSending || isRecording}
                 />
                 <Button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isSending}
+                  className={`px-6 ${isRecording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-gray-700 hover:bg-gray-600'}`}
+                >
+                  {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                <Button
                   onClick={sendMessage}
-                  disabled={!userInput.trim() || isSending}
+                  disabled={!userInput.trim() || isSending || isRecording}
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 px-6"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Press Enter to send • Agent will respond with voice
+                {isRecording ? (
+                  <span className="text-red-400 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    Recording... Click stop when done
+                  </span>
+                ) : (
+                  <>Press Enter to send • Click mic to talk like a phone call</>
+                )}
               </p>
             </div>
           </div>
