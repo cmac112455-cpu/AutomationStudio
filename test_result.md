@@ -548,6 +548,58 @@ backend:
           - Success rate: 6/9 nodes successful (67% - limited by external API reliability)
 
 frontend:
+  - task: "Conversational AI Voice-to-Voice Feature"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/ConversationalAgentsPage.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: |
+          ❌ CRITICAL BUG: Voice-to-voice conversation not working
+          - User starts call successfully
+          - User speaks and audio is recorded
+          - Backend receives audio and processes it (verified working)
+          - Backend returns transcription, text response, and audio URL
+          - Frontend doesn't play agent's audio response
+          - Microphone doesn't auto-restart for continuous conversation
+          - User reports agent doesn't respond after they speak
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ FIX APPLIED: Fixed timing and state management issues in processVoiceInput
+          
+          ROOT CAUSE IDENTIFIED:
+          - isSending state was set to true at start of processVoiceInput (line 361)
+          - Audio playback happens inside the function
+          - When audio ends, it tries to restart recording via audio.onended handler
+          - BUT isSending was only set to false in finally block (line 430)
+          - startRecording checks if isSending is true and blocks (line 309)
+          - This created a race condition preventing microphone restart
+          
+          FIXES IMPLEMENTED:
+          1. Moved setIsSending(false) to BEFORE audio playback (line 393)
+          2. Added proper error handling in reader.onloadend with try-catch
+          3. Added audio.onerror handler to restart recording on audio errors
+          4. Added .catch() to audio.play() for better error handling
+          5. Improved startRecording with separate checks and better logging
+          6. Moved state cleanup in recorder.onstop to happen before processVoiceInput call
+          7. Added callActive check before all startRecording attempts
+          8. Fixed stopRecording to only stop if recorder is in 'recording' state
+          
+          KEY CHANGES:
+          - processVoiceInput: Nested try-catch for better error isolation
+          - processVoiceInput: Set isSending=false before audio playback
+          - processVoiceInput: Added fallback recording restart on audio errors
+          - startRecording: Split condition checks for better debugging
+          - startRecording: Clean up state in recorder.onstop before processing
+          - stopRecording: Only stop if state is 'recording'
+          
+          Needs testing to verify continuous voice conversation works end-to-end
+  
   - task: "Automation Studio Workflow Creation and Execution"
     implemented: true
     working: true
