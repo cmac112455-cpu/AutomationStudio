@@ -295,31 +295,35 @@ const ConversationalAgentsPage = () => {
   };
 
   const endCall = async () => {
-    console.log('📞 Ending call...');
+    console.log('📞 Ending ElevenLabs call...');
     
-    if (isRecording) stopRecording();
-    if (mediaRecorder) {
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    try {
+      // End ElevenLabs conversation
+      await elevenlabsConversation.endSession();
+      console.log('✅ ElevenLabs session ended');
+    } catch (error) {
+      console.error('Error ending ElevenLabs session:', error);
     }
     
-    // Update call log status to ended if no errors occurred
-    if (currentCallLogId && conversation.length > 0) {
-      try {
-        await axios.patch(`${BACKEND_URL}/api/conversational-ai/call-logs/${currentCallLogId}`, {
-          status: 'completed',
-          exchanges_count: Math.floor(conversation.length / 2)
-        });
-        console.log('✅ Call log updated');
-      } catch (error) {
-        console.error('Failed to update call log:', error);
-      }
+    // Log call completion
+    try {
+      await axios.post(`${BACKEND_URL}/api/conversational-ai/call-logs`, {
+        agent_id: testingAgent?.id,
+        agent_name: testingAgent?.name,
+        status: 'completed',
+        backend_logs: {
+          using_elevenlabs_sdk: true,
+          session_ended: true
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to log call end:', logError);
     }
     
     setCallActive(false);
     setShowTestModal(false);
     setTestingAgent(null);
     setConversation([]);
-    setCurrentCallLogId(null);
     toast.success('Call ended');
   };
 
