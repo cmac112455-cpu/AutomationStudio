@@ -13,7 +13,7 @@ import threading
 from datetime import datetime
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://ai-copilot-22.preview.emergentagent.com/api"
+BACKEND_URL = "https://aichat-21.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):
