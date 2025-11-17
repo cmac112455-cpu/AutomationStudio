@@ -3375,10 +3375,69 @@ async def update_agent_tools(
         agent_config = conversation_config.get("agent", {})
         prompt_config = agent_config.get("prompt", {})
         
+        # Get current built_in_tools object structure
+        current_built_in_tools = prompt_config.get("built_in_tools", {})
+        
         # Update tools in the correct nested location: conversation_config.agent.prompt
         if "built_in_tools" in tools_update:
-            prompt_config["built_in_tools"] = tools_update["built_in_tools"]
-            logging.info(f"[TOOLS] Updating built-in tools: {tools_update['built_in_tools']}")
+            # Frontend sends array of tool names: ["end_call", "detect_language"]
+            # ElevenLabs needs object: { "end_call": {...}, "detect_language": {...} }
+            tool_names_to_enable = tools_update["built_in_tools"]
+            
+            logging.info(f"[TOOLS] Received tools to enable from frontend: {tool_names_to_enable}")
+            
+            # Build the built_in_tools object
+            # For each tool in ALL_TOOLS, set to None (disabled) or keep existing config (enabled)
+            all_tool_keys = ["end_call", "language_detection", "transfer_to_agent", "transfer_to_number", 
+                            "skip_turn", "play_keypad_touch_tone", "voicemail_detection"]
+            
+            new_built_in_tools = {}
+            for tool_key in all_tool_keys:
+                # Map frontend names to backend names
+                frontend_to_backend = {
+                    "end_call": "end_call",
+                    "detect_language": "language_detection",
+                    "transfer_to_agent": "transfer_to_agent",
+                    "transfer_to_number": "transfer_to_number",
+                    "skip_turn": "skip_turn",
+                    "keypad": "play_keypad_touch_tone",
+                    "voicemail": "voicemail_detection"
+                }
+                
+                # Check if this tool should be enabled
+                should_enable = False
+                for frontend_name, backend_name in frontend_to_backend.items():
+                    if backend_name == tool_key and frontend_name in tool_names_to_enable:
+                        should_enable = True
+                        break
+                
+                if should_enable:
+                    # Keep existing config or use default
+                    if tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
+                        new_built_in_tools[tool_key] = current_built_in_tools[tool_key]
+                    else:
+                        # Create default config
+                        new_built_in_tools[tool_key] = {
+                            "type": "system",
+                            "name": tool_key,
+                            "description": "",
+                            "response_timeout_secs": 20,
+                            "disable_interruptions": False,
+                            "force_pre_tool_speech": False,
+                            "assignments": [],
+                            "tool_call_sound": None,
+                            "tool_call_sound_behavior": "auto",
+                            "params": {"system_tool_type": tool_key}
+                        }
+                        # Add voicemail_message for voicemail_detection
+                        if tool_key == "voicemail_detection":
+                            new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
+                else:
+                    # Disable tool by setting to None
+                    new_built_in_tools[tool_key] = None
+            
+            prompt_config["built_in_tools"] = new_built_in_tools
+            logging.info(f"[TOOLS] Built ElevenLabs object structure with {len([t for t in new_built_in_tools.values() if t])} enabled tools")
         
         if "tool_ids" in tools_update:
             prompt_config["tool_ids"] = tools_update["tool_ids"]
