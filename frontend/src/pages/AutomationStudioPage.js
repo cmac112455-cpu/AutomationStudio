@@ -650,6 +650,32 @@ export default function AutomationStudioPage() {
 
 
 
+  const fetchVoices = async () => {
+    try {
+      setVoicesLoading(true);
+      const token = localStorage.getItem('apoe_token');
+      
+      const response = await axios.get(
+        `${BACKEND_URL}/api/tts/voices`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setAvailableVoices(response.data.voices || []);
+      console.log('Fetched voices:', response.data.voices?.length);
+    } catch (error) {
+      console.error('Failed to fetch voices:', error);
+      toast.error('Failed to load voices. Using defaults.');
+      // Set default voices if API fails
+      setAvailableVoices([
+        { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', labels: { gender: 'female', age: 'young' } },
+        { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella', labels: { gender: 'female', age: 'young' } },
+        { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', labels: { gender: 'male', age: 'young' } },
+      ]);
+    } finally {
+      setVoicesLoading(false);
+    }
+  };
+
   const previewVoice = async () => {
     try {
       setPreviewLoading(true);
@@ -661,7 +687,7 @@ export default function AutomationStudioPage() {
         `${BACKEND_URL}/api/tts/preview`,
         {
           text: previewText,
-          voice: nodeConfig.voice || 'Rachel',
+          voice: nodeConfig.voice || nodeConfig.voice_id || 'Rachel',
           model_id: nodeConfig.model_id || 'eleven_turbo_v2_5',
           stability: nodeConfig.stability || 0.5,
           similarity_boost: nodeConfig.similarity_boost || 0.75,
