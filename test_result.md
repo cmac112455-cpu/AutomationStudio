@@ -1027,6 +1027,47 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
+      TOOLS TAB FIX IMPLEMENTATION COMPLETED
+      
+      ✅ CRITICAL FIX: Fixed Tools tab to use correct ElevenLabs API structure
+      
+      🎯 BACKEND CHANGES (server.py):
+      1. Refactored GET /api/conversational-ai/agents/{agent_id}/tools
+         - Now reads from conversation_config.agent.prompt.built_in_tools
+         - Returns built_in_tools and tool_ids arrays
+         
+      2. Refactored PATCH /api/conversational-ai/agents/{agent_id}/tools
+         - Updates conversation_config.agent.prompt.built_in_tools
+         - Updates conversation_config.agent.prompt.tool_ids
+         - Correctly nested structure for ElevenLabs API
+         
+      3. Added GET /api/conversational-ai/workspace-tools
+         - Fetches workspace server tools from ElevenLabs
+         - Fetches workspace client tools from ElevenLabs
+         - Returns available tools for reference
+         
+      4. Removed duplicate old endpoint
+      
+      🎨 FRONTEND CHANGES (ConversationalAgentsPage.js):
+      1. Replaced "Coming Soon" placeholder with full Tools UI
+      2. System Tools section with "end_call" toggle
+      3. Server Tools (webhooks) section with guidance
+      4. Updated loadAgentTools to use built_in_tools field
+      5. Smart state management for synced/unsynced agents
+      6. Loading states and empty states
+      
+      🧪 TESTING NEEDED:
+      Focus on backend endpoints first:
+      - Test GET /tools endpoint returns correct structure
+      - Test PATCH /tools persists changes
+      - Test tools remain after reload
+      - Verify no errors in backend logs
+      - Ensure end_call toggle works end-to-end
+      
+      Priority: CRITICAL - Main user-reported bug
+
+  - agent: "main"
+    message: |
       ANALYSIS TAB IMPLEMENTATION COMPLETED
       
       ✅ NEW FEATURE: Complete Analytics Tab for Conversational AI Studio
