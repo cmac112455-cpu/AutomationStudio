@@ -15,7 +15,8 @@ import {
   PlaySquare,
   ListChecks,
   Mic,
-  Music
+  Music,
+  Bot
 } from 'lucide-react';
 
 export default function Layout({ children }) {
