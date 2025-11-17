@@ -371,7 +371,7 @@ const VoicesPage = () => {
 
               {showAllVoices && (
                 <div className="mt-4 border border-gray-800 rounded-lg p-4 bg-[#13141a]">
-                  <div className="mb-4">
+                  <div className="mb-4 space-y-3">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
@@ -380,6 +380,63 @@ const VoicesPage = () => {
                         placeholder="Search voices..."
                         className="pl-10 bg-[#0a0b0d] border-gray-700 text-white"
                       />
+                    </div>
+                    
+                    {/* Language Filter */}
+                    <div>
+                      <Label className="text-xs text-gray-400 mb-2 block">Filter by language</Label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setLanguageFilter('all')}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                            languageFilter === 'all'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          All Languages
+                        </button>
+                        <button
+                          onClick={() => setLanguageFilter('english')}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                            languageFilter === 'english'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          English
+                        </button>
+                        <button
+                          onClick={() => setLanguageFilter('spanish')}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                            languageFilter === 'spanish'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          Spanish
+                        </button>
+                        <button
+                          onClick={() => setLanguageFilter('french')}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                            languageFilter === 'french'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          French
+                        </button>
+                        <button
+                          onClick={() => setLanguageFilter('german')}
+                          className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                            languageFilter === 'german'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          German
+                        </button>
+                      </div>
                     </div>
                   </div>
 
