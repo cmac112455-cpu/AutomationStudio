@@ -407,10 +407,10 @@ export default function AutomationStudioPage() {
         name: 'Video Ad Creator - Extended Videos',
         nodes: [
           {id: 'start-1', type: 'start', position: {x: 100, y: 50}, data: {}},
-          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 50}, data: {prompt: 'Generate a creative and detailed 4-second video concept for a product advertisement. Describe the scene, action, and visual details that Sora 2 should create.', model: 'gemini-2.5-pro'}},
+          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 50}, data: {prompt: 'A modern smartphone sitting on a minimalist white desk with soft natural window lighting. The camera smoothly pans around the device showing its sleek aluminum design and curved edges.', model: 'gemini-2.5-pro'}},
           {id: 'video-1', type: 'videogen', position: {x: 500, y: 50}, data: {duration: 4, size: '1280x720'}},
           {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 50}, data: {}},
-          {id: 'ai-2', type: 'gemini', position: {x: 700, y: 200}, data: {prompt: 'Based on the previous video concept, generate a seamless continuation. Describe what happens next in 4 seconds with specific motion and visual details.', model: 'gemini-2.5-pro'}},
+          {id: 'ai-2', type: 'gemini', position: {x: 700, y: 200}, data: {prompt: 'The smartphone screen lights up with a vibrant colorful app interface. The camera slowly zooms in to focus on the bright OLED display showing icons and animations.', model: 'gemini-2.5-pro'}},
           {id: 'video-2', type: 'imagetovideo', position: {x: 900, y: 125}, data: {duration: 4, size: '1280x720'}},
           {id: 'screenshot-2', type: 'screenshot', position: {x: 1100, y: 125}, data: {}},
           {id: 'stitch-1', type: 'stitch', position: {x: 1300, y: 87}, data: {}},
