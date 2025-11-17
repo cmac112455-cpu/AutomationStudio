@@ -22,6 +22,9 @@ const VoicesPage = () => {
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [showAllVoices, setShowAllVoices] = useState(false);
   const [previewingVoice, setPreviewingVoice] = useState(null);
+  const [savedPresets, setSavedPresets] = useState([]);
+  const [presetName, setPresetName] = useState('');
+  const [showSavePreset, setShowSavePreset] = useState(false);
   
   // Voice settings
   const [stability, setStability] = useState(0.5);
