@@ -425,11 +425,11 @@ const ConversationalAgentsPage = () => {
   };
 
   // Delete evaluation criteria
-  const deleteEvaluationCriteria = async (identifier) => {
+  const deleteEvaluationCriteria = async (criteriaId) => {
     if (!editingAgent?.elevenlabs_agent_id) return;
 
     try {
-      const updatedCriteria = evaluationCriteria.filter(c => c.identifier !== identifier);
+      const updatedCriteria = evaluationCriteria.filter(c => c.id !== criteriaId);
 
       await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
         evaluation_criteria: updatedCriteria
