@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the Music Generation feature in Voice Studio. When users try to generate music, the process fails after loading with error 'Invalid API response: Expecting value: line 1 column 1 (char 0)'. Issue: The ElevenLabs polling endpoint returns raw binary MP3 data when ready, not JSON, but the code was trying to parse it as JSON."
+user_problem_statement: "Fix the Conversational AI voice-to-voice feature. User reports that after starting a call and speaking, the AI agent doesn't respond with voice. The microphone should listen, transcribe, get AI response, play it back, and automatically restart listening for a continuous conversation."
 
 backend:
   - task: "Music Generation Polling Fix (Voice Studio & Workflow Node)"
