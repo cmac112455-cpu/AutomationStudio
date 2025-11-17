@@ -694,7 +694,22 @@ export default function AutomationStudioPage() {
     } catch (error) {
       console.error('Preview failed:', error);
       setPreviewLoading(false);
-      alert(error.response?.data?.detail || 'Failed to generate preview. Check your ElevenLabs integration.');
+      
+      // Handle error response from blob
+      let errorMessage = 'Failed to generate preview. Check your ElevenLabs integration.';
+      if (error.response && error.response.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text();
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+        }
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      alert(errorMessage);
     }
   };
 
