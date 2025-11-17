@@ -1658,18 +1658,201 @@ const ConversationalAgentsPage = () => {
                       <div className="w-20 h-20 mx-auto mb-4 bg-yellow-500/10 rounded-full flex items-center justify-center">
                         <span className="text-4xl">⚠️</span>
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">Analytics Not Available</h3>
+                      <h3 className="text-xl font-semibold mb-2">Analysis Not Available</h3>
                       <p className="text-gray-400 mb-6">
-                        This agent is not synced with ElevenLabs. Analytics are only available for agents synced from your ElevenLabs account.
+                        This agent is not synced with ElevenLabs. Analysis features are only available for agents synced from your ElevenLabs account.
                       </p>
                       <p className="text-sm text-cyan-400">Use the "Sync from ElevenLabs" button on the main page to import your agents.</p>
                     </div>
-                  ) : loadingAnalytics ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
-                      <p className="text-gray-400">Loading analytics...</p>
-                    </div>
                   ) : (
+                    <>
+                      {/* Section Tabs */}
+                      <div className="flex gap-2 border-b border-gray-700 pb-2">
+                        <button
+                          onClick={() => setAnalysisSection('evaluation')}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            analysisSection === 'evaluation'
+                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                          }`}
+                        >
+                          Success Evaluation
+                        </button>
+                        <button
+                          onClick={() => setAnalysisSection('data-collection')}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            analysisSection === 'data-collection'
+                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                          }`}
+                        >
+                          Data Collection
+                        </button>
+                        <button
+                          onClick={() => setAnalysisSection('analytics')}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            analysisSection === 'analytics'
+                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                          }`}
+                        >
+                          Analytics
+                        </button>
+                      </div>
+
+                      {/* Success Evaluation Section */}
+                      {analysisSection === 'evaluation' && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold">Success Evaluation</h3>
+                              <p className="text-sm text-gray-400 mt-1">
+                                Define criteria to automatically evaluate conversation success ({evaluationCriteria.length}/30 criteria)
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                setCriteriaForm({ identifier: '', description: '' });
+                                setEditingCriteria(null);
+                                setShowAddCriteriaModal(true);
+                              }}
+                              disabled={evaluationCriteria.length >= 30}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Criteria
+                            </Button>
+                          </div>
+
+                          {evaluationCriteria.length === 0 ? (
+                            <div className="text-center py-12 bg-black/20 border border-gray-700 rounded-xl">
+                              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                              <p className="text-gray-400">No evaluation criteria yet</p>
+                              <p className="text-sm text-gray-500 mt-2">Add criteria to automatically evaluate conversation outcomes</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {evaluationCriteria.map((criteria, idx) => (
+                                <div
+                                  key={idx}
+                                  className="bg-black/20 border border-gray-700 rounded-xl p-4 hover:border-cyan-500/50 transition-colors"
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <code className="text-sm px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded">
+                                          {criteria.identifier}
+                                        </code>
+                                      </div>
+                                      <p className="text-sm text-gray-300">{criteria.description}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => {
+                                          setCriteriaForm(criteria);
+                                          setEditingCriteria(criteria);
+                                          setShowAddCriteriaModal(true);
+                                        }}
+                                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4 text-gray-400" />
+                                      </button>
+                                      <button
+                                        onClick={() => deleteEvaluationCriteria(criteria.identifier)}
+                                        className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Data Collection Section */}
+                      {analysisSection === 'data-collection' && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold">Data Collection</h3>
+                              <p className="text-sm text-gray-400 mt-1">
+                                Extract structured data from conversations ({dataCollectionItems.length}/40 items)
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                setDataItemForm({ identifier: '', data_type: 'string', description: '' });
+                                setEditingDataItem(null);
+                                setShowAddDataItemModal(true);
+                              }}
+                              disabled={dataCollectionItems.length >= 40}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Data Item
+                            </Button>
+                          </div>
+
+                          {dataCollectionItems.length === 0 ? (
+                            <div className="text-center py-12 bg-black/20 border border-gray-700 rounded-xl">
+                              <Activity className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                              <p className="text-gray-400">No data collection items yet</p>
+                              <p className="text-sm text-gray-500 mt-2">Add items to extract structured data from conversations</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {dataCollectionItems.map((item, idx) => (
+                                <div
+                                  key={idx}
+                                  className="bg-black/20 border border-gray-700 rounded-xl p-4 hover:border-cyan-500/50 transition-colors"
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <code className="text-sm px-2 py-1 bg-purple-500/10 text-purple-400 rounded">
+                                          {item.identifier}
+                                        </code>
+                                        <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
+                                          {item.data_type}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-300">{item.description}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => {
+                                          setDataItemForm(item);
+                                          setEditingDataItem(item);
+                                          setShowAddDataItemModal(true);
+                                        }}
+                                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4 text-gray-400" />
+                                      </button>
+                                      <button
+                                        onClick={() => deleteDataCollectionItem(item.identifier)}
+                                        className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Analytics Section */}
+                      {analysisSection === 'analytics' && (
+                        loadingAnalytics ? (
+                          <div className="text-center py-12">
+                            <div className="w-16 h-16 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                            <p className="text-gray-400">Loading analytics...</p>
+                          </div>
+                        ) : (
                     <>
                       {/* Time Range Filter */}
                       <div className="flex items-center justify-between">
