@@ -486,7 +486,7 @@ const ConversationalAgentsPage = () => {
     console.log('🎤 Processing voice input, blob size:', audioBlob.size, 'bytes');
 
     if (!audioBlob || audioBlob.size === 0) {
-      console.error('❌ Invalid audio blob!');
+      console.error('❌ Invalid audio blob - size is 0!');
       toast.error('No audio recorded');
       setIsSending(false);
       setTimeout(() => {
@@ -496,6 +496,21 @@ const ConversationalAgentsPage = () => {
       }, 1000);
       return;
     }
+    
+    // Check minimum size (should be at least a few KB for any real audio)
+    if (audioBlob.size < 1000) {
+      console.error('❌ Audio blob too small:', audioBlob.size, 'bytes (minimum 1000)');
+      toast.error('Audio recording too short - please speak longer');
+      setIsSending(false);
+      setTimeout(() => {
+        if (callActive) {
+          startRecording();
+        }
+      }, 1000);
+      return;
+    }
+    
+    console.log('✅ Audio blob size OK:', audioBlob.size, 'bytes');
 
     try {
       // Convert audio to base64
