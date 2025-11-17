@@ -3050,13 +3050,26 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         
         # Use the tools array as source of truth (it's what ElevenLabs actually uses)
         # Build a set of enabled tool names from the array
+        # Need to convert backend names to frontend names
+        backend_to_frontend = {
+            "end_call": "end_call",
+            "language_detection": "detect_language",
+            "transfer_to_agent": "transfer_to_agent",
+            "transfer_to_number": "transfer_to_number",
+            "skip_turn": "skip_turn",
+            "play_keypad_touch_tone": "keypad",
+            "voicemail_detection": "voicemail"
+        }
+        
         enabled_tools = []
         for tool_config in tools_array:
             if isinstance(tool_config, dict) and tool_config.get('name'):
-                tool_name = tool_config['name']
-                enabled_tools.append(tool_name)
+                backend_name = tool_config['name']
+                frontend_name = backend_to_frontend.get(backend_name, backend_name)
+                enabled_tools.append(frontend_name)
         
-        logging.info(f"[TOOLS] Enabled tools from tools array: {enabled_tools}")
+        logging.info(f"[TOOLS] Enabled tools from tools array (backend names): {[t.get('name') for t in tools_array if isinstance(t, dict)]}")
+        logging.info(f"[TOOLS] Enabled tools (frontend names): {enabled_tools}")
         
         logging.info(f"[TOOLS] ✅ Loaded tools for agent {agent_id}")
         logging.info(f"[TOOLS] Built-in tools object: {built_in_tools_obj}")
