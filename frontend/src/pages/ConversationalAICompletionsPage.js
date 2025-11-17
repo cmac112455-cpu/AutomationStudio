@@ -77,6 +77,41 @@ const ConversationalAICompletionsPage = () => {
     });
   };
 
+  const playAudio = (audioUrl, logId) => {
+    if (playingAudio === logId) {
+      // Stop currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setPlayingAudio(null);
+    } else {
+      // Play new audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.play();
+      setPlayingAudio(logId);
+      audio.onended = () => setPlayingAudio(null);
+      audio.onerror = () => {
+        toast.error('Failed to play audio');
+        setPlayingAudio(null);
+      };
+    }
+  };
+
+  const downloadAudio = (audioUrl, agentName, timestamp) => {
+    const link = document.createElement('a');
+    link.href = audioUrl;
+    link.download = `${agentName}-${new Date(timestamp).toISOString()}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Audio downloaded');
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white">
       {/* Header */}
