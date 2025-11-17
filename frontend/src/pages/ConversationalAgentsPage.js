@@ -2481,6 +2481,189 @@ const ConversationalAgentsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Add/Edit Evaluation Criteria Modal */}
+      {showAddCriteriaModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl border border-cyan-500/30 w-full max-w-2xl">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                {editingCriteria ? 'Edit Evaluation Criteria' : 'Add Evaluation Criteria'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddCriteriaModal(false);
+                  setCriteriaForm({ identifier: '', description: '' });
+                  setEditingCriteria(null);
+                }}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <Label>Identifier*</Label>
+                <input
+                  type="text"
+                  value={criteriaForm.identifier}
+                  onChange={(e) => setCriteriaForm({ ...criteriaForm, identifier: e.target.value })}
+                  placeholder="e.g., customer_satisfaction"
+                  disabled={!!editingCriteria}
+                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500 mt-1">Unique identifier (cannot be changed after creation)</p>
+              </div>
+
+              <div>
+                <Label>Description / Prompt*</Label>
+                <Textarea
+                  value={criteriaForm.description}
+                  onChange={(e) => setCriteriaForm({ ...criteriaForm, description: e.target.value })}
+                  placeholder="Describe what indicates success. Example: Mark successful if the customer expresses satisfaction or their issue was resolved."
+                  rows={6}
+                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This prompt will be used by an LLM to evaluate conversation success
+                </p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <p className="text-sm text-blue-300">
+                  💡 <strong>Tip:</strong> Be specific about what constitutes success. The AI will analyze the conversation transcript based on your description.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-800 flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAddCriteriaModal(false);
+                  setCriteriaForm({ identifier: '', description: '' });
+                  setEditingCriteria(null);
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={addEvaluationCriteria}
+                className="flex-1"
+                disabled={!criteriaForm.identifier || !criteriaForm.description}
+              >
+                {editingCriteria ? 'Update' : 'Add'} Criteria
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Data Collection Item Modal */}
+      {showAddDataItemModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl border border-cyan-500/30 w-full max-w-2xl">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                {editingDataItem ? 'Edit Data Collection Item' : 'Add Data Collection Item'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddDataItemModal(false);
+                  setDataItemForm({ identifier: '', data_type: 'string', description: '' });
+                  setEditingDataItem(null);
+                }}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <Label>Identifier*</Label>
+                <input
+                  type="text"
+                  value={dataItemForm.identifier}
+                  onChange={(e) => setDataItemForm({ ...dataItemForm, identifier: e.target.value })}
+                  placeholder="e.g., customer_rating"
+                  disabled={!!editingDataItem}
+                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500 mt-1">Unique identifier (cannot be changed after creation)</p>
+              </div>
+
+              <div>
+                <Label>Data Type*</Label>
+                <Select
+                  value={dataItemForm.data_type}
+                  onValueChange={(value) => setDataItemForm({ ...dataItemForm, data_type: value })}
+                >
+                  <SelectTrigger className="w-full mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="string">String</SelectItem>
+                    <SelectItem value="boolean">Boolean</SelectItem>
+                    <SelectItem value="integer">Integer</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">Type of data to extract</p>
+              </div>
+
+              <div>
+                <Label>Description / Extraction Prompt*</Label>
+                <Textarea
+                  value={dataItemForm.description}
+                  onChange={(e) => setDataItemForm({ ...dataItemForm, description: e.target.value })}
+                  placeholder="Describe what data to extract. Example: Extract the customer satisfaction rating from 1-5 mentioned during the call."
+                  rows={6}
+                  className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Instructions for extracting this data from the conversation
+                </p>
+              </div>
+
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <p className="text-sm text-purple-300">
+                  💡 <strong>Tip:</strong> Be clear about what data to extract and its format. The AI will analyze the transcript to find and extract this information.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-800 flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAddDataItemModal(false);
+                  setDataItemForm({ identifier: '', data_type: 'string', description: '' });
+                  setEditingDataItem(null);
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={addDataCollectionItem}
+                className="flex-1"
+                disabled={!dataItemForm.identifier || !dataItemForm.description}
+              >
+                {editingDataItem ? 'Update' : 'Add'} Data Item
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
