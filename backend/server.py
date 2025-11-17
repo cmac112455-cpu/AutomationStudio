@@ -2592,9 +2592,9 @@ async def add_knowledge_base_text(agent_id: str, text_data: dict, user_id: str =
         
         logging.info(f"[KNOWLEDGE_BASE] Adding text: {name} for agent {agent_id}")
         
-        # Step 1: Add to ElevenLabs knowledge base
+        # Step 1: Add to ElevenLabs knowledge base (text endpoint)
         response = requests.post(
-            "https://api.elevenlabs.io/v1/convai/knowledge-base",
+            "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
             headers={
                 "xi-api-key": elevenlabs_key,
                 "Content-Type": "application/json"
