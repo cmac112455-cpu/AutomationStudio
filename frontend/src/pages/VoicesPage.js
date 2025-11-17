@@ -346,14 +346,14 @@ const VoicesPage = () => {
             <div>
               <button
                 onClick={() => setShowAllVoices(!showAllVoices)}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white"
               >
                 {showAllVoices ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 Browse all voices
               </button>
 
               {showAllVoices && (
-                <div className="mt-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4 bg-white dark:bg-[#13141a]">
+                <div className="mt-4 border border-gray-800 rounded-lg p-4 bg-[#13141a]">
                   <div className="mb-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -361,7 +361,7 @@ const VoicesPage = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search voices..."
-                        className="pl-10 bg-white dark:bg-[#0a0b0d] border-gray-200 dark:border-gray-700"
+                        className="pl-10 bg-[#0a0b0d] border-gray-700 text-white"
                       />
                     </div>
                   </div>
@@ -370,11 +370,11 @@ const VoicesPage = () => {
                     {filteredAllVoices.map(voice => (
                       <div
                         key={voice.voice_id}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/50"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{voice.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {voice.labels?.gender || 'Unknown'}
                             {voice.labels?.age && `, ${voice.labels.age}`}
                             {voice.labels?.accent && `, ${voice.labels.accent}`}
@@ -385,7 +385,7 @@ const VoicesPage = () => {
                             <button
                               onClick={() => playVoicePreview(voice)}
                               disabled={previewingVoice === voice.voice_id}
-                              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                              className="p-2 rounded-full hover:bg-gray-700"
                             >
                               {previewingVoice === voice.voice_id ? (
                                 <Loader className="w-4 h-4 animate-spin" />
@@ -396,7 +396,7 @@ const VoicesPage = () => {
                           )}
                           <button
                             onClick={() => addToPersonalVoices(voice)}
-                            className="p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                            className="p-2 rounded-full hover:bg-blue-500/20 text-blue-400"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
