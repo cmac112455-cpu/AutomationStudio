@@ -1617,13 +1617,18 @@ const ConversationalAgentsPage = () => {
                           }
                           
                           try {
-                            await axios.post(`${BACKEND_URL}/api/conversational-ai/knowledge-base/add-text`, {
+                            if (!editingAgent?.id) {
+                              toast.error('Please select an agent first');
+                              return;
+                            }
+                            
+                            await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/knowledge-base/add-text`, {
                               name: formData.kb_text_name,
                               text: formData.kb_text_content
                             });
-                            toast.success('✅ Text added to knowledge base!');
+                            toast.success('✅ Text added to knowledge base and linked to agent!');
                             setFormData({ ...formData, kb_text_name: '', kb_text_content: '' });
-                            loadKnowledgeBase();
+                            loadKnowledgeBase(editingAgent.id);
                           } catch (error) {
                             toast.error('Failed to add text: ' + (error.response?.data?.detail || error.message));
                           }
