@@ -422,6 +422,7 @@ const nodeTypes = {
   stitch: StitchNode,
   texttospeech: TextToSpeechNode,
   audiooverlay: AudioOverlayNode,
+  texttomusic: TextToMusicNode,
   taskplanner: TaskPlannerNode,
   condition: ConditionNode,
   switch: SwitchNode,
