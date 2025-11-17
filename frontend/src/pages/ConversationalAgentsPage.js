@@ -2437,82 +2437,153 @@ const ConversationalAgentsPage = () => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Basic Info */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Audio Recording */}
               <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-cyan-500" />
-                  Overview
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Status</p>
-                    <p className={`font-medium ${
-                      selectedConversation.status === 'completed' 
-                        ? 'text-green-400' 
-                        : 'text-red-400'
-                    }`}>
-                      {selectedConversation.status || 'Unknown'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Duration</p>
-                    <p className="font-medium">
-                      {selectedConversation.call_duration_secs 
-                        ? `${Math.round(selectedConversation.call_duration_secs)}s` 
-                        : 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Started</p>
-                    <p className="font-medium">
-                      {selectedConversation.start_time_unix 
-                        ? new Date(selectedConversation.start_time_unix * 1000).toLocaleString()
-                        : 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Agent ID</p>
-                    <p className="font-medium text-xs">
-                      {selectedConversation.agent_id?.substring(0, 16)}...
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Mic className="w-5 h-5 text-cyan-500" />
+                    Call Recording
+                  </h3>
+                  <a
+                    href={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
+                    download={`conversation_${selectedConversation.conversation_id}.mp3`}
+                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download
+                  </a>
                 </div>
+                <audio 
+                  controls 
+                  className="w-full"
+                  src={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
+                >
+                  Your browser does not support the audio element.
+                </audio>
               </div>
 
-              {/* Transcript */}
-              {selectedConversation.transcript && selectedConversation.transcript.length > 0 && (
-                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-cyan-500" />
-                    Transcript
+              {/* Overview - Collapsible */}
+              <div className="bg-black/40 border border-gray-700 rounded-xl">
+                <button
+                  onClick={() => setExpandedSections(prev => ({ ...prev, overview: !prev.overview }))}
+                  className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-cyan-500" />
+                    Overview
                   </h3>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {selectedConversation.transcript.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-3 rounded-lg ${
-                          item.role === 'user' 
-                            ? 'bg-blue-500/10 border border-blue-500/20' 
-                            : 'bg-purple-500/10 border border-purple-500/20'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-semibold uppercase ${
-                            item.role === 'user' ? 'text-blue-400' : 'text-purple-400'
-                          }`}>
-                            {item.role === 'user' ? 'User' : 'Agent'}
-                          </span>
-                          {item.timestamp && (
-                            <span className="text-xs text-gray-500">
-                              {new Date(item.timestamp).toLocaleTimeString()}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-300">{item.message || item.text}</p>
+                  {expandedSections.overview ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                
+                {expandedSections.overview && (
+                  <div className="p-4 pt-0 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-400">Status</p>
+                        <p className={`font-medium ${
+                          selectedConversation.status === 'completed' 
+                            ? 'text-green-400' 
+                            : 'text-red-400'
+                        }`}>
+                          {selectedConversation.status || 'Unknown'}
+                        </p>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-sm text-gray-400">Duration</p>
+                        <p className="font-medium">
+                          {selectedConversation.call_duration_secs 
+                            ? `${Math.round(selectedConversation.call_duration_secs)}s` 
+                            : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Started</p>
+                        <p className="font-medium text-sm">
+                          {selectedConversation.start_time_unix 
+                            ? new Date(selectedConversation.start_time_unix * 1000).toLocaleString()
+                            : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Conversation ID</p>
+                        <p className="font-medium text-xs">
+                          {selectedConversation.conversation_id?.substring(0, 20)}...
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Summary */}
+                    {selectedConversation.analysis?.summary && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <p className="text-sm text-gray-400 mb-2">Summary</p>
+                        <p className="text-sm text-gray-200">{selectedConversation.analysis.summary}</p>
+                      </div>
+                    )}
+                    
+                    {!selectedConversation.analysis?.summary && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <p className="text-sm text-gray-400">
+                          A summary of this conversation including key points, outcomes, and action items.
+                        </p>
+                      </div>
+                    )}
                   </div>
+                )}
+              </div>
+
+              {/* Transcript - Collapsible */}
+              {selectedConversation.transcript && selectedConversation.transcript.length > 0 && (
+                <div className="bg-black/40 border border-gray-700 rounded-xl">
+                  <button
+                    onClick={() => setExpandedSections(prev => ({ ...prev, transcript: !prev.transcript }))}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                  >
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-cyan-500" />
+                      Transcript ({selectedConversation.transcript.length} messages)
+                    </h3>
+                    {expandedSections.transcript ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </button>
+                  
+                  {expandedSections.transcript && (
+                    <div className="p-4 pt-0">
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {selectedConversation.transcript.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-3 rounded-lg ${
+                              item.role === 'user' 
+                                ? 'bg-blue-500/10 border border-blue-500/20' 
+                                : 'bg-purple-500/10 border border-purple-500/20'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold uppercase ${
+                                item.role === 'user' ? 'text-blue-400' : 'text-purple-400'
+                              }`}>
+                                {item.role === 'user' ? 'User' : 'Agent'}
+                              </span>
+                              {item.timestamp && (
+                                <span className="text-xs text-gray-500">
+                                  {new Date(item.timestamp).toLocaleTimeString()}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-300">{item.message || item.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
