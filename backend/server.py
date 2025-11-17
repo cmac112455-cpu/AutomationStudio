@@ -2487,6 +2487,112 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
+@api_router.post("/conversational-ai/agents/{agent_id}/chat")
+async def chat_with_agent(agent_id: str, chat_data: dict, user_id: str = Depends(get_current_user)):
+    """Chat with a conversational AI agent"""
+    try:
+        # Get the agent
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        message = chat_data.get("message")
+        conversation_history = chat_data.get("conversation_history", [])
+        
+        logging.info(f"[CONVERSATIONAL_AI] Agent {agent_id} received message: {message[:100]}")
+        
+        # Build conversation for LLM
+        messages = [{"role": "system", "content": agent.get("systemPrompt", "You are a helpful assistant.")}]
+        
+        # Add conversation history
+        for msg in conversation_history:
+            if msg.get("role") == "user":
+                messages.append({"role": "user", "content": msg.get("content")})
+            elif msg.get("role") == "agent":
+                messages.append({"role": "assistant", "content": msg.get("content")})
+        
+        # Add current message
+        messages.append({"role": "user", "content": message})
+        
+        # Get LLM response using emergent integrations
+        from emergentintegrations.llm.openai import chat
+        from emergentintegrations.llm.utils import get_integration_proxy_url, get_app_identifier
+        
+        proxy_url = get_integration_proxy_url()
+        app_identifier = get_app_identifier()
+        
+        llm_response = chat(
+            messages=messages,
+            model=agent.get("model", "gpt-4o"),
+            temperature=agent.get("temperature", 0.7),
+            base_url=proxy_url,
+            app_identifier=app_identifier
+        )
+        
+        response_text = llm_response.choices[0].message.content
+        
+        logging.info(f"[CONVERSATIONAL_AI] LLM Response: {response_text[:100]}")
+        
+        # Generate audio using ElevenLabs if voice is configured
+        audio_url = None
+        if agent.get("voice"):
+            try:
+                # Get ElevenLabs API key
+                integration = await db.user_integrations.find_one(
+                    {"user_id": user_id, "platform": "elevenlabs"},
+                    {"_id": 0}
+                )
+                
+                if integration and integration.get("api_key"):
+                    elevenlabs_key = integration["api_key"]
+                    
+                    # Generate speech
+                    import requests
+                    tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{agent['voice']}"
+                    
+                    tts_response = requests.post(
+                        tts_url,
+                        headers={
+                            "xi-api-key": elevenlabs_key,
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "text": response_text,
+                            "model_id": "eleven_turbo_v2_5",
+                            "voice_settings": {
+                                "stability": 0.5,
+                                "similarity_boost": 0.75
+                            }
+                        },
+                        timeout=30
+                    )
+                    
+                    if tts_response.status_code == 200:
+                        audio_bytes = tts_response.content
+                        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                        audio_url = f"data:audio/mpeg;base64,{audio_base64}"
+                        logging.info(f"[CONVERSATIONAL_AI] Generated audio: {len(audio_bytes)} bytes")
+                    
+            except Exception as audio_error:
+                logging.error(f"[CONVERSATIONAL_AI] Audio generation error: {str(audio_error)}")
+                # Continue without audio
+        
+        return {
+            "response": response_text,
+            "audio_url": audio_url,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error in chat: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
+
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
     """Mark a completion as saved"""
