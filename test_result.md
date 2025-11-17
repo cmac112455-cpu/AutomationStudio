@@ -102,7 +102,45 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the Conversational AI voice-to-voice feature. User reports that after starting a call and speaking, the AI agent doesn't respond with voice. The microphone should listen, transcribe, get AI response, play it back, and automatically restart listening for a continuous conversation."
+user_problem_statement: "Fix the Tools tab in Conversational AI Studio. Tools configuration is not working correctly - tools disappear after saving. The tab needs to properly save and retrieve tools using the correct ElevenLabs API structure with built_in_tools and tool_ids."
+
+backend:
+  - task: "Tools Tab Backend Endpoints Fix"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ REFACTORED TOOLS ENDPOINTS: Fixed to use correct ElevenLabs API structure
+          
+          KEY CHANGES:
+          1. GET /api/conversational-ai/agents/{agent_id}/tools
+             - Now reads from conversation_config.agent.prompt.built_in_tools
+             - Returns built_in_tools array (e.g., ["end_call"])
+             - Returns tool_ids array (references to workspace tools)
+          
+          2. PATCH /api/conversational-ai/agents/{agent_id}/tools
+             - Updates conversation_config.agent.prompt.built_in_tools
+             - Updates conversation_config.agent.prompt.tool_ids
+             - Correctly sends nested structure to ElevenLabs API
+          
+          3. NEW: GET /api/conversational-ai/workspace-tools
+             - Fetches workspace server tools from /v1/convai/server-tools
+             - Fetches workspace client tools from /v1/convai/client-tools
+             - Returns available tools that can be referenced by tool_ids
+          
+          4. Removed duplicate old GET /tools endpoint
+          
+          STRUCTURE FIXED:
+          - Old (incorrect): agent_config.system_tools, agent_config.server_tools
+          - New (correct): conversation_config.agent.prompt.built_in_tools, .tool_ids
+          
+          Backend restarted successfully. Needs testing with real ElevenLabs agent.
 
 backend:
   - task: "Conversational AI Analytics Endpoints"
