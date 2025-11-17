@@ -1977,17 +1977,17 @@ const ConversationalAgentsPage = () => {
                             <div className="space-y-3">
                               {evaluationCriteria.map((criteria, idx) => (
                                 <div
-                                  key={idx}
+                                  key={criteria.id || idx}
                                   className="bg-black/20 border border-gray-700 rounded-xl p-4 hover:border-cyan-500/50 transition-colors"
                                 >
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                       <div className="flex items-center gap-2 mb-2">
-                                        <code className="text-sm px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded">
-                                          {criteria.identifier}
-                                        </code>
+                                        <span className="text-sm font-semibold text-cyan-400">
+                                          {criteria.name}
+                                        </span>
                                       </div>
-                                      <p className="text-sm text-gray-300">{criteria.description}</p>
+                                      <p className="text-sm text-gray-300">{criteria.conversation_goal_prompt}</p>
                                     </div>
                                     <div className="flex gap-2">
                                       <button
@@ -2001,7 +2001,7 @@ const ConversationalAgentsPage = () => {
                                         <Edit2 className="w-4 h-4 text-gray-400" />
                                       </button>
                                       <button
-                                        onClick={() => deleteEvaluationCriteria(criteria.identifier)}
+                                        onClick={() => deleteEvaluationCriteria(criteria.id)}
                                         className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
                                       >
                                         <Trash2 className="w-4 h-4 text-red-400" />
