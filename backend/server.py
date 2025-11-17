@@ -2768,14 +2768,37 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         audio_bytes = base64.b64decode(audio_base64)
         logging.info(f"[CONVERSATIONAL_AI] Audio decoded: {len(audio_bytes)} bytes")
         
-        # Save audio to temporary file as WAV (Whisper prefers wav/mp3)
-        # WebM might not have proper headers, so we save as mp3 which is more flexible
-        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
+        # Check the audio format by looking at magic bytes
+        audio_format = "unknown"
+        if audio_bytes[:4] == b'RIFF':
+            audio_format = "wav"
+        elif audio_bytes[:4] == b'ID3\x03' or audio_bytes[:2] == b'\xff\xfb':
+            audio_format = "mp3"
+        elif audio_bytes[:4] == b'\x1aE\xdf\xa3':
+            audio_format = "webm"
+        elif audio_bytes[:4] == b'OggS':
+            audio_format = "ogg"
+        
+        logging.info(f"[CONVERSATIONAL_AI] Detected audio format: {audio_format}")
+        
+        # Save with appropriate extension
+        suffix_map = {
+            "wav": ".wav",
+            "mp3": ".mp3",
+            "webm": ".webm",
+            "ogg": ".ogg",
+            "unknown": ".webm"  # default fallback
+        }
+        
+        suffix = suffix_map.get(audio_format, ".webm")
+        
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_audio:
             temp_audio.write(audio_bytes)
             temp_audio_path = temp_audio.name
         
-        logging.info(f"[CONVERSATIONAL_AI] Audio saved to temp file: {temp_audio_path}")
+        logging.info(f"[CONVERSATIONAL_AI] Audio saved to: {temp_audio_path}")
         logging.info(f"[CONVERSATIONAL_AI] File size: {len(audio_bytes)} bytes")
+        logging.info(f"[CONVERSATIONAL_AI] Extension: {suffix}")
         
         try:
             # Transcribe audio
