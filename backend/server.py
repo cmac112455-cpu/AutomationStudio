@@ -2288,8 +2288,14 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             
             if retrieve_response.status_code == 200:
                 content_type = retrieve_response.headers.get('Content-Type', '')
+                content_length = len(retrieve_response.content)
                 
-                if 'audio' in content_type or 'mpeg' in content_type:
+                logging.info(f"[MUSIC_STUDIO] Content-Type: {content_type}, Content-Length: {content_length}")
+                
+                # Check if this is audio data (either by content-type or size)
+                # ElevenLabs returns binary MP3 directly when ready (typically >100KB)
+                # Status updates are small JSON responses (<1KB)
+                if 'audio' in content_type or 'mpeg' in content_type or content_length > 1000:
                     # Got the audio
                     audio_bytes = retrieve_response.content
                     logging.info(f"[MUSIC_STUDIO] Received audio: {len(audio_bytes)} bytes")
@@ -2313,15 +2319,14 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
                         headers={"Content-Disposition": f"inline; filename=music_{completion_id}.mp3"}
                     )
                 else:
-                    # Still processing - try to parse status
+                    # Small response - try to parse as status JSON
                     try:
-                        if retrieve_response.content:
-                            status_data = retrieve_response.json()
-                            logging.info(f"[MUSIC_STUDIO] Status: {status_data}")
-                            if status_data.get("status") == "failed":
-                                raise HTTPException(status_code=500, detail="Music generation failed on server")
+                        status_data = retrieve_response.json()
+                        logging.info(f"[MUSIC_STUDIO] Status: {status_data}")
+                        if status_data.get("status") == "failed":
+                            raise HTTPException(status_code=500, detail="Music generation failed on server")
                     except Exception as json_error:
-                        logging.warning(f"[MUSIC_STUDIO] Could not parse status: {str(json_error)}")
+                        logging.warning(f"[MUSIC_STUDIO] Could not parse status JSON: {str(json_error)}")
             elif retrieve_response.status_code == 404:
                 logging.warning(f"[MUSIC_STUDIO] Generation not found (404), continuing to poll...")
             else:
