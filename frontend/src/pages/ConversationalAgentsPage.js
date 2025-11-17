@@ -602,6 +602,45 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  const testBackendPipeline = async () => {
+    console.log('🧪 TESTING BACKEND PIPELINE');
+    setIsSending(true);
+    
+    try {
+      // Create a test audio blob (empty webm)
+      const testAudio = new Blob([new Uint8Array([])], { type: 'audio/webm' });
+      const reader = new FileReader();
+      
+      reader.onloadend = async () => {
+        try {
+          // Even with empty audio, backend should respond with an error we can see
+          const base64Audio = "dGVzdA=="; // "test" in base64
+          
+          console.log('📤 Sending test audio to backend...');
+          const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
+            audio: base64Audio,
+            conversation_history: [],
+            call_log_id: currentCallLogId
+          });
+          
+          console.log('✅ Backend responded:', response.data);
+          toast.success('Backend pipeline is working!');
+        } catch (error) {
+          console.error('❌ Backend error:', error);
+          console.error('Error response:', error.response?.data);
+          toast.error('Backend error: ' + (error.response?.data?.detail || error.message));
+        }
+      };
+      
+      reader.readAsDataURL(testAudio);
+    } catch (error) {
+      console.error('❌ Test failed:', error);
+      toast.error('Test failed');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!userInput.trim() || isSending) return;
 
