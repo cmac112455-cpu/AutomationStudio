@@ -1428,13 +1428,13 @@ export default function AutomationStudioPage() {
                       type="range"
                       min="0"
                       max="1"
-                      step="0.1"
+                      step="0.05"
                       value={nodeConfig.stability || 0.5}
                       onChange={(e) => setNodeConfig({ ...nodeConfig, stability: parseFloat(e.target.value) })}
                       className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Higher = more consistent, Lower = more expressive
+                      0.5 = balanced. Higher = predictable/consistent, Lower = varied/expressive
                     </p>
                   </div>
 
@@ -1447,13 +1447,13 @@ export default function AutomationStudioPage() {
                       type="range"
                       min="0"
                       max="1"
-                      step="0.1"
+                      step="0.05"
                       value={nodeConfig.similarity_boost || 0.75}
                       onChange={(e) => setNodeConfig({ ...nodeConfig, similarity_boost: parseFloat(e.target.value) })}
                       className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Higher = closer to original voice, Lower = more creative
+                      0.75 = recommended. Higher = more authentic to original voice
                     </p>
                   </div>
 
