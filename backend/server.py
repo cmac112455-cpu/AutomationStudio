@@ -3341,6 +3341,57 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         raise HTTPException(status_code=500, detail=f"Failed to fetch tools: {str(e)}")
 
 
+@api_router.get("/conversational-ai/workspace-tools")
+async def get_workspace_tools(user_id: str = Depends(get_current_user)):
+    """Get workspace server tools and client tools from ElevenLabs"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch workspace server tools
+        server_tools_response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/server-tools",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        server_tools = []
+        if server_tools_response.status_code == 200:
+            server_tools = server_tools_response.json().get("tools", [])
+        else:
+            logging.warning(f"[WORKSPACE_TOOLS] Could not fetch server tools: {server_tools_response.status_code}")
+        
+        # Fetch workspace client tools
+        client_tools_response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/client-tools",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        client_tools = []
+        if client_tools_response.status_code == 200:
+            client_tools = client_tools_response.json().get("tools", [])
+        else:
+            logging.warning(f"[WORKSPACE_TOOLS] Could not fetch client tools: {client_tools_response.status_code}")
+        
+        logging.info(f"[WORKSPACE_TOOLS] Loaded {len(server_tools)} server tools, {len(client_tools)} client tools")
+        
+        return {
+            "server_tools": server_tools,
+            "client_tools": client_tools
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[WORKSPACE_TOOLS] Error fetching workspace tools: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch workspace tools: {str(e)}")
+
+
 @api_router.patch("/conversational-ai/agents/{agent_id}/tools")
 async def update_agent_tools(
     agent_id: str,
