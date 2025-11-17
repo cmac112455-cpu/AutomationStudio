@@ -2560,10 +2560,23 @@ async def upload_knowledge_base_file(agent_id: str, file: UploadFile = File(...)
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
-@api_router.post("/conversational-ai/knowledge-base/add-text")
-async def add_knowledge_base_text(text_data: dict, user_id: str = Depends(get_current_user)):
-    """Add text to ElevenLabs knowledge base"""
+@api_router.post("/conversational-ai/agents/{agent_id}/knowledge-base/add-text")
+async def add_knowledge_base_text(agent_id: str, text_data: dict, user_id: str = Depends(get_current_user)):
+    """Add text to ElevenLabs knowledge base and link to agent"""
     try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
         elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
@@ -2577,12 +2590,11 @@ async def add_knowledge_base_text(text_data: dict, user_id: str = Depends(get_cu
         if not name or not text:
             raise HTTPException(status_code=400, detail="Name and text are required")
         
-        logging.info(f"[KNOWLEDGE_BASE] Adding text: {name}")
+        logging.info(f"[KNOWLEDGE_BASE] Adding text: {name} for agent {agent_id}")
         
-        # Add to ElevenLabs
-        import requests
+        # Step 1: Add to ElevenLabs knowledge base
         response = requests.post(
-            "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
+            "https://api.elevenlabs.io/v1/convai/knowledge-base",
             headers={
                 "xi-api-key": elevenlabs_key,
                 "Content-Type": "application/json"
@@ -2593,14 +2605,31 @@ async def add_knowledge_base_text(text_data: dict, user_id: str = Depends(get_cu
             }
         )
         
-        if response.status_code != 200:
+        if response.status_code not in [200, 201]:
             logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
             raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
         
         kb_data = response.json()
-        logging.info(f"[KNOWLEDGE_BASE] Text added successfully: {kb_data}")
+        documentation_id = kb_data.get("document_id") or kb_data.get("id")
+        logging.info(f"[KNOWLEDGE_BASE] Text added successfully: {documentation_id}")
         
-        return kb_data
+        # Step 2: Link to agent
+        link_response = requests.post(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}/add-to-knowledge-base",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json={"document_id": documentation_id}
+        )
+        
+        if link_response.status_code not in [200, 201]:
+            logging.error(f"[KNOWLEDGE_BASE] Error linking KB to agent: {link_response.text}")
+            raise HTTPException(status_code=link_response.status_code, detail=f"Failed to link KB to agent: {link_response.text}")
+        
+        logging.info(f"[KNOWLEDGE_BASE] ✅ Text KB linked to agent successfully")
+        
+        return {"message": "Text added and linked to agent", "document_id": documentation_id, **kb_data}
         
     except HTTPException:
         raise
