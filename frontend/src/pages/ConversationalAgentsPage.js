@@ -880,48 +880,83 @@ const ConversationalAgentsPage = () => {
 
             {/* Phone Controls */}
             <div className="p-8 flex-shrink-0">
-              <div className="flex items-center justify-center gap-6 mb-6">
-                {/* Microphone Button (Main Action) */}
-                <button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isSending}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-2xl ${
-                    isRecording
-                      ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-red-500/50'
-                      : 'bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-cyan-500/50'
-                  } ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
-                >
-                  {isRecording ? (
-                    <Square className="w-8 h-8 text-white" />
-                  ) : (
-                    <Mic className="w-8 h-8 text-white" />
-                  )}
-                </button>
-              </div>
+              {!callActive ? (
+                /* Start Call Screen */
+                <div className="text-center">
+                  <button
+                    onClick={initiateCall}
+                    disabled={isConnecting}
+                    className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center transition-all shadow-2xl ${
+                      isConnecting
+                        ? 'bg-yellow-600 animate-pulse'
+                        : 'bg-gradient-to-br from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:scale-110'
+                    } shadow-green-500/50`}
+                  >
+                    <Phone className="w-8 h-8 text-white" />
+                  </button>
+                  <p className="text-center text-sm text-gray-400 mb-4">
+                    {isConnecting ? (
+                      <span className="text-yellow-400 font-medium">Connecting...</span>
+                    ) : (
+                      <span>Tap to call {testingAgent.name}</span>
+                    )}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowTestModal(false);
+                      setTestingAgent(null);
+                    }}
+                    className="w-full py-3 rounded-full bg-gray-700 hover:bg-gray-600 text-white font-medium transition-all flex items-center justify-center gap-2"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                /* Active Call Screen */
+                <>
+                  <div className="flex items-center justify-center gap-6 mb-6">
+                    {/* Microphone Indicator (Visual Only - Auto Recording) */}
+                    <div
+                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-2xl ${
+                        isRecording
+                          ? 'bg-red-600 animate-pulse shadow-red-500/50'
+                          : isSending
+                          ? 'bg-yellow-600 animate-pulse shadow-yellow-500/50'
+                          : 'bg-gradient-to-br from-cyan-500 to-blue-500 shadow-cyan-500/50'
+                      }`}
+                    >
+                      {isRecording ? (
+                        <Mic className="w-8 h-8 text-white" />
+                      ) : isSending ? (
+                        <Bot className="w-8 h-8 text-white" />
+                      ) : (
+                        <Mic className="w-8 h-8 text-white" />
+                      )}
+                    </div>
+                  </div>
 
-              <p className="text-center text-sm text-gray-400 mb-4">
-                {isRecording ? (
-                  <span className="text-red-400 font-medium">Speaking... Tap to stop</span>
-                ) : isSending ? (
-                  <span className="text-yellow-400">Agent is responding...</span>
-                ) : (
-                  <span>Tap to speak with {testingAgent.name}</span>
-                )}
-              </p>
+                  <p className="text-center text-sm text-gray-400 mb-4">
+                    {isRecording ? (
+                      <span className="text-red-400 font-medium">Listening...</span>
+                    ) : isSending ? (
+                      <span className="text-yellow-400">{testingAgent.name} is speaking...</span>
+                    ) : audioPlaying ? (
+                      <span className="text-cyan-400">{testingAgent.name} is speaking...</span>
+                    ) : (
+                      <span className="text-green-400">In call with {testingAgent.name}</span>
+                    )}
+                  </p>
 
-              {/* End Call Button */}
-              <button
-                onClick={() => {
-                  if (isRecording) stopRecording();
-                  setShowTestModal(false);
-                  setTestingAgent(null);
-                  setConversation([]);
-                }}
-                className="w-full py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium transition-all flex items-center justify-center gap-2"
-              >
-                <Phone className="w-4 h-4 rotate-[135deg]" />
-                End Call
-              </button>
+                  {/* End Call Button */}
+                  <button
+                    onClick={endCall}
+                    className="w-full py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/30"
+                  >
+                    <Phone className="w-4 h-4 rotate-[135deg]" />
+                    End Call
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
