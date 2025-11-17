@@ -3459,10 +3459,15 @@ async def update_agent_tools(
         logging.info(f"[TOOLS] Full built_in_tools object being sent:")
         for tool_key, tool_config in prompt_config.get('built_in_tools', {}).items():
             if tool_config is not None:
-                logging.info(f"[TOOLS]   ✅ {tool_key}: ENABLED")
+                logging.info(f"[TOOLS]   ✅ {tool_key}: ENABLED (config present)")
             else:
-                logging.info(f"[TOOLS]   ❌ {tool_key}: DISABLED")
+                logging.info(f"[TOOLS]   ❌ {tool_key}: DISABLED (set to null)")
         logging.info(f"[TOOLS] Tool IDs: {prompt_config.get('tool_ids', [])}")
+        
+        # Log the actual built_in_tools object being sent
+        import json
+        logging.info(f"[TOOLS] JSON built_in_tools being sent:")
+        logging.info(json.dumps(prompt_config.get('built_in_tools', {}), indent=2))
         logging.info(f"[TOOLS] ================================================")
         
         patch_response = requests.patch(
