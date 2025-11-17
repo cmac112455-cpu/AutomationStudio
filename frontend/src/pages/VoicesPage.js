@@ -687,15 +687,23 @@ const VoicesPage = () => {
                   />
                 </div>
 
-                {/* Speaker Boost */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={speakerBoost}
-                    onChange={(e) => setSpeakerBoost(e.target.checked)}
-                    className="w-4 h-4 accent-blue-500"
-                  />
+                {/* Speaker Boost - Modern Animated Switch */}
+                <div className="flex items-center justify-between">
                   <Label className="text-xs text-gray-400">Clarity boost</Label>
+                  <button
+                    onClick={() => setSpeakerBoost(!speakerBoost)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 ease-in-out ${
+                      speakerBoost
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/50'
+                        : 'bg-gray-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out ${
+                        speakerBoost ? 'translate-x-6 scale-110' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
             </div>
