@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BACKEND_URL = "https://aichat-21.preview.emergentagent.com/api"
+BACKEND_URL = "https://elevate-agent.preview.emergentagent.com/api"
 
 def test_auth_and_chat():
     """Test authentication and chat functionality"""

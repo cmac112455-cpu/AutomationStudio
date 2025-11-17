@@ -12,7 +12,7 @@ import base64
 from datetime import datetime
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://aichat-21.preview.emergentagent.com/api"
+BACKEND_URL = "https://elevate-agent.preview.emergentagent.com/api"
 
 class DetailedWorkflowTester:
     def __init__(self):
