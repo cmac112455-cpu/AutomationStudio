@@ -2827,8 +2827,14 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
             logging.error(traceback.format_exc())
             raise
         finally:
-            # Clean up temp file
-            os_module.unlink(temp_audio_path)
+            # Clean up temp files
+            try:
+                if 'temp_input_path' in locals():
+                    os_module.unlink(temp_input_path)
+                if 'temp_output_path' in locals() and os_module.path.exists(temp_output_path):
+                    os_module.unlink(temp_output_path)
+            except Exception as cleanup_error:
+                logging.warning(f"[CONVERSATIONAL_AI] Cleanup error: {str(cleanup_error)}")
         
         # Step 2: Get LLM response using LlmChat
         logging.info(f"[CONVERSATIONAL_AI] ===== STEP 2: LLM CHAT =====")
