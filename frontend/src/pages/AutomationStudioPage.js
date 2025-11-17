@@ -703,7 +703,8 @@ export default function AutomationStudioPage() {
           stability: nodeConfig.stability || 0.5,
           similarity_boost: nodeConfig.similarity_boost || 0.75,
           style: nodeConfig.style || 0,
-          speaker_boost: nodeConfig.speaker_boost || false
+          speaker_boost: nodeConfig.speaker_boost || false,
+          speed: nodeConfig.speed || 1.0
         },
         { 
           headers: { Authorization: `Bearer ${token}` },
