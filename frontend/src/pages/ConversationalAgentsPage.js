@@ -313,15 +313,32 @@ const ConversationalAgentsPage = () => {
     }
   };
 
-  const endCall = () => {
+  const endCall = async () => {
+    console.log('📞 Ending call...');
+    
     if (isRecording) stopRecording();
     if (mediaRecorder) {
       mediaRecorder.stream.getTracks().forEach(track => track.stop());
     }
+    
+    // Update call log status to ended if no errors occurred
+    if (currentCallLogId && conversation.length > 0) {
+      try {
+        await axios.patch(`${BACKEND_URL}/api/conversational-ai/call-logs/${currentCallLogId}`, {
+          status: 'completed',
+          exchanges_count: Math.floor(conversation.length / 2)
+        });
+        console.log('✅ Call log updated');
+      } catch (error) {
+        console.error('Failed to update call log:', error);
+      }
+    }
+    
     setCallActive(false);
     setShowTestModal(false);
     setTestingAgent(null);
     setConversation([]);
+    setCurrentCallLogId(null);
     toast.success('Call ended');
   };
 
