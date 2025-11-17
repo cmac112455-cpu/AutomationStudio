@@ -2963,8 +2963,8 @@ async def update_agent_analysis_config(
         
         return {
             "message": "Analysis configuration updated successfully",
-            "evaluation_criteria": agent_config.get("evaluation_criteria", []),
-            "data_collection": agent_config.get("data_collection", [])
+            "evaluation_criteria": config_update.get("evaluation_criteria", []),
+            "data_collection": config_update.get("data_collection", [])
         }
         
     except HTTPException:
