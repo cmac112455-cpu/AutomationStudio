@@ -24,6 +24,20 @@ const ConversationalAgentsPage = () => {
   const [callActive, setCallActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   
+  // Audio/Recording state
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [micWorking, setMicWorking] = useState(false);
+  const [currentCallLogId, setCurrentCallLogId] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [userInput, setUserInput] = useState('');
+  
+  // Refs for audio processing
+  const audioContextRef = useRef(null);
+  const audioChunksBuffer = useRef([]);
+  
   // ElevenLabs Conversation Hook
   const elevenlabsConversation = useConversation();
   
