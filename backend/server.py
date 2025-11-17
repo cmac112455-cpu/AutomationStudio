@@ -2999,14 +2999,7 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-
-
-# ============ AGENT TOOLS ENDPOINTS ============
-
-@api_router.get("/conversational-ai/agents/{agent_id}/tools")
-async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user)):
-    """Get agent's tools configuration from ElevenLabs"""
-    try:
+        
         # Get agent to verify ownership and get elevenlabs_agent_id
         agent = await db.conversational_agents.find_one(
             {"id": agent_id, "user_id": user_id},
