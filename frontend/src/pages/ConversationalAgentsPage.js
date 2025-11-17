@@ -2482,45 +2482,55 @@ const ConversationalAgentsPage = () => {
                       <Mic className="w-5 h-5 text-cyan-500" />
                       Call Recording
                     </h3>
-                    <a
-                      href={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
-                      download={`conversation_${selectedConversation.conversation_id}.mp3`}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
-                      onClick={(e) => {
-                        console.log('🎵 Downloading audio from:', e.target.href);
-                      }}
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </a>
+                    {audioUrl && (
+                      <a
+                        href={audioUrl}
+                        download={`conversation_${selectedConversation.conversation_id}.mp3`}
+                        className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </a>
+                    )}
                   </div>
-                  <audio 
-                    controls 
-                    className="w-full"
-                    src={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
-                    onError={(e) => {
-                      console.error('❌ Audio playback error:', e);
-                      console.error('Audio URL:', e.target.src);
-                    }}
-                    onLoadStart={(e) => {
-                      console.log('🎵 Starting to load audio from:', e.target.src);
-                    }}
-                    onLoadedData={(e) => {
-                      console.log('✅ Audio loaded successfully');
-                    }}
-                  >
-                    Your browser does not support the audio element.
-                  </audio>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {selectedConversation.has_user_audio && selectedConversation.has_response_audio 
-                      ? 'Complete recording (user + agent)'
-                      : selectedConversation.has_user_audio 
-                      ? 'User audio only'
-                      : selectedConversation.has_response_audio
-                      ? 'Agent audio only'
-                      : 'Audio available'
-                    }
-                  </p>
+                  
+                  {loadingAudio ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="w-8 h-8 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                      <span className="ml-3 text-sm text-gray-400">Loading audio...</span>
+                    </div>
+                  ) : audioUrl ? (
+                    <>
+                      <audio 
+                        controls 
+                        className="w-full"
+                        src={audioUrl}
+                        onError={(e) => {
+                          console.error('❌ Audio playback error:', e);
+                        }}
+                        onLoadedData={(e) => {
+                          console.log('✅ Audio loaded and ready to play');
+                        }}
+                      >
+                        Your browser does not support the audio element.
+                      </audio>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {selectedConversation.has_user_audio && selectedConversation.has_response_audio 
+                          ? 'Complete recording (user + agent)'
+                          : selectedConversation.has_user_audio 
+                          ? 'User audio only'
+                          : selectedConversation.has_response_audio
+                          ? 'Agent audio only'
+                          : 'Audio available'
+                        }
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center py-4 text-red-400">
+                      <X className="w-5 h-5 mr-2" />
+                      <span className="text-sm">Failed to load audio</span>
+                    </div>
+                  )}
                 </div>
               )}
               
