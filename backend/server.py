@@ -1956,11 +1956,6 @@ async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_cur
         logging.error(f"[TTS_PREVIEW] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Preview generation failed: {str(e)}")
 
-        {"$unset": {f"integrations.{service}": ""}}
-    )
-    return {"status": "success", "service": service}
-
-
 @api_router.get("/workflows/{workflow_id}", response_model=Workflow)
 async def get_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
     workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
