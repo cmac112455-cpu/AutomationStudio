@@ -191,7 +191,7 @@ const MusicPage = () => {
 
             {/* Progress Indicator */}
             {generating && (
-              <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 animate-pulse">
+              <div className="bg-[#13141a] rounded-xl border border-purple-500/30 p-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-spin">
                     <Loader className="w-6 h-6 text-white" />
