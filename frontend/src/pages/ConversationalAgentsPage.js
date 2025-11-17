@@ -2761,6 +2761,11 @@ const ConversationalAgentsPage = () => {
                 onClick={() => {
                   setShowConversationModal(false);
                   setSelectedConversation(null);
+                  // Clean up audio URL to free memory
+                  if (audioUrl) {
+                    URL.revokeObjectURL(audioUrl);
+                    setAudioUrl(null);
+                  }
                 }}
                 className="w-full"
               >
