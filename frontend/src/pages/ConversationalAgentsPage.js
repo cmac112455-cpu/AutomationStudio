@@ -21,20 +21,11 @@ const ConversationalAgentsPage = () => {
   const [showTestModal, setShowTestModal] = useState(false);
   const [testingAgent, setTestingAgent] = useState(null);
   const [conversation, setConversation] = useState([]);
-  const [userInput, setUserInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [currentCallLogId, setCurrentCallLogId] = useState(null);
-  const [testMode, setTestMode] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioChunks, setAudioChunks] = useState([]);
   const [callActive, setCallActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
-  const [micWorking, setMicWorking] = useState(false);
-  const audioContextRef = useRef(null);
-  const audioChunksBuffer = useRef([]);
+  
+  // ElevenLabs Conversation Hook
+  const elevenlabsConversation = useConversation();
   
   // Form state
   const [formData, setFormData] = useState({
