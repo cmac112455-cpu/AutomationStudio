@@ -2490,10 +2490,23 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
-@api_router.post("/conversational-ai/knowledge-base/upload")
-async def upload_knowledge_base_file(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
-    """Upload a file to ElevenLabs knowledge base"""
+@api_router.post("/conversational-ai/agents/{agent_id}/knowledge-base/upload")
+async def upload_knowledge_base_file(agent_id: str, file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """Upload a file to ElevenLabs knowledge base and link to agent"""
     try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
         elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
@@ -2501,27 +2514,43 @@ async def upload_knowledge_base_file(file: UploadFile = File(...), user_id: str 
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        logging.info(f"[KNOWLEDGE_BASE] Uploading file: {file.filename}")
+        logging.info(f"[KNOWLEDGE_BASE] Uploading file: {file.filename} for agent {agent_id}")
         
         # Read file content
         file_content = await file.read()
         
-        # Upload to ElevenLabs
-        import requests
+        # Step 1: Upload to ElevenLabs knowledge base
         response = requests.post(
-            "https://api.elevenlabs.io/v1/convai/knowledge-base/file",
+            "https://api.elevenlabs.io/v1/convai/knowledge-base",
             headers={"xi-api-key": elevenlabs_key},
             files={"file": (file.filename, file_content, file.content_type)}
         )
         
-        if response.status_code != 200:
+        if response.status_code not in [200, 201]:
             logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
             raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
         
         kb_data = response.json()
-        logging.info(f"[KNOWLEDGE_BASE] File uploaded successfully: {kb_data}")
+        documentation_id = kb_data.get("document_id") or kb_data.get("id")
+        logging.info(f"[KNOWLEDGE_BASE] File uploaded successfully: {documentation_id}")
         
-        return kb_data
+        # Step 2: Link to agent
+        link_response = requests.post(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}/add-to-knowledge-base",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json={"document_id": documentation_id}
+        )
+        
+        if link_response.status_code not in [200, 201]:
+            logging.error(f"[KNOWLEDGE_BASE] Error linking KB to agent: {link_response.text}")
+            raise HTTPException(status_code=link_response.status_code, detail=f"Failed to link KB to agent: {link_response.text}")
+        
+        logging.info(f"[KNOWLEDGE_BASE] ✅ KB linked to agent successfully")
+        
+        return {"message": "File uploaded and linked to agent", "document_id": documentation_id, **kb_data}
         
     except HTTPException:
         raise
