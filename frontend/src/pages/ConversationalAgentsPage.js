@@ -508,14 +508,21 @@ const ConversationalAgentsPage = () => {
     }
   }, [activeTab, editingAgent?.id, analyticsTimeRange, analysisSection]);
 
-  const loadKnowledgeBase = async () => {
+  const loadKnowledgeBase = async (agentId) => {
+    if (!agentId) {
+      setKnowledgeBase([]);
+      return;
+    }
+    
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/knowledge-base/list`);
+      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/knowledge-base/list`);
       setKnowledgeBase(response.data.knowledge_base || []);
+      console.log('📚 KB loaded:', response.data.knowledge_base?.length || 0, 'items');
     } catch (error) {
       console.error('Error loading knowledge base:', error);
-      // Don't show error toast if API key not configured yet
-      if (error.response?.status !== 400) {
+      setKnowledgeBase([]);
+      // Don't show error toast if API key not configured yet or agent not linked
+      if (error.response?.status !== 400 && error.response?.status !== 404) {
         toast.error('Failed to load knowledge base');
       }
     }
