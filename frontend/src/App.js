@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import CoPilotPage from './pages/CoPilotPage';
 import TasksPage from './pages/TasksPage';
 import AutomationStudioPage from './pages/AutomationStudioPage';
+import IntegrationsPage from './pages/IntegrationsPage';
 import CompletionsPage from './pages/CompletionsPage';
 import Layout from './components/Layout';
 
