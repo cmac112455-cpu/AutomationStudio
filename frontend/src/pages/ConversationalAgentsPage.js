@@ -238,6 +238,94 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        await processVoiceInput(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setAudioChunks(chunks);
+      setIsRecording(true);
+      toast.success('Recording... Speak now');
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast.error('Could not access microphone');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const processVoiceInput = async (audioBlob) => {
+    setIsSending(true);
+
+    try {
+      // Convert audio to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      
+      reader.onloadend = async () => {
+        const base64Audio = reader.result.split(',')[1];
+
+        // Send to backend for speech-to-text and processing
+        const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
+          audio: base64Audio,
+          conversation_history: conversation
+        });
+
+        // Add user message (transcribed)
+        const userMessage = {
+          role: 'user',
+          content: response.data.transcription,
+          timestamp: new Date().toISOString()
+        };
+        setConversation(prev => [...prev, userMessage]);
+
+        // Add agent response
+        const agentMessage = {
+          role: 'agent',
+          content: response.data.response,
+          audio_url: response.data.audio_url,
+          timestamp: new Date().toISOString()
+        };
+        setConversation(prev => [...prev, agentMessage]);
+
+        // Auto-play audio response
+        if (response.data.audio_url) {
+          const audio = new Audio(response.data.audio_url);
+          audio.onplay = () => setAudioPlaying(true);
+          audio.onended = () => setAudioPlaying(false);
+          audio.play();
+        }
+      };
+
+    } catch (error) {
+      console.error('Error processing voice:', error);
+      toast.error('Failed to process voice input');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!userInput.trim() || isSending) return;
 
