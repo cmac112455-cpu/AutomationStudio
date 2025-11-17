@@ -1196,11 +1196,71 @@ const ConversationalAgentsPage = () => {
                 <p className="text-xs text-gray-500 mt-1">Lower = more focused, Higher = more creative</p>
               </div>
 
+                </div>
+              )}
+
+              {/* Knowledge Base Tab Content */}
+              {activeTab === 'knowledge' && (
+                <div className="space-y-6">
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
+                      <span className="text-4xl">📚</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Knowledge Base</h3>
+                    <p className="text-gray-400 mb-6">Upload documents, add URLs, or input text to give your agent domain-specific knowledge</p>
+                    <p className="text-sm text-cyan-400">Coming Soon - Full Knowledge Base Integration</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tools Tab Content */}
+              {activeTab === 'tools' && (
+                <div className="space-y-6">
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
+                      <span className="text-4xl">🔧</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Tools & Integrations</h3>
+                    <p className="text-gray-400 mb-6">Connect your agent to external APIs and services for advanced functionality</p>
+                    <p className="text-sm text-cyan-400">Coming Soon - API Integrations, Function Calling</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Analysis Tab Content */}
+              {activeTab === 'analysis' && (
+                <div className="space-y-6">
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
+                      <span className="text-4xl">📊</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Performance Analysis</h3>
+                    <p className="text-gray-400 mb-6">Track conversation metrics, evaluate agent performance, and identify improvement areas</p>
+                    <p className="text-sm text-cyan-400">Coming Soon - Conversation Analytics, Quality Metrics</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Settings Tab Content */}
+              {activeTab === 'settings' && (
+                <div className="space-y-6">
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
+                      <span className="text-4xl">⚙️</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Advanced Settings</h3>
+                    <p className="text-gray-400 mb-6">Configure authentication, data retention, cost optimization, and advanced behaviors</p>
+                    <p className="text-sm text-cyan-400">Coming Soon - Authentication, Personalization, Workspace Overrides</p>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-4 border-t border-gray-800 mt-6">
                 <Button
                   onClick={editingAgent ? updateAgent : createAgent}
                   className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
+                  disabled={activeTab !== 'agent'}
                 >
                   <Save className="w-4 h-4 mr-2" />
                   {editingAgent ? 'Update Agent' : 'Create Agent'}
@@ -1210,6 +1270,7 @@ const ConversationalAgentsPage = () => {
                     setShowCreateModal(false);
                     setEditingAgent(null);
                     resetForm();
+                    setActiveTab('agent');
                   }}
                   className="flex-1 bg-gray-700 hover:bg-gray-600"
                 >
