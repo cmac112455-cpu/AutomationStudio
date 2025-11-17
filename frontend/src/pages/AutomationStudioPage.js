@@ -439,6 +439,7 @@ const nodeTypes = {
   texttospeech: TextToSpeechNode,
   audiooverlay: AudioOverlayNode,
   texttomusic: TextToMusicNode,
+  audiostitch: AudioStitchNode,
   taskplanner: TaskPlannerNode,
   condition: ConditionNode,
   switch: SwitchNode,
