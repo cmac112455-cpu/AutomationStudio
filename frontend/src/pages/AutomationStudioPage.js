@@ -1458,6 +1458,25 @@ export default function AutomationStudioPage() {
 
                   <div>
                     <Label className="text-white flex items-center justify-between">
+                      <span>Speaking Speed</span>
+                      <span className="text-xs text-gray-400">{nodeConfig.speed || 1.0}x</span>
+                    </Label>
+                    <input
+                      type="range"
+                      min="0.7"
+                      max="1.2"
+                      step="0.05"
+                      value={nodeConfig.speed || 1.0}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, speed: parseFloat(e.target.value) })}
+                      className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Control speech rate: 0.7x (slower) to 1.2x (faster)
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white flex items-center justify-between">
                       <span>Style Exaggeration</span>
                       <span className="text-xs text-gray-400">{nodeConfig.style || 0}</span>
                     </Label>
@@ -1471,7 +1490,7 @@ export default function AutomationStudioPage() {
                       className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Amplify the style of the voice (experimental)
+                      Amplify the style (keep at 0 for best quality & speed)
                     </p>
                   </div>
 
@@ -1484,8 +1503,78 @@ export default function AutomationStudioPage() {
                     />
                     <div>
                       <Label className="text-white text-sm">Speaker Boost</Label>
-                      <p className="text-xs text-gray-500">Enhance clarity for better understanding</p>
+                      <p className="text-xs text-gray-500">Enhance clarity (adds slight processing)</p>
                     </div>
+                  </div>
+
+                  {/* Quick Presets */}
+                  <div className="border-t border-gray-700 pt-4">
+                    <Label className="text-white mb-2 block">Quick Presets (Recommended)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => setNodeConfig({
+                          ...nodeConfig,
+                          stability: 0.5,
+                          similarity_boost: 0.75,
+                          style: 0,
+                          speaker_boost: false,
+                          speed: 1.0
+                        })}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-xs"
+                      >
+                        Natural & Smooth
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setNodeConfig({
+                          ...nodeConfig,
+                          stability: 0.3,
+                          similarity_boost: 0.8,
+                          style: 0,
+                          speaker_boost: false,
+                          speed: 1.0
+                        })}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700 text-xs"
+                      >
+                        Expressive
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setNodeConfig({
+                          ...nodeConfig,
+                          stability: 0.7,
+                          similarity_boost: 0.75,
+                          style: 0,
+                          speaker_boost: true,
+                          speed: 0.9
+                        })}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-xs"
+                      >
+                        Clear & Professional
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setNodeConfig({
+                          ...nodeConfig,
+                          stability: 0.4,
+                          similarity_boost: 0.7,
+                          style: 0,
+                          speaker_boost: false,
+                          speed: 1.1
+                        })}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-xs"
+                      >
+                        Dynamic & Fast
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      ✨ "Natural & Smooth" recommended for most realistic speech
+                    </p>
                   </div>
 
                   <div>
