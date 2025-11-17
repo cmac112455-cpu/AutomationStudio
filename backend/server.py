@@ -2938,26 +2938,37 @@ async def update_agent_analysis_config(
             raise HTTPException(status_code=get_response.status_code, detail="Failed to get agent configuration")
         
         current_agent = get_response.json()
-        logging.info(f"[ANALYSIS_CONFIG] Current agent keys: {current_agent.keys()}")
         
-        # Check if evaluation_criteria and data_collection are at the top level
-        logging.info(f"[ANALYSIS_CONFIG] Top-level evaluation_criteria: {current_agent.get('evaluation_criteria', [])}")
-        logging.info(f"[ANALYSIS_CONFIG] Top-level data_collection: {current_agent.get('data_collection', [])}")
+        # Get current platform_settings
+        platform_settings = current_agent.get("platform_settings", {})
         
-        # Build update payload - put evaluation_criteria and data_collection at top level
-        update_payload = {}
-        
-        # Update evaluation criteria
+        # Update evaluation criteria in platform_settings.evaluation.criteria
         if "evaluation_criteria" in config_update:
-            update_payload["evaluation_criteria"] = config_update["evaluation_criteria"]
+            if "evaluation" not in platform_settings:
+                platform_settings["evaluation"] = {}
+            platform_settings["evaluation"]["criteria"] = config_update["evaluation_criteria"]
             logging.info(f"[ANALYSIS_CONFIG] Updating evaluation criteria: {len(config_update['evaluation_criteria'])} items")
-            logging.info(f"[ANALYSIS_CONFIG] New evaluation_criteria: {config_update['evaluation_criteria']}")
+            logging.info(f"[ANALYSIS_CONFIG] New criteria: {config_update['evaluation_criteria']}")
         
-        # Update data collection
+        # Update data collection in platform_settings.data_collection
+        # Convert list format from frontend to dict format for ElevenLabs
         if "data_collection" in config_update:
-            update_payload["data_collection"] = config_update["data_collection"]
+            data_collection_dict = {}
+            for item in config_update["data_collection"]:
+                identifier = item.get("identifier")
+                data_collection_dict[identifier] = {
+                    "type": item.get("data_type", "string"),
+                    "description": item.get("description", "")
+                }
+            
+            platform_settings["data_collection"] = data_collection_dict
             logging.info(f"[ANALYSIS_CONFIG] Updating data collection: {len(config_update['data_collection'])} items")
-            logging.info(f"[ANALYSIS_CONFIG] New data_collection: {config_update['data_collection']}")
+            logging.info(f"[ANALYSIS_CONFIG] New data_collection dict: {data_collection_dict}")
+        
+        # Build update payload with platform_settings
+        update_payload = {
+            "platform_settings": platform_settings
+        }
         
         logging.info(f"[ANALYSIS_CONFIG] Sending update to ElevenLabs for agent {elevenlabs_agent_id}")
         logging.info(f"[ANALYSIS_CONFIG] Update payload: {json_lib.dumps(update_payload, indent=2)}")
