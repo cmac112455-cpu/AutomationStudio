@@ -2925,32 +2925,24 @@ async def update_agent_analysis_config(
         current_agent = get_response.json()
         logging.info(f"[ANALYSIS_CONFIG] Current agent keys: {current_agent.keys()}")
         
-        conversation_config = current_agent.get("conversation_config", {})
-        logging.info(f"[ANALYSIS_CONFIG] Conversation config keys: {conversation_config.keys()}")
+        # Check if evaluation_criteria and data_collection are at the top level
+        logging.info(f"[ANALYSIS_CONFIG] Top-level evaluation_criteria: {current_agent.get('evaluation_criteria', [])}")
+        logging.info(f"[ANALYSIS_CONFIG] Top-level data_collection: {current_agent.get('data_collection', [])}")
         
-        agent_config = conversation_config.get("agent", {})
-        logging.info(f"[ANALYSIS_CONFIG] Agent config keys: {agent_config.keys()}")
-        logging.info(f"[ANALYSIS_CONFIG] Current evaluation_criteria: {agent_config.get('evaluation_criteria', [])}")
-        logging.info(f"[ANALYSIS_CONFIG] Current data_collection: {agent_config.get('data_collection', [])}")
+        # Build update payload - put evaluation_criteria and data_collection at top level
+        update_payload = {}
         
-        # Update evaluation criteria and/or data collection
+        # Update evaluation criteria
         if "evaluation_criteria" in config_update:
-            agent_config["evaluation_criteria"] = config_update["evaluation_criteria"]
+            update_payload["evaluation_criteria"] = config_update["evaluation_criteria"]
             logging.info(f"[ANALYSIS_CONFIG] Updating evaluation criteria: {len(config_update['evaluation_criteria'])} items")
             logging.info(f"[ANALYSIS_CONFIG] New evaluation_criteria: {config_update['evaluation_criteria']}")
         
+        # Update data collection
         if "data_collection" in config_update:
-            agent_config["data_collection"] = config_update["data_collection"]
+            update_payload["data_collection"] = config_update["data_collection"]
             logging.info(f"[ANALYSIS_CONFIG] Updating data collection: {len(config_update['data_collection'])} items")
             logging.info(f"[ANALYSIS_CONFIG] New data_collection: {config_update['data_collection']}")
-        
-        # Update conversation config with modified agent config
-        conversation_config["agent"] = agent_config
-        
-        # Send update to ElevenLabs
-        update_payload = {
-            "conversation_config": conversation_config
-        }
         
         logging.info(f"[ANALYSIS_CONFIG] Sending update to ElevenLabs for agent {elevenlabs_agent_id}")
         logging.info(f"[ANALYSIS_CONFIG] Update payload: {json_lib.dumps(update_payload, indent=2)}")
