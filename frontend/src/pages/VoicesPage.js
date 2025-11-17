@@ -303,7 +303,7 @@ const VoicesPage = () => {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Type or paste your text here..."
-                className="min-h-[160px] resize-none bg-white dark:bg-[#13141a] border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600"
+                className="min-h-[160px] resize-none bg-[#13141a] border-gray-800 focus:border-gray-600 text-white"
               />
               <div className="text-xs text-gray-500 mt-2">{text.length} characters</div>
             </div>
