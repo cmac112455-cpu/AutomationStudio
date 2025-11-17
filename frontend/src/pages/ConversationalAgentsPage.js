@@ -197,32 +197,69 @@ const ConversationalAgentsPage = () => {
     
     setLoadingAnalytics(true);
     try {
-      // Fetch usage analytics
-      const usageResponse = await axios.get(
-        `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/usage`,
-        {
-          params: {
-            aggregation_interval: analyticsTimeRange
-          }
-        }
-      );
-      
-      // Fetch conversations list
+      // Fetch conversations list from ElevenLabs
       const conversationsResponse = await axios.get(
         `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/conversations`,
         {
           params: {
-            page_size: 50,
+            page_size: 100, // Get more conversations for better stats
             ...conversationFilters
           }
         }
       );
       
-      setAnalyticsData(usageResponse.data);
-      setConversationsData(conversationsResponse.data.conversations || []);
+      const conversations = conversationsResponse.data.conversations || [];
+      setConversationsData(conversations);
       
-      console.log('📊 Analytics loaded:', usageResponse.data);
-      console.log('💬 Conversations loaded:', conversationsResponse.data);
+      // Calculate analytics from conversations data
+      let totalSeconds = 0;
+      let totalRequests = conversations.length;
+      let completedCalls = 0;
+      let failedCalls = 0;
+      let responseTimes = [];
+      
+      conversations.forEach(conv => {
+        // Sum up call durations
+        if (conv.call_duration_secs) {
+          totalSeconds += conv.call_duration_secs;
+        }
+        
+        // Count status
+        if (conv.status === 'completed') {
+          completedCalls++;
+        } else if (conv.status === 'failed') {
+          failedCalls++;
+        }
+        
+        // Collect response times if available
+        if (conv.analysis && conv.analysis.latency_ms) {
+          responseTimes.push(conv.analysis.latency_ms);
+        }
+      });
+      
+      // Calculate averages
+      const minutesUsed = totalSeconds / 60;
+      const avgResponseTime = responseTimes.length > 0 
+        ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
+        : 0;
+      
+      // Set calculated analytics
+      setAnalyticsData({
+        minutes_used: minutesUsed,
+        request_count: totalRequests,
+        ttfb_avg: avgResponseTime,
+        completed_calls: completedCalls,
+        failed_calls: failedCalls,
+        success_rate: totalRequests > 0 ? (completedCalls / totalRequests) * 100 : 0
+      });
+      
+      console.log('📊 Analytics calculated:', {
+        minutes_used: minutesUsed,
+        request_count: totalRequests,
+        completed_calls: completedCalls,
+        failed_calls: failedCalls
+      });
+      console.log('💬 Conversations loaded:', conversations.length);
     } catch (error) {
       console.error('Error loading analytics:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to load analytics';
@@ -233,7 +270,14 @@ const ConversationalAgentsPage = () => {
       }
       
       // Set empty data so UI shows properly
-      setAnalyticsData(null);
+      setAnalyticsData({
+        minutes_used: 0,
+        request_count: 0,
+        ttfb_avg: 0,
+        completed_calls: 0,
+        failed_calls: 0,
+        success_rate: 0
+      });
       setConversationsData([]);
     } finally {
       setLoadingAnalytics(false);
