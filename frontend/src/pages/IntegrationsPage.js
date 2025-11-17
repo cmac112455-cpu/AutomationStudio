@@ -200,9 +200,9 @@ const IntegrationsPage = () => {
               )}
               
               {saveStatus.elevenlabs === 'error' && (
-                <div className="mt-2 flex items-center text-red-400 text-sm">
-                  <X className="w-4 h-4 mr-1" />
-                  Failed to connect. Please check your API key.
+                <div className="mt-2 flex items-start text-red-400 text-sm">
+                  <X className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                  <span>{integrations.elevenlabs.errorMessage || 'Failed to connect. Please check your API key.'}</span>
                 </div>
               )}
             </div>
