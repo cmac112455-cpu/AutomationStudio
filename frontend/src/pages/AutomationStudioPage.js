@@ -477,6 +477,12 @@ export default function AutomationStudioPage() {
   const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [triggerConfig, setTriggerConfig] = useState({});
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [showNewWorkflowModal, setShowNewWorkflowModal] = useState(false);
+  const [newWorkflowName, setNewWorkflowName] = useState('');
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameWorkflowId, setRenameWorkflowId] = useState(null);
+  const [renameWorkflowName, setRenameWorkflowName] = useState('');
 
   const loadTemplate = (templateName) => {
     const templates = {
