@@ -713,137 +713,127 @@ const ConversationalAgentsPage = () => {
       {/* Test Agent Modal - Phone Call Interface */}
       {showTestModal && testingAgent && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-black rounded-3xl border border-gray-800 w-full max-w-md shadow-2xl shadow-cyan-500/20"
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-3xl border border-gray-800 w-full max-w-md shadow-2xl shadow-cyan-500/20 flex flex-col"
             style={{ height: '600px' }}>
-            {/* Header */}
-            <div className="border-b border-gray-800 p-6 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold">Testing: {testingAgent.name}</h2>
-                    <p className="text-sm text-gray-400">Chat with your agent</p>
-                  </div>
+            
+            {/* Phone Header */}
+            <div className="p-8 text-center flex-shrink-0">
+              <div className="mb-6">
+                <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/50 mb-4">
+                  <Bot className="w-12 h-12 text-white" />
                 </div>
-                <button
-                  onClick={() => {
-                    setShowTestModal(false);
-                    setTestingAgent(null);
-                    setConversation([]);
-                  }}
-                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-2xl font-bold text-white mb-1">{testingAgent.name}</h2>
+                <p className="text-sm text-gray-400">{testingAgent.description || 'AI Assistant'}</p>
+              </div>
+
+              {/* Call Status */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800/50 border border-gray-700">
+                {isRecording ? (
+                  <>
+                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                    <span className="text-sm text-red-400 font-medium">On Call</span>
+                  </>
+                ) : isSending ? (
+                  <>
+                    <span className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></span>
+                    <span className="text-sm text-yellow-400 font-medium">Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                    <span className="text-sm text-green-400 font-medium">Ready</span>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Conversation Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {conversation.length === 0 ? (
-                <div className="text-center py-20 text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Start a conversation with your agent</p>
-                </div>
-              ) : (
-                conversation.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[70%] rounded-xl p-4 ${
-                        message.role === 'user'
-                          ? 'bg-cyan-600 text-white'
-                          : 'bg-gray-800 text-gray-100'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 mb-1">
-                        {message.role === 'agent' && (
-                          <Bot className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        )}
-                        <div className="flex-1">
-                          <p className="text-sm">{message.content}</p>
-                          {message.audio_url && (
-                            <button
-                              onClick={() => {
-                                const audio = new Audio(message.audio_url);
-                                audio.onplay = () => setAudioPlaying(true);
-                                audio.onended = () => setAudioPlaying(false);
-                                audio.play();
-                              }}
-                              className="mt-2 text-xs flex items-center gap-1 hover:text-cyan-300 transition-colors"
-                            >
-                              <Play className="w-3 h-3" />
-                              Play audio
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-xs opacity-70">
-                        {new Date(message.timestamp).toLocaleTimeString()}
-                      </p>
+            {/* Conversation Transcript (Optional - Can be hidden for phone feel) */}
+            <div className="flex-1 overflow-y-auto px-6 space-y-3">
+              {conversation.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {message.role === 'agent' && (
+                    <div className="w-8 h-8 rounded-full bg-cyan-600/20 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-cyan-400" />
                     </div>
+                  )}
+                  <div className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
+                    message.role === 'user'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-gray-800 text-gray-200'
+                  }`}>
+                    {message.content}
                   </div>
-                ))
-              )}
+                  {message.role === 'user' && (
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-4 h-4 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+              ))}
               
               {isSending && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-800 rounded-xl p-4 max-w-[70%]">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4" />
-                      <span className="text-sm text-gray-400">Thinking...</span>
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                      </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-8 h-8 rounded-full bg-cyan-600/20 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div className="bg-gray-800 px-4 py-2 rounded-2xl">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-gray-800 p-4 flex-shrink-0">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  placeholder="Type your message or use voice..."
-                  className="flex-1 px-4 py-3 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
-                  disabled={isSending || isRecording}
-                />
-                <Button
+            {/* Phone Controls */}
+            <div className="p-8 flex-shrink-0">
+              <div className="flex items-center justify-center gap-6 mb-6">
+                {/* Microphone Button (Main Action) */}
+                <button
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={isSending}
-                  className={`px-6 ${isRecording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-gray-700 hover:bg-gray-600'}`}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-2xl ${
+                    isRecording
+                      ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-red-500/50'
+                      : 'bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-cyan-500/50'
+                  } ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
                 >
-                  {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </Button>
-                <Button
-                  onClick={sendMessage}
-                  disabled={!userInput.trim() || isSending || isRecording}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 px-6"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                  {isRecording ? (
+                    <Square className="w-8 h-8 text-white" />
+                  ) : (
+                    <Mic className="w-8 h-8 text-white" />
+                  )}
+                </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+
+              <p className="text-center text-sm text-gray-400 mb-4">
                 {isRecording ? (
-                  <span className="text-red-400 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    Recording... Click stop when done
-                  </span>
+                  <span className="text-red-400 font-medium">Speaking... Tap to stop</span>
+                ) : isSending ? (
+                  <span className="text-yellow-400">Agent is responding...</span>
                 ) : (
-                  <>Press Enter to send • Click mic to talk like a phone call</>
+                  <span>Tap to speak with {testingAgent.name}</span>
                 )}
               </p>
+
+              {/* End Call Button */}
+              <button
+                onClick={() => {
+                  if (isRecording) stopRecording();
+                  setShowTestModal(false);
+                  setTestingAgent(null);
+                  setConversation([]);
+                }}
+                className="w-full py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium transition-all flex items-center justify-center gap-2"
+              >
+                <Phone className="w-4 h-4 rotate-[135deg]" />
+                End Call
+              </button>
             </div>
           </div>
         </div>
