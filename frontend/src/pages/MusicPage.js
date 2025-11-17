@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mic, Download, Loader } from 'lucide-react';
+import { Mic, Download, Loader, Volume2, VolumeX, Play, Pause, Sparkles } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -15,6 +15,9 @@ const MusicPage = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [audioPlayer, setAudioPlayer] = useState(null);
   const [progress, setProgress] = useState('');
+  const [volume, setVolume] = useState(0.5);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const generateMusic = async () => {
     if (!prompt.trim()) {
