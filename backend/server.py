@@ -2744,6 +2744,8 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         logging.info(f"[CONVERSATIONAL_AI] Voice chat for agent {agent_id}")
         
         # Step 1: Convert speech to text using OpenAI Whisper
+        logging.info(f"[CONVERSATIONAL_AI] ===== STEP 1: SPEECH-TO-TEXT =====")
+        
         from emergentintegrations.llm.openai import OpenAISpeechToText
         from dotenv import load_dotenv
         import tempfile
@@ -2751,19 +2753,31 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         
         load_dotenv()
         
+        api_key = os.getenv("EMERGENT_LLM_KEY")
+        logging.info(f"[CONVERSATIONAL_AI] API key loaded: {bool(api_key)}")
+        
+        if not api_key:
+            raise Exception("EMERGENT_LLM_KEY not found in environment")
+        
         # Initialize Whisper
-        stt = OpenAISpeechToText(api_key=os.getenv("EMERGENT_LLM_KEY"))
+        logging.info(f"[CONVERSATIONAL_AI] Initializing Whisper...")
+        stt = OpenAISpeechToText(api_key=api_key)
         
         # Decode base64 audio
+        logging.info(f"[CONVERSATIONAL_AI] Decoding audio from base64...")
         audio_bytes = base64.b64decode(audio_base64)
+        logging.info(f"[CONVERSATIONAL_AI] Audio decoded: {len(audio_bytes)} bytes")
         
         # Save audio to temporary file (Whisper needs a file)
         with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
             temp_audio.write(audio_bytes)
             temp_audio_path = temp_audio.name
         
+        logging.info(f"[CONVERSATIONAL_AI] Audio saved to temp file: {temp_audio_path}")
+        
         try:
             # Transcribe audio
+            logging.info(f"[CONVERSATIONAL_AI] Calling Whisper API...")
             with open(temp_audio_path, 'rb') as audio_file:
                 transcription = await stt.transcribe(
                     file=audio_file,
@@ -2772,8 +2786,13 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
                 )
             
             user_message = transcription.text
-            logging.info(f"[CONVERSATIONAL_AI] Transcribed: {user_message[:100]}")
+            logging.info(f"[CONVERSATIONAL_AI] ✅ Transcribed successfully: {user_message[:100]}")
             
+        except Exception as whisper_error:
+            logging.error(f"[CONVERSATIONAL_AI] ❌ Whisper transcription failed: {str(whisper_error)}")
+            import traceback
+            logging.error(traceback.format_exc())
+            raise
         finally:
             # Clean up temp file
             os_module.unlink(temp_audio_path)
