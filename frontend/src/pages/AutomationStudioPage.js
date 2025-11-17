@@ -432,6 +432,9 @@ export default function AutomationStudioPage() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [nodeConfig, setNodeConfig] = useState({});
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewAudio, setPreviewAudio] = useState(null);
+
   const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [triggerConfig, setTriggerConfig] = useState({});
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
