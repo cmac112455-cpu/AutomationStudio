@@ -3032,15 +3032,33 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         agent_data = response.json()
         
-        # Extract tools from conversation_config
-        conversation_config = agent_data.get("conversation_config", {})
-        agent_config = conversation_config.get("agent", {})
+        # Log full agent structure to find where tools actually are
+        logging.info(f"[TOOLS] Agent data keys: {agent_data.keys()}")
         
+        # Check multiple possible locations for tools
+        conversation_config = agent_data.get("conversation_config", {})
+        logging.info(f"[TOOLS] conversation_config keys: {conversation_config.keys()}")
+        
+        agent_config = conversation_config.get("agent", {})
+        logging.info(f"[TOOLS] agent config keys: {agent_config.keys()}")
+        
+        # Try reading from agent config first
         client_tools = agent_config.get("client_tools", [])
         server_tools = agent_config.get("server_tools", [])
         system_tools = agent_config.get("system_tools", [])
         
+        # Also check top level
+        if not client_tools:
+            client_tools = agent_data.get("client_tools", [])
+        if not server_tools:
+            server_tools = agent_data.get("server_tools", [])
+        if not system_tools:
+            system_tools = agent_data.get("system_tools", [])
+        
         logging.info(f"[TOOLS] Loaded tools for agent {agent_id}: {len(client_tools)} client, {len(server_tools)} server, {len(system_tools)} system")
+        logging.info(f"[TOOLS] Client tools: {client_tools}")
+        logging.info(f"[TOOLS] Server tools: {server_tools}")
+        logging.info(f"[TOOLS] System tools: {system_tools}")
         
         return {
             "client_tools": client_tools,
@@ -3386,15 +3404,33 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         
         agent_data = response.json()
         
-        # Extract tools from conversation_config
-        conversation_config = agent_data.get("conversation_config", {})
-        agent_config = conversation_config.get("agent", {})
+        # Log full agent structure to find where tools actually are
+        logging.info(f"[TOOLS] Agent data keys: {agent_data.keys()}")
         
+        # Check multiple possible locations for tools
+        conversation_config = agent_data.get("conversation_config", {})
+        logging.info(f"[TOOLS] conversation_config keys: {conversation_config.keys()}")
+        
+        agent_config = conversation_config.get("agent", {})
+        logging.info(f"[TOOLS] agent config keys: {agent_config.keys()}")
+        
+        # Try reading from agent config first
         client_tools = agent_config.get("client_tools", [])
         server_tools = agent_config.get("server_tools", [])
         system_tools = agent_config.get("system_tools", [])
         
+        # Also check top level
+        if not client_tools:
+            client_tools = agent_data.get("client_tools", [])
+        if not server_tools:
+            server_tools = agent_data.get("server_tools", [])
+        if not system_tools:
+            system_tools = agent_data.get("system_tools", [])
+        
         logging.info(f"[TOOLS] Loaded tools for agent {agent_id}: {len(client_tools)} client, {len(server_tools)} server, {len(system_tools)} system")
+        logging.info(f"[TOOLS] Client tools: {client_tools}")
+        logging.info(f"[TOOLS] Server tools: {server_tools}")
+        logging.info(f"[TOOLS] System tools: {system_tools}")
         
         return {
             "client_tools": client_tools,
