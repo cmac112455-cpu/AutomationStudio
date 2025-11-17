@@ -141,7 +141,7 @@ const MusicPage = () => {
             </Label>
             <input
               type="range"
-              min="30"
+              min="10"
               max="300"
               step="10"
               value={duration}
@@ -149,7 +149,7 @@ const MusicPage = () => {
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
             />
             <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>30s</span>
+              <span>10s</span>
               <span>5 minutes</span>
             </div>
           </div>
