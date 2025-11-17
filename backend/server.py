@@ -1914,22 +1914,38 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 
                 # Build context from all previous AI responses in this workflow
                 context_history = []
+                audio_specs_found = False
+                
                 for prev_node_id, prev_result in results.items():
                     if isinstance(prev_result, dict) and 'response' in prev_result and 'model' in prev_result:
                         # This was an AI node - include its response in context
+                        response_text = prev_result['response']
                         context_history.append({
                             'node_id': prev_node_id,
-                            'response': prev_result['response']
+                            'response': response_text
                         })
+                        
+                        # Check if this response contains audio/voice specifications
+                        if any(keyword in response_text.upper() for keyword in ['VOICE:', 'SPEAKING:', 'BACKGROUND AUDIO:', 'VOICEOVER']):
+                            audio_specs_found = True
                 
                 # Build enriched prompt with context
                 if context_history:
-                    context_text = "\n\n=== PREVIOUS AI RESPONSES (for context) ===\n"
-                    for idx, ctx in enumerate(context_history, 1):
-                        context_text += f"\nPrevious AI Node {idx} ({ctx['node_id']}):\n{ctx['response']}\n"
-                    context_text += "\n=== YOUR CURRENT TASK ===\n"
+                    context_text = "\n\n" + "="*80 + "\n"
+                    context_text += "PREVIOUS AI RESPONSES - USE FOR CONTEXT AND CONTINUITY\n"
+                    context_text += "="*80 + "\n"
                     
-                    enriched_prompt = context_text + prompt + "\n\n[Remember: Use the previous AI responses above as context to maintain continuity and coherence in your response.]"
+                    for idx, ctx in enumerate(context_history, 1):
+                        context_text += f"\n--- Previous AI Node {idx} ({ctx['node_id']}) ---\n{ctx['response']}\n"
+                    
+                    context_text += "\n" + "="*80 + "\n"
+                    context_text += "YOUR CURRENT TASK\n"
+                    context_text += "="*80 + "\n\n"
+                    
+                    if audio_specs_found:
+                        enriched_prompt = context_text + prompt + "\n\n[CRITICAL INSTRUCTIONS:\n- If the previous AI specified VOICE/AUDIO characteristics, you MUST use the EXACT SAME specifications for perfect audio continuity\n- Copy voice gender, age, tone, speaking pace, background audio EXACTLY as specified\n- This ensures the same voice and sounds throughout all videos\n- For script continuation, complete the incomplete sentence naturally\n- Maintain visual and narrative continuity as well]"
+                    else:
+                        enriched_prompt = context_text + prompt + "\n\n[Remember: Use the previous AI responses above as context to maintain continuity and coherence in your response.]"
                 else:
                     enriched_prompt = prompt
                 
