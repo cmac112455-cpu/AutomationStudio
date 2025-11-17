@@ -107,11 +107,11 @@ user_problem_statement: "Fix the Video Ad Creator workflow's Image-To-Video node
 backend:
   - task: "Image-To-Video Node (imagetovideo) in Workflow Engine"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
@@ -136,6 +136,17 @@ backend:
           - Video generation completes successfully (~75 seconds)
           - Downloaded video: 503800 bytes
           - Workflow execution end-to-end working
+      - working: false
+        agent: "testing"
+        comment: |
+          ❌ COMPREHENSIVE TESTING REVEALS ISSUES: Video Ad Creator workflow test completed
+          - Multipart/form-data upload implementation is correct and working
+          - Image successfully passed from screenshot-1 node (331654 bytes)
+          - API request initiated successfully with operation ID: video_691a83d556e48191b75b3a22a867f57f0ac8cf281fd9401d
+          - Processing progressed through 99% completion over 64 seconds
+          - FAILURE: Sora 2 API returned internal error: "Video generation failed due to an internal error"
+          - This appears to be a Sora 2 API service issue, not a code implementation problem
+          - The multipart/form-data fix is working correctly - issue is with the external API service
 
   - task: "Workflow Creation API (/api/workflows)"
     implemented: true
