@@ -710,10 +710,11 @@ const ConversationalAgentsPage = () => {
         </div>
       )}
 
-      {/* Test Agent Modal */}
+      {/* Test Agent Modal - Phone Call Interface */}
       {showTestModal && testingAgent && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#13141a] rounded-xl border border-gray-800 w-full max-w-3xl h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-3xl border border-gray-800 w-full max-w-md shadow-2xl shadow-cyan-500/20"
+            style={{ height: '600px' }}>
             {/* Header */}
             <div className="border-b border-gray-800 p-6 flex-shrink-0">
               <div className="flex items-center justify-between">
