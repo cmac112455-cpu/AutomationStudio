@@ -1882,9 +1882,20 @@ class TTSPreviewRequest(BaseModel):
 async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_current_user)):
     """Generate a preview of text-to-speech with current settings"""
     try:
+        logging.info(f"[TTS_PREVIEW] Starting preview for user: {user_id}")
+        
         # Get ElevenLabs API key from user's integrations
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        logging.info(f"[TTS_PREVIEW] User data retrieved: {user is not None}")
+        
+        if not user:
+            raise HTTPException(
+                status_code=400,
+                detail="User not found"
+            )
+        
         elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+        logging.info(f"[TTS_PREVIEW] API key found: {elevenlabs_key is not None}")
         
         if not elevenlabs_key:
             raise HTTPException(
