@@ -1373,6 +1373,24 @@ export default function AutomationStudioPage() {
                     </p>
                   </div>
 
+                  <Button
+                    onClick={previewVoice}
+                    disabled={previewLoading}
+                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
+                  >
+                    {previewLoading ? (
+                      <>
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        Generating Preview...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-4 h-4 mr-2" />
+                        Preview Voice
+                      </>
+                    )}
+                  </Button>
+
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-xs text-gray-300">
                     <div className="flex items-start gap-2">
                       <span className="text-blue-400">ℹ️</span>
