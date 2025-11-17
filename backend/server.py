@@ -2245,7 +2245,11 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             "duration_seconds": int(duration_seconds)
         }
         
+        logging.info(f"[MUSIC_STUDIO] Sending generation request: {payload}")
         gen_response = requests.post(generate_url, json=payload, headers=headers, timeout=30)
+        
+        logging.info(f"[MUSIC_STUDIO] Generation response status: {gen_response.status_code}")
+        logging.info(f"[MUSIC_STUDIO] Generation response: {gen_response.text[:200]}")
         
         if gen_response.status_code != 200:
             await db.voice_completions.update_one(
@@ -2254,8 +2258,19 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             )
             raise HTTPException(status_code=400, detail=f"Music generation request failed: {gen_response.text}")
         
-        gen_data = gen_response.json()
+        try:
+            gen_data = gen_response.json()
+        except Exception as e:
+            logging.error(f"[MUSIC_STUDIO] Failed to parse JSON response: {gen_response.text}")
+            raise HTTPException(status_code=500, detail=f"Invalid API response: {str(e)}")
+        
         generation_id = gen_data.get("generation_id")
+        
+        if not generation_id:
+            logging.error(f"[MUSIC_STUDIO] No generation_id in response: {gen_data}")
+            raise HTTPException(status_code=500, detail="No generation ID returned from API")
+        
+        logging.info(f"[MUSIC_STUDIO] Generation ID: {generation_id}")
         
         # Poll for completion
         retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
@@ -2266,7 +2281,10 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             time.sleep(5)
             attempt += 1
             
+            logging.info(f"[MUSIC_STUDIO] Polling attempt {attempt}/{max_attempts}")
             retrieve_response = requests.get(retrieve_url, headers=headers, timeout=30)
+            
+            logging.info(f"[MUSIC_STUDIO] Poll status: {retrieve_response.status_code}, Content-Type: {retrieve_response.headers.get('Content-Type', 'unknown')}")
             
             if retrieve_response.status_code == 200:
                 content_type = retrieve_response.headers.get('Content-Type', '')
@@ -2274,6 +2292,7 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
                 if 'audio' in content_type or 'mpeg' in content_type:
                     # Got the audio
                     audio_bytes = retrieve_response.content
+                    logging.info(f"[MUSIC_STUDIO] Received audio: {len(audio_bytes)} bytes")
                     audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
                     
                     # Update completion
@@ -2293,6 +2312,20 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
                         media_type="audio/mpeg",
                         headers={"Content-Disposition": f"inline; filename=music_{completion_id}.mp3"}
                     )
+                else:
+                    # Still processing - try to parse status
+                    try:
+                        if retrieve_response.content:
+                            status_data = retrieve_response.json()
+                            logging.info(f"[MUSIC_STUDIO] Status: {status_data}")
+                            if status_data.get("status") == "failed":
+                                raise HTTPException(status_code=500, detail="Music generation failed on server")
+                    except Exception as json_error:
+                        logging.warning(f"[MUSIC_STUDIO] Could not parse status: {str(json_error)}")
+            elif retrieve_response.status_code == 404:
+                logging.warning(f"[MUSIC_STUDIO] Generation not found (404), continuing to poll...")
+            else:
+                logging.warning(f"[MUSIC_STUDIO] Unexpected status code: {retrieve_response.status_code}")
         
         # Timeout
         await db.voice_completions.update_one(
