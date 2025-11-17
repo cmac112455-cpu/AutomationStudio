@@ -256,6 +256,10 @@ const ConversationalAgentsPage = () => {
       // Start call session
       const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/start-call`);
       
+      const callLogId = response.data.call_log_id;
+      setCurrentCallLogId(callLogId);
+      console.log('📝 Call log created:', callLogId);
+      
       setCallActive(true);
       setIsConnecting(false);
       toast.success('Connected!');
@@ -265,7 +269,9 @@ const ConversationalAgentsPage = () => {
         setIsSending(true);
         
         // Generate audio for first message
-        const greetingResponse = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/greeting`);
+        const greetingResponse = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/greeting`, {
+          call_log_id: callLogId
+        });
         
         const agentMessage = {
           role: 'agent',
