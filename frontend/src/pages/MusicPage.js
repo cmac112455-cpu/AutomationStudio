@@ -97,6 +97,13 @@ const MusicPage = () => {
     }
   };
 
+  // Update volume when slider changes
+  useEffect(() => {
+    if (audioPlayer) {
+      audioPlayer.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, audioPlayer, isMuted]);
+
   const downloadAudio = () => {
     if (!audioUrl) return;
     
@@ -107,6 +114,19 @@ const MusicPage = () => {
     a.click();
     document.body.removeChild(a);
     toast.success('Download started');
+  };
+
+  const togglePlayPause = () => {
+    if (!audioPlayer) return;
+    if (isPlaying) {
+      audioPlayer.pause();
+    } else {
+      audioPlayer.play();
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
   };
 
   const examplePrompts = [
