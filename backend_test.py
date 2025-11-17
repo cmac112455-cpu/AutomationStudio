@@ -13,7 +13,7 @@ import threading
 from datetime import datetime
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://smart-workflow-hub-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://voice-flow-4.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):
