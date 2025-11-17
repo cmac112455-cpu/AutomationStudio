@@ -16,6 +16,10 @@ const ConversationalAgentsPage = () => {
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
+  const [activeTab, setActiveTab] = useState('agent'); // agent, knowledge, tools, analysis, settings
+  const [knowledgeBase, setKnowledgeBase] = useState([]);
+  const [tools, setTools] = useState([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
   
   // Test modal state
   const [showTestModal, setShowTestModal] = useState(false);
