@@ -2112,9 +2112,14 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                         }
                         
                         logging.info(f"[IMAGETOVIDEO] Sending request to {base_url}/videos")
+                        logging.info(f"[IMAGETOVIDEO] Payload: {payload.keys()}")
                         
                         # Initiate video generation
                         response = requests.post(f"{base_url}/videos", headers=headers, json=payload, timeout=30)
+                        
+                        if response.status_code != 200:
+                            logging.error(f"[IMAGETOVIDEO] API error {response.status_code}: {response.text}")
+                        
                         response.raise_for_status()
                         
                         data = response.json()
