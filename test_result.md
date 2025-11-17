@@ -745,6 +745,38 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
+      MUSIC GENERATION BUG FIX COMPLETED
+      
+      🐛 ISSUE IDENTIFIED:
+      ❌ Music generation failing with JSON parse error in Voice Studio
+      - Error: "Invalid API response: Expecting value: line 1 column 1 (char 0)"
+      - Root cause: ElevenLabs Music API returns raw binary MP3 data when ready, not JSON
+      - Code was attempting to parse binary audio as JSON
+      
+      🔧 FIX IMPLEMENTED:
+      ✅ Updated polling logic in two locations:
+      1. Voice Studio endpoint: /api/voice-studio/generate-music (line 2289)
+      2. Workflow node: texttomusic node execution (line 3339)
+      
+      ✅ Key changes:
+      - Added content length check: >1000 bytes = treat as audio (binary MP3)
+      - Content <1KB = treat as status update (JSON)
+      - Enhanced logging to track Content-Type and Content-Length
+      - Now handles cases where Content-Type header is missing or incorrect
+      - Binary MP3 data is properly base64 encoded and saved
+      
+      ✅ Backend restarted successfully
+      
+      🧪 TESTING NEEDED:
+      - Test music generation on Music page in Voice Studio
+      - Verify audio is generated and playable
+      - Check that completion is saved to database
+      - Test texttomusic workflow node as well
+      - Confirm no JSON parsing errors
+      
+      PRIORITY: CRITICAL - This is the main user-reported bug
+  - agent: "main"
+    message: |
       Multi-AI toggle feature implemented. Key changes:
       - Added Switch component from shadcn/ui with custom gradient styling
       - Toggle positioned above chat input with clear labels and info icon
