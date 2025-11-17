@@ -1877,6 +1877,7 @@ class TTSPreviewRequest(BaseModel):
     similarity_boost: float = 0.75
     style: float = 0
     speaker_boost: bool = False
+    speed: float = 1.0  # New: Speaking rate (0.7-1.2)
 
 @api_router.get("/tts/voices")
 async def get_elevenlabs_voices(user_id: str = Depends(get_current_user), include_library: bool = True):
