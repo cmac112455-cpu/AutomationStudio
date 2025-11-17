@@ -440,8 +440,17 @@ const VoicesPage = () => {
                     </div>
                   </div>
 
+                  <div className="mb-2 text-xs text-gray-500">
+                    Showing {filteredAllVoices.length} of {allVoices.length} voices
+                  </div>
+
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {filteredAllVoices.map(voice => (
+                    {filteredAllVoices.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        No voices found matching your filters
+                      </div>
+                    ) : (
+                      filteredAllVoices.map(voice => (
                       <div
                         key={voice.voice_id}
                         className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/50"
