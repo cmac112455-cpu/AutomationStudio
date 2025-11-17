@@ -3474,9 +3474,27 @@ async def update_agent_tools(
             json=update_payload
         )
         
+        logging.info(f"[TOOLS] ElevenLabs PATCH response status: {patch_response.status_code}")
+        
         if patch_response.status_code not in [200, 201]:
             logging.error(f"[TOOLS] ElevenLabs API error: {patch_response.text}")
             raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
+        
+        # Log what ElevenLabs actually returned
+        response_data = patch_response.json()
+        response_conversation_config = response_data.get("conversation_config", {})
+        response_agent_config = response_conversation_config.get("agent", {})
+        response_prompt_config = response_agent_config.get("prompt", {})
+        response_built_in_tools = response_prompt_config.get("built_in_tools", {})
+        
+        logging.info(f"[TOOLS] ========== ELEVENLABS RESPONSE ==========")
+        logging.info(f"[TOOLS] What ElevenLabs saved:")
+        for tool_key, tool_config in response_built_in_tools.items():
+            if tool_config is not None:
+                logging.info(f"[TOOLS]   ✅ {tool_key}: SAVED")
+            else:
+                logging.info(f"[TOOLS]   ❌ {tool_key}: NOT SAVED (null)")
+        logging.info(f"[TOOLS] ==============================================")
         
         # Get updated agent data to return
         updated_response = patch_response.json()
