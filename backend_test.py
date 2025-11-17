@@ -1129,16 +1129,41 @@ class BackendTester:
             status = "✅" if result["success"] else "❌"
             print(f"{status} {result['test']}: {result['message']}")
         
-        # Critical issues
+        # Critical issues for Video Ad Creator workflow
         critical_failures = []
+        imagetovideo_fix_status = "UNKNOWN"
+        
         for result in self.test_results:
-            if not result["success"] and result["test"] in [
-                "Chat Single AI Mode", "Chat Multi AI Mode", "Chat Default Behavior"
-            ]:
-                critical_failures.append(result["test"])
+            if not result["success"]:
+                if result["test"] in [
+                    "Video Ad Creator Workflow Creation", 
+                    "Video Ad Creator Execution with Logs",
+                    "User Registration",
+                    "User Login (Fallback)"
+                ]:
+                    critical_failures.append(result["test"])
+                
+                # Check specifically for Image-To-Video node issues
+                if "Image-To-Video" in result["message"] or "imagetovideo" in result["message"].lower():
+                    imagetovideo_fix_status = "FAILED"
+            else:
+                # Check for successful Image-To-Video execution
+                if "Image-To-Video" in result["message"] or "FIX VERIFIED" in result["message"]:
+                    imagetovideo_fix_status = "SUCCESS"
         
         if critical_failures:
             print(f"\n🚨 CRITICAL FAILURES: {', '.join(critical_failures)}")
+        
+        # Image-To-Video fix status
+        if imagetovideo_fix_status == "SUCCESS":
+            print(f"\n✅ IMAGE-TO-VIDEO FIX STATUS: VERIFIED WORKING")
+            print("   🔧 Multipart/form-data upload implementation successful")
+        elif imagetovideo_fix_status == "FAILED":
+            print(f"\n❌ IMAGE-TO-VIDEO FIX STATUS: STILL HAS ISSUES")
+            print("   🚨 Multipart/form-data upload may need further investigation")
+        else:
+            print(f"\n⚠️  IMAGE-TO-VIDEO FIX STATUS: NOT TESTED")
+            print("   🔍 Workflow execution may not have reached Image-To-Video node")
         
         return {
             "total_tests": total_tests,
@@ -1146,6 +1171,7 @@ class BackendTester:
             "failed": failed_tests,
             "success_rate": (passed_tests/total_tests)*100,
             "critical_failures": critical_failures,
+            "imagetovideo_fix_status": imagetovideo_fix_status,
             "results": self.test_results
         }
 
