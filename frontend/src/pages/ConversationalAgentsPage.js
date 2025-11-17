@@ -26,6 +26,8 @@ const ConversationalAgentsPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
+  const [callActive, setCallActive] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
