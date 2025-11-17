@@ -1817,6 +1817,32 @@ async def get_integrations(user_id: str = Depends(get_current_user)):
 @api_router.post("/integrations/{service}")
 async def save_integration(service: str, config: IntegrationConfig, user_id: str = Depends(get_current_user)):
     """Save integration API key for a service"""
+    
+    # Validate the API key before saving
+    if service == "elevenlabs":
+        try:
+            # Test the API key by fetching available voices
+            test_url = "https://api.elevenlabs.io/v1/voices"
+            test_headers = {"xi-api-key": config.apiKey}
+            
+            response = requests.get(test_url, headers=test_headers, timeout=10)
+            
+            if response.status_code != 200:
+                logging.error(f"ElevenLabs API key validation failed: {response.status_code} - {response.text}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid ElevenLabs API key. Please check your key and try again."
+                )
+            
+            logging.info(f"ElevenLabs API key validated successfully for user {user_id}")
+            
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Failed to validate ElevenLabs API key: {str(e)}")
+            raise HTTPException(
+                status_code=400,
+                detail="Failed to validate API key. Please check your key and internet connection."
+            )
+    
     # Update user's integrations
     await db.users.update_one(
         {"id": user_id},
