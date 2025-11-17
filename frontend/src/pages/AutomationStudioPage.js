@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Save, Plus, Trash2, Workflow, Zap, Database, Globe, MessageSquare, Mic, Send, Video, Image, CheckSquare, Settings, X, Clock, Copy, Calendar, MoreVertical, Camera, Loader } from 'lucide-react';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
 // Helper component for nodes with handles
 const NodeWrapper = ({ children, color, hasInput = false, hasOutput = true, nodeType = 'default' }) => {
   const [showMenu, setShowMenu] = React.useState(false);
