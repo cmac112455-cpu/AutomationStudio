@@ -2392,6 +2392,117 @@ const ConversationalAgentsPage = () => {
                 </div>
               )}
 
+              {/* Tools Tab Content */}
+              {activeTab === 'tools' && (
+                <div className="space-y-6">
+                  {!editingAgent?.elevenlabs_agent_id ? (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-yellow-500/10 rounded-full flex items-center justify-center">
+                        <span className="text-4xl">⚠️</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">Tools Not Available</h3>
+                      <p className="text-gray-400 mb-6">
+                        This agent is not synced with ElevenLabs. Tools are only available for synced agents.
+                      </p>
+                      <p className="text-sm text-cyan-400">Use "Sync from ElevenLabs" to import your agents.</p>
+                    </div>
+                  ) : loadingTools ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                      <p className="text-gray-400">Loading tools...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-xl font-semibold flex items-center gap-2">
+                            <span className="text-2xl">🔧</span>
+                            System Tools
+                          </h3>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Configure built-in tools for your agent
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* End Call Tool */}
+                      <div className="bg-gradient-to-br from-gray-900/50 to-black/50 border border-gray-700 rounded-xl p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h4 className="text-lg font-semibold flex items-center gap-2">
+                              <Phone className="w-5 h-5 text-red-400" />
+                              End Call
+                            </h4>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Allow agent to end the conversation when appropriate
+                            </p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={systemTools.some(t => t.type === 'end_call')}
+                              onChange={async (e) => {
+                                const isEnabled = e.target.checked;
+                                let updatedTools = [...systemTools];
+                                
+                                if (isEnabled) {
+                                  // Add end_call tool
+                                  updatedTools.push({
+                                    type: 'end_call',
+                                    description: ''
+                                  });
+                                } else {
+                                  // Remove end_call tool
+                                  updatedTools = updatedTools.filter(t => t.type !== 'end_call');
+                                }
+                                
+                                setSystemTools(updatedTools);
+                                await updateAgentTools({ system_tools: updatedTools });
+                              }}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                          </label>
+                        </div>
+
+                        {systemTools.some(t => t.type === 'end_call') && (
+                          <div className="mt-4 pt-4 border-t border-gray-700">
+                            <Label>Custom Prompt (Optional)</Label>
+                            <Textarea
+                              value={systemTools.find(t => t.type === 'end_call')?.description || ''}
+                              onChange={(e) => {
+                                const updatedTools = systemTools.map(t => 
+                                  t.type === 'end_call' 
+                                    ? { ...t, description: e.target.value }
+                                    : t
+                                );
+                                setSystemTools(updatedTools);
+                              }}
+                              onBlur={async () => {
+                                await updateAgentTools({ system_tools: systemTools });
+                              }}
+                              placeholder="Leave blank for optimized LLM prompt, or describe when the agent should end the call..."
+                              rows={3}
+                              className="w-full mt-2 px-4 py-2 bg-black/40 border border-gray-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white resize-none"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                              💡 If left blank, the LLM will use an optimized prompt to decide when to end calls
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info Footer */}
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <p className="text-sm text-blue-300">
+                          💡 <strong>System Tools:</strong> These are built-in actions that your agent can perform during conversations. Enable the ones you want and optionally customize when they should be used.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* Settings Tab Content */}
               {activeTab === 'settings' && (
                 <div className="space-y-6">
