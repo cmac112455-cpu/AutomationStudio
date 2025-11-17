@@ -1218,10 +1218,71 @@ const ConversationalAgentsPage = () => {
               {/* Knowledge Base Tab Content */}
               {activeTab === 'knowledge' && (
                 <div className="space-y-6">
+                  {/* Add Text Section */}
+                  <div className="bg-[#13141a] border border-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Add Text Directly</h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      Type or paste text information directly to add to your knowledge base
+                    </p>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white mb-2 block">Name/Title</Label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Company Overview, Product FAQs, etc."
+                          className="w-full bg-[#0a0b0d] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
+                          value={formData.kb_text_name || ''}
+                          onChange={(e) => setFormData({ ...formData, kb_text_name: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-white mb-2 block">Content</Label>
+                        <textarea
+                          placeholder="Type or paste your text here..."
+                          rows={6}
+                          className="w-full bg-[#0a0b0d] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none resize-none"
+                          value={formData.kb_text_content || ''}
+                          onChange={(e) => setFormData({ ...formData, kb_text_content: e.target.value })}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formData.kb_text_content?.length || 0} characters
+                        </p>
+                      </div>
+                      
+                      <Button
+                        onClick={async () => {
+                          if (!formData.kb_text_name || !formData.kb_text_content) {
+                            toast.error('Please provide both name and content');
+                            return;
+                          }
+                          
+                          try {
+                            await axios.post(`${BACKEND_URL}/api/conversational-ai/knowledge-base/add-text`, {
+                              name: formData.kb_text_name,
+                              text: formData.kb_text_content
+                            });
+                            toast.success('✅ Text added to knowledge base!');
+                            setFormData({ ...formData, kb_text_name: '', kb_text_content: '' });
+                            loadKnowledgeBase();
+                          } catch (error) {
+                            toast.error('Failed to add text: ' + (error.response?.data?.detail || error.message));
+                          }
+                        }}
+                        className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Text to Knowledge Base
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Upload Documents Section */}
                   <div className="bg-[#13141a] border border-gray-800 rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-4">Upload Documents</h3>
                     <p className="text-sm text-gray-400 mb-4">
-                      Add documents, URLs, or text to give your agent domain-specific knowledge. 
+                      Upload files to give your agent access to document-based knowledge. 
                       Supported formats: PDF, TXT, DOCX, HTML
                     </p>
                     
