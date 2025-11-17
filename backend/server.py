@@ -3056,7 +3056,7 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         logging.info(f"[TOOLS] Tool IDs: {tool_ids}")
         
         return {
-            "built_in_tools": built_in_tools,
+            "built_in_tools": enabled_tools,  # Return list of enabled tool names for frontend
             "tool_ids": tool_ids
         }
         
