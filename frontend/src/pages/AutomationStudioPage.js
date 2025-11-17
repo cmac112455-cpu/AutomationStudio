@@ -439,17 +439,18 @@ export default function AutomationStudioPage() {
   const loadTemplate = (templateName) => {
     const templates = {
       'video-ad-creator': {
-        name: 'Video Ad Creator - Extended Videos',
+        name: 'Video Ad Creator with Perfect Voice Sync',
         nodes: [
-          {id: 'start-1', type: 'start', position: {x: 100, y: 50}, data: {}},
-          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 50}, data: {prompt: 'Create a detailed 4-second video scene description for the FIRST PART of a product advertisement with a voiceover script that will be split across 2 videos. This is CRITICAL: The next AI will need to match your audio specifications EXACTLY.\n\n1. PRODUCT & SCENE: Be extremely specific - describe exact product (e.g. "silver laptop", "blue water bottle"), exact setting (e.g. "white marble desk", "wooden kitchen table"), exact lighting (e.g. "morning sunlight from left"), and exact camera movement (e.g. "camera slowly pans right").\n\n2. VOICE & AUDIO CHARACTERISTICS (for continuity across both videos):\n   - Voice Gender: [male/female]\n   - Voice Age: [young adult/mature/elderly]\n   - Voice Tone: [warm/energetic/calm/professional/friendly]\n   - Speaking Pace: [slow/moderate/fast]\n   - Accent: [American/British/neutral/specific]\n   - Background Audio: [soft music/ambient sounds/silence] with exact description\n   - Audio Volume: [voice prominent/balanced with music]\n   \n3. VOICEOVER SCRIPT PART 1:\n   - Create compelling script that ENDS MID-SENTENCE or MID-PHRASE\n   - Example: "What fuels your-" or "Discover the secret to-"\n   - The sentence will be completed in video 2\n   \n4. FORMAT YOUR RESPONSE EXACTLY AS:\n   SCENE: [Detailed visual description]\n   VOICE: [Gender, age, tone - e.g. "Female, young adult, warm and energetic tone"]\n   SPEAKING: [Pace and style - e.g. "Moderate pace, friendly conversational style"]\n   BACKGROUND AUDIO: [Exact description - e.g. "Soft uplifting piano music at 30% volume"]\n   VOICEOVER PART 1: "[Your incomplete sentence]"\n   \nUse concrete, professional language. The audio specs MUST be detailed for perfect matching in video 2.', model: 'gemini-2.5-pro'}},
-          {id: 'video-1', type: 'videogen', position: {x: 500, y: 50}, data: {duration: 4, size: '1280x720'}},
-          {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 50}, data: {}},
-          {id: 'ai-2', type: 'gemini', position: {x: 700, y: 200}, data: {prompt: 'Continue the advertisement from the previous AI response. Create the SECOND PART that seamlessly continues BOTH the visual scene AND audio. CRITICAL: You MUST use the EXACT SAME voice and audio characteristics from Part 1 for perfect continuity.\n\n1. READ THE PREVIOUS AI RESPONSE: Extract the voice characteristics, background audio, and incomplete voiceover.\n\n2. MATCH AUDIO SPECIFICATIONS EXACTLY:\n   - Use the SAME voice gender, age, tone from Part 1\n   - Use the SAME speaking pace and style from Part 1\n   - Use the SAME background audio/music from Part 1\n   - Maintain the SAME audio volume levels from Part 1\n   - This ensures the voice sounds IDENTICAL between videos\n\n3. VISUAL CONTINUATION:\n   - Describe the next 4 seconds continuing from Part 1\n   - Exact actions (e.g. "screen lights up", "lid opens")\n   - Exact visual changes (e.g. "blue interface appears")\n   - Exact camera movement (e.g. "camera zooms in 30%")\n\n4. COMPLETE THE VOICEOVER:\n   - Finish the incomplete sentence from Part 1 naturally\n   - If Part 1 was: "What fuels your-"\n   - Part 2 should be: "day for maximum health and energy"\n   - The completion should flow as ONE continuous sentence\n\n5. FORMAT YOUR RESPONSE EXACTLY AS:\n   SCENE: [Visual description continuing from Part 1]\n   VOICE: [COPY EXACT specs from Part 1 - e.g. "Female, young adult, warm and energetic tone"]\n   SPEAKING: [COPY EXACT specs from Part 1 - e.g. "Moderate pace, friendly conversational style"]\n   BACKGROUND AUDIO: [COPY EXACT specs from Part 1 - e.g. "Soft uplifting piano music at 30% volume"]\n   VOICEOVER PART 2: "[Complete the sentence from Part 1]"\n   \nIMPORTANT: The audio specifications MUST be IDENTICAL to Part 1 for seamless voice continuity. Copy them exactly.', model: 'gemini-2.5-pro'}},
-          {id: 'video-2', type: 'imagetovideo', position: {x: 900, y: 125}, data: {duration: 4, size: '1280x720'}},
-          {id: 'screenshot-2', type: 'screenshot', position: {x: 1100, y: 125}, data: {}},
-          {id: 'stitch-1', type: 'stitch', position: {x: 1300, y: 87}, data: {}},
-          {id: 'end-1', type: 'end', position: {x: 1500, y: 87}, data: {}}
+          {id: 'start-1', type: 'start', position: {x: 100, y: 100}, data: {}},
+          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 100}, data: {prompt: 'Create a detailed video scene description for the FIRST 4 seconds of a product advertisement. IMPORTANT: Generate ONLY visuals and background music - NO voiceover yet.\n\n1. PRODUCT & SCENE: Be extremely specific - exact product, exact setting, exact lighting, exact camera movement.\n\n2. BACKGROUND AUDIO: Describe background music/ambient sounds (e.g. "Soft uplifting piano music")\n\n3. VOICEOVER SCRIPT PART 1: Create the FIRST HALF of a compelling voiceover script that ends MID-SENTENCE (e.g. "What fuels your-")\n\n4. FORMAT:\n   SCENE: [Visual description]\n   BACKGROUND AUDIO: [Music/sounds description]\n   VOICEOVER PART 1: "[Incomplete sentence]"', model: 'gemini-2.5-pro'}},
+          {id: 'video-1', type: 'videogen', position: {x: 550, y: 100}, data: {duration: 4, size: '1280x720'}},
+          {id: 'screenshot-1', type: 'screenshot', position: {x: 800, y: 100}, data: {}},
+          {id: 'ai-2', type: 'gemini', position: {x: 1050, y: 100}, data: {prompt: 'Continue the advertisement. Create the SECOND 4 seconds. Generate ONLY visuals and background music - NO voiceover yet.\n\n1. VISUAL CONTINUATION: Describe the next 4 seconds\n\n2. BACKGROUND AUDIO: Continue the SAME music from Part 1\n\n3. VOICEOVER PART 2: COMPLETE the sentence from Part 1 (e.g. if Part 1 was "What fuels your-", Part 2 is "day for maximum health")\n\n4. FORMAT:\n   SCENE: [Visual continuation]\n   BACKGROUND AUDIO: [Same music]\n   VOICEOVER PART 2: "[Complete the sentence]"', model: 'gemini-2.5-pro'}},
+          {id: 'video-2', type: 'imagetovideo', position: {x: 1300, y: 100}, data: {duration: 4, size: '1280x720'}},
+          {id: 'stitch-1', type: 'stitch', position: {x: 1550, y: 100}, data: {}},
+          {id: 'tts-1', type: 'texttospeech', position: {x: 1800, y: 100}, data: {voice: 'Rachel'}},
+          {id: 'audio-1', type: 'audiooverlay', position: {x: 2050, y: 100}, data: {}},
+          {id: 'end-1', type: 'end', position: {x: 2300, y: 100}, data: {}}
         ],
         edges: [
           {id: 'e1', source: 'start-1', target: 'ai-1'},
@@ -457,9 +458,10 @@ export default function AutomationStudioPage() {
           {id: 'e3', source: 'video-1', target: 'screenshot-1'},
           {id: 'e4', source: 'screenshot-1', target: 'ai-2'},
           {id: 'e5', source: 'ai-2', target: 'video-2'},
-          {id: 'e6', source: 'video-2', target: 'screenshot-2'},
-          {id: 'e7', source: 'screenshot-2', target: 'stitch-1'},
-          {id: 'e8', source: 'stitch-1', target: 'end-1'}
+          {id: 'e6', source: 'video-2', target: 'stitch-1'},
+          {id: 'e7', source: 'stitch-1', target: 'tts-1'},
+          {id: 'e8', source: 'tts-1', target: 'audio-1'},
+          {id: 'e9', source: 'audio-1', target: 'end-1'}
         ]
       }
     };
