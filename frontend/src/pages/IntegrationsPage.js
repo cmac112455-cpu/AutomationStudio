@@ -96,7 +96,7 @@ const IntegrationsPage = () => {
 
   const disconnectIntegration = async (service) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('apoe_token');
       await axios.delete(`${BACKEND_URL}/api/integrations/${service}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
