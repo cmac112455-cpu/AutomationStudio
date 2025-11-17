@@ -1504,14 +1504,273 @@ const ConversationalAgentsPage = () => {
               {/* Analysis Tab Content */}
               {activeTab === 'analysis' && (
                 <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
-                      <span className="text-4xl">📊</span>
+                  {!editingAgent?.elevenlabs_agent_id ? (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-yellow-500/10 rounded-full flex items-center justify-center">
+                        <span className="text-4xl">⚠️</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">Analytics Not Available</h3>
+                      <p className="text-gray-400 mb-6">
+                        This agent is not synced with ElevenLabs. Analytics are only available for agents synced from your ElevenLabs account.
+                      </p>
+                      <p className="text-sm text-cyan-400">Use the "Sync from ElevenLabs" button on the main page to import your agents.</p>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Performance Analysis</h3>
-                    <p className="text-gray-400 mb-6">Track conversation metrics, evaluate agent performance, and identify improvement areas</p>
-                    <p className="text-sm text-cyan-400">Coming Soon - Conversation Analytics, Quality Metrics</p>
-                  </div>
+                  ) : loadingAnalytics ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                      <p className="text-gray-400">Loading analytics...</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Time Range Filter */}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-cyan-500" />
+                          Performance Analytics
+                        </h3>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={analyticsTimeRange === 'day' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setAnalyticsTimeRange('day')}
+                          >
+                            Day
+                          </Button>
+                          <Button
+                            variant={analyticsTimeRange === 'week' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setAnalyticsTimeRange('week')}
+                          >
+                            Week
+                          </Button>
+                          <Button
+                            variant={analyticsTimeRange === 'month' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setAnalyticsTimeRange('month')}
+                          >
+                            Month
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Key Metrics Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                              <Users className="w-5 h-5 text-cyan-400" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold mb-1">
+                            {conversationsData?.length || 0}
+                          </div>
+                          <div className="text-sm text-gray-400">Total Conversations</div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-purple-400" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold mb-1">
+                            {analyticsData?.minutes_used ? `${Math.round(analyticsData.minutes_used)}m` : '0m'}
+                          </div>
+                          <div className="text-sm text-gray-400">Minutes Used</div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="w-5 h-5 text-green-400" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold mb-1">
+                            {analyticsData?.request_count || 0}
+                          </div>
+                          <div className="text-sm text-gray-400">Total Requests</div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                              <Activity className="w-5 h-5 text-orange-400" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold mb-1">
+                            {analyticsData?.ttfb_avg ? `${Math.round(analyticsData.ttfb_avg)}ms` : 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-400">Avg Response Time</div>
+                        </div>
+                      </div>
+
+                      {/* Usage Chart */}
+                      {analyticsData?.usage_by_date && analyticsData.usage_by_date.length > 0 && (
+                        <div className="bg-black/20 border border-cyan-500/20 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-cyan-500" />
+                            Usage Trend
+                          </h4>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={analyticsData.usage_by_date}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                              <XAxis 
+                                dataKey="date" 
+                                stroke="#888"
+                                style={{ fontSize: '12px' }}
+                              />
+                              <YAxis 
+                                stroke="#888"
+                                style={{ fontSize: '12px' }}
+                              />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  backgroundColor: '#1a1a1a', 
+                                  border: '1px solid #333',
+                                  borderRadius: '8px'
+                                }}
+                              />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="minutes_used" 
+                                stroke="#06b6d4" 
+                                strokeWidth={2}
+                                name="Minutes Used"
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="request_count" 
+                                stroke="#8b5cf6" 
+                                strokeWidth={2}
+                                name="Requests"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+
+                      {/* Conversations List */}
+                      <div className="bg-black/20 border border-cyan-500/20 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-lg font-semibold flex items-center gap-2">
+                            <MessageSquare className="w-5 h-5 text-cyan-500" />
+                            Recent Conversations
+                          </h4>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => loadAnalytics(editingAgent.id)}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Refresh
+                          </Button>
+                        </div>
+
+                        {conversationsData.length === 0 ? (
+                          <div className="text-center py-8">
+                            <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                            <p className="text-gray-400">No conversations yet</p>
+                            <p className="text-sm text-gray-500 mt-2">Start a conversation with this agent to see analytics here</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {conversationsData.map((conv, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-black/40 border border-gray-700 rounded-lg p-4 hover:border-cyan-500/50 transition-colors cursor-pointer"
+                                onClick={() => loadConversationDetails(editingAgent.id, conv.conversation_id)}
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <span className="text-sm font-medium">
+                                        {conv.conversation_id?.substring(0, 8)}...
+                                      </span>
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        conv.status === 'completed' 
+                                          ? 'bg-green-500/20 text-green-400'
+                                          : conv.status === 'failed'
+                                          ? 'bg-red-500/20 text-red-400'
+                                          : 'bg-yellow-500/20 text-yellow-400'
+                                      }`}>
+                                        {conv.status || 'unknown'}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {conv.call_duration_secs ? `${Math.round(conv.call_duration_secs)}s` : 'N/A'}
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {conv.start_time_unix ? new Date(conv.start_time_unix * 1000).toLocaleString() : 'N/A'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Performance Insights */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-black/20 border border-cyan-500/20 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Activity className="w-5 h-5 text-cyan-500" />
+                            Response Time
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">Average TTFB:</span>
+                              <span className="font-semibold">
+                                {analyticsData?.ttfb_avg ? `${Math.round(analyticsData.ttfb_avg)}ms` : 'N/A'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">95th Percentile:</span>
+                              <span className="font-semibold">
+                                {analyticsData?.ttfb_p95 ? `${Math.round(analyticsData.ttfb_p95)}ms` : 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-black/20 border border-cyan-500/20 rounded-xl p-6">
+                          <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-500" />
+                            Success Rate
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">Completed Calls:</span>
+                              <span className="font-semibold text-green-400">
+                                {conversationsData.filter(c => c.status === 'completed').length}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">Failed Calls:</span>
+                              <span className="font-semibold text-red-400">
+                                {conversationsData.filter(c => c.status === 'failed').length}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">Success Rate:</span>
+                              <span className="font-semibold text-cyan-400">
+                                {conversationsData.length > 0 
+                                  ? `${Math.round((conversationsData.filter(c => c.status === 'completed').length / conversationsData.length) * 100)}%`
+                                  : 'N/A'
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
