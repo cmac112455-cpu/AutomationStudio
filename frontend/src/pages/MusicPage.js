@@ -273,7 +273,7 @@ const MusicPage = () => {
           {/* Sidebar - Right Side */}
           <div className="space-y-6">
             {/* Duration Control */}
-            <div className="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 shadow-xl">
+            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
               <div className="flex justify-between items-center mb-4">
                 <Label className="text-white font-medium">Duration</Label>
                 <span className="text-purple-400 font-mono text-sm">
@@ -287,7 +287,7 @@ const MusicPage = () => {
                 step="10"
                 value={duration}
                 onChange={(e) => setDuration(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-500 [&::-webkit-slider-thumb]:to-pink-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-purple-500/50"
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-500 [&::-webkit-slider-thumb]:to-pink-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-purple-500/50"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-2">
                 <span>10s</span>
@@ -296,14 +296,14 @@ const MusicPage = () => {
             </div>
 
             {/* Example Prompts */}
-            <div className="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 shadow-xl">
+            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
               <Label className="text-white font-medium mb-4 block">Examples</Label>
               <div className="space-y-2">
                 {examplePrompts.map((example, index) => (
                   <button
                     key={index}
                     onClick={() => setPrompt(example)}
-                    className="w-full text-left p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-200 text-sm text-gray-300 hover:text-white group"
+                    className="w-full text-left p-3 rounded-lg bg-[#0a0b0d] hover:bg-gray-800 border border-gray-800 hover:border-purple-500/50 transition-all duration-200 text-sm text-gray-300 hover:text-white group"
                   >
                     <span className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity mr-2">→</span>
                     {example}
@@ -313,7 +313,7 @@ const MusicPage = () => {
             </div>
 
             {/* Tips */}
-            <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl border border-purple-500/20 p-6">
+            <div className="bg-[#13141a] rounded-xl border border-purple-500/30 p-6">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
                   <Sparkles className="w-4 h-4 text-purple-400" />
