@@ -3008,6 +3008,26 @@ async def get_agent_call_logs(agent_id: str, user_id: str = Depends(get_current_
         logging.error(f"[CONVERSATIONAL_AI] Error fetching agent call logs: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch agent call logs")
 
+@api_router.patch("/conversational-ai/call-logs/{log_id}")
+async def update_call_log(log_id: str, update_data: dict, user_id: str = Depends(get_current_user)):
+    """Update a call log entry"""
+    try:
+        result = await db.conversational_call_logs.update_one(
+            {"id": log_id, "user_id": user_id},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Call log not found")
+        
+        return {"message": "Call log updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error updating call log: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update call log")
+
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
     """Mark a completion as saved"""
