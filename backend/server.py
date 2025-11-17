@@ -2743,18 +2743,26 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         
         # Step 3: Generate audio response
         audio_url = None
-        if agent.get("voice"):
+        voice_id = agent.get("voice")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Agent voice configured: {voice_id}")
+        
+        if voice_id:
             try:
                 integration = await db.user_integrations.find_one(
                     {"user_id": user_id, "platform": "elevenlabs"},
                     {"_id": 0}
                 )
                 
+                logging.info(f"[CONVERSATIONAL_AI] ElevenLabs integration found: {bool(integration)}")
+                
                 if integration and integration.get("api_key"):
                     elevenlabs_key = integration["api_key"]
                     
+                    logging.info(f"[CONVERSATIONAL_AI] Generating TTS for voice {voice_id}")
+                    
                     import requests
-                    tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{agent['voice']}"
+                    tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
                     
                     tts_response = requests.post(
                         tts_url,
@@ -2773,14 +2781,24 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
                         timeout=30
                     )
                     
+                    logging.info(f"[CONVERSATIONAL_AI] TTS response status: {tts_response.status_code}")
+                    
                     if tts_response.status_code == 200:
                         audio_bytes_response = tts_response.content
                         audio_base64_response = base64.b64encode(audio_bytes_response).decode('utf-8')
                         audio_url = f"data:audio/mpeg;base64,{audio_base64_response}"
-                        logging.info(f"[CONVERSATIONAL_AI] Generated audio: {len(audio_bytes_response)} bytes")
+                        logging.info(f"[CONVERSATIONAL_AI] ✅ Generated audio: {len(audio_bytes_response)} bytes")
+                    else:
+                        logging.error(f"[CONVERSATIONAL_AI] TTS failed: {tts_response.text}")
+                else:
+                    logging.warning(f"[CONVERSATIONAL_AI] No ElevenLabs API key found")
                     
             except Exception as audio_error:
                 logging.error(f"[CONVERSATIONAL_AI] Audio generation error: {str(audio_error)}")
+                import traceback
+                logging.error(traceback.format_exc())
+        else:
+            logging.warning(f"[CONVERSATIONAL_AI] No voice configured for agent")
         
         return {
             "transcription": user_message,
