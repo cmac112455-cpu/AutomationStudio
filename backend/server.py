@@ -2806,6 +2806,63 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to process voice chat: {str(e)}")
 
+@api_router.post("/conversational-ai/call-logs")
+async def create_call_log(log_data: dict, user_id: str = Depends(get_current_user)):
+    """Save a call log entry for debugging and history"""
+    try:
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "agent_id": log_data.get("agent_id"),
+            "agent_name": log_data.get("agent_name"),
+            "status": log_data.get("status", "unknown"),  # 'started', 'completed', 'failed'
+            "error": log_data.get("error"),
+            "transcription": log_data.get("transcription"),
+            "response": log_data.get("response"),
+            "audio_generated": log_data.get("audio_generated", False),
+            "duration": log_data.get("duration"),
+            "exchanges_count": log_data.get("exchanges_count", 0),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.conversational_call_logs.insert_one(log_entry)
+        
+        return {"id": log_entry["id"], "message": "Log saved successfully"}
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error saving call log: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save call log")
+
+@api_router.get("/conversational-ai/call-logs")
+async def get_call_logs(user_id: str = Depends(get_current_user), limit: int = 50):
+    """Get call logs for the user"""
+    try:
+        logs = await db.conversational_call_logs.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(limit).to_list(length=limit)
+        
+        return logs
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error fetching call logs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch call logs")
+
+@api_router.get("/conversational-ai/call-logs/{agent_id}")
+async def get_agent_call_logs(agent_id: str, user_id: str = Depends(get_current_user), limit: int = 50):
+    """Get call logs for a specific agent"""
+    try:
+        logs = await db.conversational_call_logs.find(
+            {"user_id": user_id, "agent_id": agent_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(limit).to_list(length=limit)
+        
+        return logs
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error fetching agent call logs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch agent call logs")
+
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
     """Mark a completion as saved"""
