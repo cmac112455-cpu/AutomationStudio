@@ -223,18 +223,18 @@ const ConversationalAgentsPage = () => {
     setEditingAgent(agent);
   };
 
-  const startTest = (agent) => {
+  const startTest = async (agent) => {
     setTestingAgent(agent);
     setShowTestModal(true);
     setConversation([]);
     
-    // Add first message if configured
-    if (agent.firstMessage) {
-      setConversation([{
-        role: 'agent',
-        content: agent.firstMessage,
-        timestamp: new Date().toISOString()
-      }]);
+    // Start the phone call session
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${agent.id}/start-call`);
+      toast.success('Call initiated - Starting conversation...');
+    } catch (error) {
+      console.error('Error starting call:', error);
+      toast.error('Failed to start call');
     }
   };
 
