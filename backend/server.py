@@ -1951,7 +1951,7 @@ async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_cur
                 detail="ElevenLabs API key not configured. Please add it in Integrations page."
             )
         
-        # Map voice names to IDs
+        # Map voice names to IDs (for backward compatibility)
         voice_map = {
             'rachel': '21m00Tcm4TlvDq8ikWAM',
             'adam': 'pNInz6obpgDQGcFmaJgB',
@@ -1963,7 +1963,12 @@ async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_cur
             'domi': 'AZnzlk1XvdvUeBnXmlld',
             'elli': 'MF3mGyEYCl7XYWbV9V6O',
         }
+        
+        # Use voice directly if it looks like an ID (contains letters and numbers), otherwise map it
         voice_id = voice_map.get(request.voice.lower(), request.voice)
+        
+        logging.info(f"[TTS_PREVIEW] Voice received: {request.voice}")
+        logging.info(f"[TTS_PREVIEW] Using voice_id: {voice_id}")
         
         # Call ElevenLabs API
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
