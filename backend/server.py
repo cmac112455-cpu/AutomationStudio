@@ -2793,7 +2793,7 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         else:
             logging.warning(f"[CONVERSATIONAL_AI] No voice configured for agent")
         
-        # Log successful call
+        # Log successful call with audio
         try:
             call_log = {
                 "id": str(uuid.uuid4()),
@@ -2803,8 +2803,16 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
                 "status": "completed",
                 "transcription": user_message,
                 "response": response_text,
+                "audio_url": audio_url,  # Save the full data URL for playback
                 "audio_generated": bool(audio_url),
                 "exchanges_count": len(conversation_history) // 2 + 1,
+                "backend_logs": {
+                    "whisper_success": True,
+                    "llm_success": True,
+                    "tts_success": bool(audio_url),
+                    "voice_configured": bool(agent.get("voice")),
+                    "api_key_found": bool(voice_id and elevenlabs_key) if 'elevenlabs_key' in locals() else False
+                },
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             await db.conversational_call_logs.insert_one(call_log)
