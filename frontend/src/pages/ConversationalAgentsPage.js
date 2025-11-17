@@ -60,7 +60,9 @@ const ConversationalAgentsPage = () => {
     responseDelay: 100,
     enableInterruption: true,
     enableFallback: true,
-    elevenlabs_agent_id: ''
+    elevenlabs_agent_id: '',
+    kb_text_name: '',
+    kb_text_content: ''
    });
 
   const templates = [
