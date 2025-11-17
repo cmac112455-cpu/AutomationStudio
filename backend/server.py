@@ -3491,14 +3491,22 @@ async def update_agent_tools(
         response_agent_config = response_conversation_config.get("agent", {})
         response_prompt_config = response_agent_config.get("prompt", {})
         response_built_in_tools = response_prompt_config.get("built_in_tools", {})
+        response_tools_array = response_prompt_config.get("tools", [])
         
         logging.info(f"[TOOLS] ========== ELEVENLABS RESPONSE ==========")
-        logging.info(f"[TOOLS] What ElevenLabs saved:")
+        logging.info(f"[TOOLS] What ElevenLabs saved in built_in_tools object:")
         for tool_key, tool_config in response_built_in_tools.items():
             if tool_config is not None:
                 logging.info(f"[TOOLS]   ✅ {tool_key}: SAVED")
             else:
                 logging.info(f"[TOOLS]   ❌ {tool_key}: NOT SAVED (null)")
+        
+        logging.info(f"[TOOLS] What ElevenLabs saved in 'tools' array:")
+        logging.info(f"[TOOLS] Tools array: {response_tools_array}")
+        logging.info(f"[TOOLS] Tools array length: {len(response_tools_array)}")
+        
+        logging.info(f"[TOOLS] DIAGNOSIS: ElevenLabs is rejecting our built_in_tools format!")
+        logging.info(f"[TOOLS] This agent might only support 'end_call' or require different config.")
         logging.info(f"[TOOLS] ==============================================")
         
         # Get updated agent data to return
