@@ -32,6 +32,7 @@ const VoicesPage = () => {
   const [similarityBoost, setSimilarityBoost] = useState(0.75);
   const [style, setStyle] = useState(0);
   const [speakerBoost, setSpeakerBoost] = useState(false);
+  const [exaggeration, setExaggeration] = useState(0);
   const [speed, setSpeed] = useState(1.0);
   const [modelId, setModelId] = useState('eleven_turbo_v2_5');
 
