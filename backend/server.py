@@ -2701,12 +2701,15 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         logging.info(f"[CONVERSATIONAL_AI] Voice chat for agent {agent_id}")
         
         # Step 1: Convert speech to text using OpenAI Whisper
-        from emergentintegrations.llm.utils import get_integration_proxy_url, get_app_identifier
-        import requests
+        from emergentintegrations.llm.openai import OpenAISpeechToText
+        from dotenv import load_dotenv
         import tempfile
+        import os as os_module
         
-        proxy_url = get_integration_proxy_url()
-        app_identifier = get_app_identifier()
+        load_dotenv()
+        
+        # Initialize Whisper
+        stt = OpenAISpeechToText(api_key=os.getenv("EMERGENT_LLM_KEY"))
         
         # Decode base64 audio
         audio_bytes = base64.b64decode(audio_base64)
@@ -2717,33 +2720,20 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
             temp_audio_path = temp_audio.name
         
         try:
-            # Transcribe audio using OpenAI Whisper API
+            # Transcribe audio
             with open(temp_audio_path, 'rb') as audio_file:
-                transcription_response = requests.post(
-                    f"{proxy_url}/v1/audio/transcriptions",
-                    headers={
-                        "app-identifier": app_identifier
-                    },
-                    files={
-                        "file": ("audio.webm", audio_file, "audio/webm")
-                    },
-                    data={
-                        "model": "whisper-1"
-                    },
-                    timeout=30
+                transcription = await stt.transcribe(
+                    file=audio_file,
+                    model="whisper-1",
+                    response_format="json"
                 )
             
-            if transcription_response.status_code != 200:
-                raise Exception(f"Transcription failed: {transcription_response.text}")
-            
-            transcription_data = transcription_response.json()
-            user_message = transcription_data.get("text", "")
+            user_message = transcription.text
             logging.info(f"[CONVERSATIONAL_AI] Transcribed: {user_message[:100]}")
             
         finally:
             # Clean up temp file
-            import os
-            os.unlink(temp_audio_path)
+            os_module.unlink(temp_audio_path)
         
         # Step 2: Get LLM response (same as text chat)
         messages = [{"role": "system", "content": agent.get("systemPrompt", "You are a helpful assistant.")}]
