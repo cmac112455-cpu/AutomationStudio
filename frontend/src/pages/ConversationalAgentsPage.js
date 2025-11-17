@@ -380,7 +380,7 @@ const ConversationalAgentsPage = () => {
       return;
     }
 
-    if (!criteriaForm.identifier || !criteriaForm.description) {
+    if (!criteriaForm.name || !criteriaForm.conversation_goal_prompt) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -391,9 +391,15 @@ const ConversationalAgentsPage = () => {
     }
 
     try {
+      // Generate ID if creating new (ElevenLabs will also generate one but we need something)
+      const criteriaToSave = {
+        ...criteriaForm,
+        id: criteriaForm.id || `crit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+      
       const updatedCriteria = editingCriteria
-        ? evaluationCriteria.map(c => c.identifier === editingCriteria.identifier ? criteriaForm : c)
-        : [...evaluationCriteria, criteriaForm];
+        ? evaluationCriteria.map(c => c.id === editingCriteria.id ? criteriaToSave : c)
+        : [...evaluationCriteria, criteriaToSave];
 
       console.log('🔄 Saving evaluation criteria:', updatedCriteria);
       
@@ -405,7 +411,7 @@ const ConversationalAgentsPage = () => {
 
       setEvaluationCriteria(updatedCriteria);
       setShowAddCriteriaModal(false);
-      setCriteriaForm({ identifier: '', description: '' });
+      setCriteriaForm({ id: '', name: '', conversation_goal_prompt: '' });
       setEditingCriteria(null);
       toast.success(editingCriteria ? 'Criteria updated in ElevenLabs!' : 'Criteria added to ElevenLabs!');
       
