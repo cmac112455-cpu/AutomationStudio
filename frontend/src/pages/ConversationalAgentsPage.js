@@ -835,47 +835,38 @@ const ConversationalAgentsPage = () => {
               </div>
             </div>
 
-            {/* Conversation Transcript (Optional - Can be hidden for phone feel) */}
-            <div className="flex-1 overflow-y-auto px-6 space-y-3">
-              {conversation.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {message.role === 'agent' && (
-                    <div className="w-8 h-8 rounded-full bg-cyan-600/20 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-cyan-400" />
+            {/* Empty space for clean phone look */}
+            <div className="flex-1 flex items-center justify-center px-6">
+              <div className="text-center">
+                {callActive && (
+                  <div className="space-y-4">
+                    {/* Audio wave visualization */}
+                    <div className="flex items-center justify-center gap-2 h-16">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-1 rounded-full transition-all duration-300 ${
+                            isRecording
+                              ? 'bg-red-500 animate-pulse'
+                              : audioPlaying || isSending
+                              ? 'bg-cyan-500 animate-pulse'
+                              : 'bg-gray-700'
+                          }`}
+                          style={{
+                            height: isRecording || audioPlaying || isSending
+                              ? `${Math.random() * 40 + 20}px`
+                              : '8px',
+                            animationDelay: `${i * 0.1}s`
+                          }}
+                        />
+                      ))}
                     </div>
-                  )}
-                  <div className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
-                    message.role === 'user'
-                      ? 'bg-cyan-600 text-white'
-                      : 'bg-gray-800 text-gray-200'
-                  }`}>
-                    {message.content}
+                    <p className="text-sm text-gray-500">
+                      {conversation.length > 0 && `${Math.floor(conversation.length / 2)} exchanges`}
+                    </p>
                   </div>
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-4 h-4 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {isSending && (
-                <div className="flex items-start gap-2">
-                  <div className="w-8 h-8 rounded-full bg-cyan-600/20 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <div className="bg-gray-800 px-4 py-2 rounded-2xl">
-                    <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Phone Controls */}
