@@ -695,6 +695,15 @@ export default function AutomationStudioPage() {
             Templates
           </Button>
           <Button
+            onClick={() => window.location.href = '/automation/integrations'}
+            variant="outline"
+            className="border-gray-700"
+            size="sm"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Integrations
+          </Button>
+          <Button
             onClick={() => setShowTriggerModal(true)}
             variant="outline"
             className="border-gray-700"
