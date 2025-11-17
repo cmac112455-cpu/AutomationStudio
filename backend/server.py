@@ -2530,6 +2530,56 @@ async def upload_knowledge_base_file(file: UploadFile = File(...), user_id: str 
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
+@api_router.post("/conversational-ai/knowledge-base/add-text")
+async def add_knowledge_base_text(text_data: dict, user_id: str = Depends(get_current_user)):
+    """Add text to ElevenLabs knowledge base"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        name = text_data.get("name")
+        text = text_data.get("text")
+        
+        if not name or not text:
+            raise HTTPException(status_code=400, detail="Name and text are required")
+        
+        logging.info(f"[KNOWLEDGE_BASE] Adding text: {name}")
+        
+        # Add to ElevenLabs
+        import requests
+        response = requests.post(
+            "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json={
+                "name": name,
+                "text": text
+            }
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        kb_data = response.json()
+        logging.info(f"[KNOWLEDGE_BASE] Text added successfully: {kb_data}")
+        
+        return kb_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[KNOWLEDGE_BASE] Error adding text: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to add text: {str(e)}")
+
 @api_router.get("/conversational-ai/knowledge-base/list")
 async def list_knowledge_base(user_id: str = Depends(get_current_user)):
     """List all knowledge base items from ElevenLabs"""
