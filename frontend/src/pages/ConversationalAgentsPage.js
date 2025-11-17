@@ -445,188 +445,32 @@ const ConversationalAgentsPage = () => {
       source.connect(processor);
       processor.connect(audioContext.destination);
       
-      console.log('✅ Web Audio recording started');
-      
-      // Verify stream
-      const tracks = stream.getAudioTracks();
-      console.log('🎵 Audio tracks:', tracks.length);
-      tracks.forEach((track, i) => {
-        console.log(`  Track ${i + 1}:`, {
-          label: track.label,
-          enabled: track.enabled,
-          muted: track.muted,
-          readyState: track.readyState
-        });
-      });
-      
-      if (tracks.length === 0 || tracks[0].readyState !== 'live') {
-        throw new Error('Microphone track is not active!');
-      }
-      
-      // Test if audio is actually flowing with visual feedback
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioContext.createMediaStreamSource(stream);
+      // Add visual feedback with analyser
       const analyser = audioContext.createAnalyser();
       source.connect(analyser);
       analyser.fftSize = 256;
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
       
-      // Continuously monitor audio level for visual feedback
+      // Monitor audio level for visual feedback
       const levelCheckInterval = setInterval(() => {
-        if (recorder.state === 'recording') {
-          analyser.getByteFrequencyData(dataArray);
-          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-          setAudioLevel(Math.min(100, average));
-          
-          if (average > 5) {
-            setMicWorking(true);
-          }
-        } else {
-          clearInterval(levelCheckInterval);
-          setAudioLevel(0);
-        }
-      }, 100);
-      
-      // Store interval for cleanup
-      recorder._levelInterval = levelCheckInterval;
-      
-      // Initial check after 1 second
-      setTimeout(() => {
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        console.log('🔊 Audio level test:', average.toFixed(2), '(should be > 0 when speaking)');
-        if (average === 0) {
-          console.warn('⚠️ WARNING: Microphone not picking up any sound!');
-          toast.error('⚠️ MIC NOT WORKING! Check mic settings in system!', { duration: 5000 });
-        }
-      }, 1000);
+        setAudioLevel(Math.min(100, average));
+        if (average > 5) setMicWorking(true);
+      }, 100);
       
-      // Check supported MIME types
-      const mimeTypes = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/ogg;codecs=opus',
-        'audio/mp4'
-      ];
-      
-      console.log('🎚️ Checking supported formats...');
-      let selectedMimeType = null;
-      for (const type of mimeTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          selectedMimeType = type;
-          console.log(`✅ Using: ${type}`);
-          break;
-        }
-      }
-      
-      if (!selectedMimeType) {
-        console.error('❌ No supported audio format found!');
-        throw new Error('Browser does not support audio recording');
-      }
-      
-      // Create recorder
-      const recorder = new MediaRecorder(stream, {
-        mimeType: selectedMimeType
-      });
-      
-      console.log('📝 MediaRecorder created:', {
-        state: recorder.state,
-        mimeType: recorder.mimeType
-      });
-      
-      const chunks = [];
-      let chunkCount = 0;
-
-      recorder.ondataavailable = (e) => {
-        chunkCount++;
-        console.log(`📊 Chunk ${chunkCount}:`, e.data.size, 'bytes');
-        if (e.data.size > 0) {
-          chunks.push(e.data);
-          console.log(`   ✅ Added to queue. Total chunks: ${chunks.length}, Total size: ${chunks.reduce((sum, c) => sum + c.size, 0)} bytes`);
-        } else {
-          console.warn('   ⚠️ Empty chunk received!');
-        }
-      };
-
-      recorder.onstop = async () => {
-        console.log('🛑 Recording stopped');
-        console.log('📊 Final stats:', {
-          chunks: chunks.length,
-          totalSize: chunks.reduce((sum, c) => sum + c.size, 0),
-          chunkSizes: chunks.map(c => c.size)
-        });
-        
-        // Clean up intervals
-        if (recorder._levelInterval) {
-          clearInterval(recorder._levelInterval);
-        }
-        
-        // Clean up
-        stream.getTracks().forEach(track => {
-          console.log('🔇 Stopping track:', track.label);
-          track.stop();
-        });
-        audioContext.close();
-        setAudioLevel(0);
-        setMicWorking(false);
-        
-        if (chunks.length === 0) {
-          console.error('❌ NO CHUNKS RECORDED!');
-          console.error('This means MediaRecorder did not capture ANY audio data.');
-          console.error('Possible causes:');
-          console.error('  1. Browser bug with MediaRecorder');
-          console.error('  2. Microphone permission granted but not working');
-          console.error('  3. Browser incompatibility');
-          toast.error('No audio recorded. Try refreshing the page.', { duration: 5000 });
-          setIsRecording(false);
-          setMediaRecorder(null);
-          return;
-        }
-        
-        const audioBlob = new Blob(chunks, { type: selectedMimeType });
-        console.log('🎵 Audio blob created:', audioBlob.size, 'bytes, type:', audioBlob.type);
-        
-        if (audioBlob.size < 100) {
-          console.error('❌ Audio blob too small:', audioBlob.size, 'bytes');
-          toast.error('Audio too short. Please speak for at least 3 seconds.', { duration: 5000 });
-          setIsRecording(false);
-          setMediaRecorder(null);
-          setTimeout(() => {
-            if (callActive) startRecording();
-          }, 1000);
-          return;
-        }
-        
-        setIsRecording(false);
-        setMediaRecorder(null);
-        
-        await processVoiceInput(audioBlob);
-      };
-
-      // Start with 1 second timeslice
-      recorder.start(1000);
-      console.log('🎙️ Recording started with 1s timeslice');
-      console.log('🔴 STATE: Recording is ACTIVE - SPEAK NOW!');
-      
-      setMediaRecorder(recorder);
       setIsRecording(true);
-      toast.success('🎤 Recording active! SPEAK NOW!', { duration: 10000 });
+      toast.success('🎤 Recording with Web Audio API!', { duration: 10000 });
+      console.log('🔴 Recording active - SPEAK NOW!');
       
-      // Log state every 2 seconds
-      const stateLogger = setInterval(() => {
-        if (recorder.state === 'recording') {
-          console.log('🔴 Still recording... Chunks so far:', chunks.length);
-        } else {
-          clearInterval(stateLogger);
-        }
-      }, 2000);
+      // Store stream and processor for cleanup
+      setMediaRecorder({ stream, processor, levelCheckInterval });
       
       // Auto-stop after 10 seconds
       setTimeout(() => {
-        clearInterval(stateLogger);
-        if (recorder && recorder.state === 'recording') {
+        if (isRecording) {
           console.log('⏱️ Auto-stopping after 10s');
-          recorder.stop();
+          stopRecording();
         }
       }, 10000);
       
