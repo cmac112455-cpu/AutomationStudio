@@ -2856,32 +2856,43 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         logging.info(f"[CONVERSATIONAL_AI] Converting audio to WAV using FFmpeg...")
         
         import subprocess
+        
+        # Skip FFmpeg if file is too small (likely empty/corrupted)
+        if len(audio_bytes) < 1000:
+            logging.warning(f"[CONVERSATIONAL_AI] ⚠️ Audio too small ({len(audio_bytes)} bytes), skipping FFmpeg")
+            raise Exception(f"Audio file too small: {len(audio_bytes)} bytes. Please speak longer and louder.")
+        
         try:
-            # Convert using ffmpeg
+            # Convert using ffmpeg - hide banner and loglevel
             result = subprocess.run([
-                'ffmpeg', '-i', temp_input_path,
+                'ffmpeg', '-hide_banner', '-loglevel', 'error',
+                '-i', temp_input_path,
                 '-ar', '16000',  # 16kHz sample rate (good for speech)
                 '-ac', '1',       # Mono
+                '-f', 'wav',      # Force WAV format
                 '-y',             # Overwrite output
                 temp_output_path
             ], capture_output=True, text=True, timeout=30)
             
-            if result.returncode == 0:
-                logging.info(f"[CONVERSATIONAL_AI] ✅ Audio converted successfully to WAV")
-                temp_audio_path = temp_output_path
+            if result.returncode == 0 and os_module.path.exists(temp_output_path):
+                wav_size = os_module.path.getsize(temp_output_path)
+                logging.info(f"[CONVERSATIONAL_AI] ✅ FFmpeg conversion successful")
+                logging.info(f"[CONVERSATIONAL_AI] Input: {len(audio_bytes)} bytes → Output: {wav_size} bytes")
                 
-                # Check converted file size
-                import os as os_module
-                wav_size = os_module.path.getsize(temp_audio_path)
-                logging.info(f"[CONVERSATIONAL_AI] WAV file size: {wav_size} bytes")
+                if wav_size > 1000:  # Valid WAV file
+                    temp_audio_path = temp_output_path
+                else:
+                    logging.error(f"[CONVERSATIONAL_AI] ❌ Converted file too small: {wav_size} bytes")
+                    raise Exception("FFmpeg produced invalid audio file")
             else:
-                logging.error(f"[CONVERSATIONAL_AI] FFmpeg conversion failed: {result.stderr}")
-                # Fallback to original file
-                temp_audio_path = temp_input_path
+                logging.error(f"[CONVERSATIONAL_AI] ❌ FFmpeg failed (code {result.returncode})")
+                logging.error(f"[CONVERSATIONAL_AI] STDERR: {result.stderr}")
+                logging.error(f"[CONVERSATIONAL_AI] STDOUT: {result.stdout}")
+                raise Exception(f"FFmpeg conversion failed: {result.stderr}")
+                
         except Exception as ffmpeg_error:
-            logging.error(f"[CONVERSATIONAL_AI] FFmpeg error: {str(ffmpeg_error)}")
-            # Fallback to original file
-            temp_audio_path = temp_input_path
+            logging.error(f"[CONVERSATIONAL_AI] ❌ FFmpeg error: {str(ffmpeg_error)}")
+            raise Exception(f"Audio conversion failed: {str(ffmpeg_error)}")
         
         try:
             # Transcribe audio
