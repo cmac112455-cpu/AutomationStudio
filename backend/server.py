@@ -2861,12 +2861,9 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         agent_data = response.json()
         
-        # Extract analysis configuration from agent data
-        conversation_config = agent_data.get("conversation_config", {})
-        agent_config = conversation_config.get("agent", {})
-        
-        evaluation_criteria = agent_config.get("evaluation_criteria", [])
-        data_collection = agent_config.get("data_collection", [])
+        # Extract analysis configuration from agent data (at top level)
+        evaluation_criteria = agent_data.get("evaluation_criteria", [])
+        data_collection = agent_data.get("data_collection", [])
         
         logging.info(f"[ANALYSIS_CONFIG] Loaded config for agent {agent_id}: {len(evaluation_criteria)} criteria, {len(data_collection)} data items")
         
