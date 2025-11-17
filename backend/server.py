@@ -2798,7 +2798,13 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
             os_module.unlink(temp_audio_path)
         
         # Step 2: Get LLM response using LlmChat
+        logging.info(f"[CONVERSATIONAL_AI] ===== STEP 2: LLM CHAT =====")
+        
         from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        logging.info(f"[CONVERSATIONAL_AI] Initializing LLM chat...")
+        logging.info(f"[CONVERSATIONAL_AI] Model: {agent.get('model', 'gpt-4o')}")
+        logging.info(f"[CONVERSATIONAL_AI] Session ID: agent_{agent_id}_{user_id}")
         
         # Initialize chat with system message
         chat_client = LlmChat(
@@ -2809,10 +2815,17 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         
         # Create user message
         user_msg = UserMessage(text=user_message)
+        logging.info(f"[CONVERSATIONAL_AI] Sending message to LLM: {user_message[:100]}")
         
         # Send and get response
-        response_text = await chat_client.send_message(user_msg)
-        logging.info(f"[CONVERSATIONAL_AI] LLM Response: {response_text[:100]}")
+        try:
+            response_text = await chat_client.send_message(user_msg)
+            logging.info(f"[CONVERSATIONAL_AI] ✅ LLM Response received: {response_text[:100]}")
+        except Exception as llm_error:
+            logging.error(f"[CONVERSATIONAL_AI] ❌ LLM call failed: {str(llm_error)}")
+            import traceback
+            logging.error(traceback.format_exc())
+            raise
         
         # Step 3: Generate audio response
         audio_url = None
