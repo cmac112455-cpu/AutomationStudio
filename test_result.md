@@ -743,58 +743,73 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: |
-          ✅ COMPLETE REWRITE: Tools tab fully functional with ElevenLabs integration
+          ✅ ALL 7 ELEVENLABS SYSTEM TOOLS IMPLEMENTED + FULL INTEGRATION
           
           CRITICAL FIX - Runtime Error:
           - Fixed: `systemTools.includes is not a function`
-          - Cause: Wrong state variable names and data structure
-          - Solution: Renamed to `builtInTools`, `toolIds`, added array checks
+          - Solution: Proper state management with array checks
           
           NEW STATE MANAGEMENT:
-          - builtInTools: Array of system tool names ["end_call"]
-          - toolIds: Array of enabled server tool IDs ["tool_123"]
-          - workspaceTools: Available server/client tools from ElevenLabs workspace
+          - builtInTools: Array of system tool names
+          - toolIds: Array of enabled server tool IDs
+          - workspaceTools: Available webhooks from workspace
           - All with proper Array.isArray() checks
           
-          BACKEND INTEGRATION:
-          1. GET /tools - Reads from conversation_config.agent.prompt.built_in_tools
-          2. PATCH /tools - Updates with correct nested structure
-          3. GET /workspace-tools - Fetches ALL available webhooks from workspace
+          ALL 7 SYSTEM TOOLS IMPLEMENTED:
+          1. ✅ End Conversation (end_call) - Red icon
+             - Allows agent to terminate calls
+          
+          2. ✅ Detect Language (detect_language) - Blue icon
+             - Auto-detects user's language (32+ languages)
+          
+          3. ✅ Skip Turn (skip_turn) - Yellow icon
+             - Skips conversation turns when needed
+          
+          4. ✅ Transfer to Agent (transfer_to_agent) - Green icon
+             - Transfers to another AI agent
+          
+          5. ✅ Transfer to Number (transfer_to_number) - Emerald icon
+             - Transfers to human phone number
+          
+          6. ✅ Play Keypad Touch Tone (keypad) - Purple icon
+             - Plays DTMF tones for IVR navigation
+          
+          7. ✅ Voicemail Detection (voicemail) - Orange icon
+             - Detects and handles voicemail systems
+          
+          BACKEND INTEGRATION (CORRECT API NAMES):
+          - GET /tools → Returns built_in_tools array with proper names
+          - PATCH /tools → Updates conversation_config.agent.prompt.built_in_tools
+          - GET /workspace-tools → Fetches all available webhooks
+          - All using official ElevenLabs API tool names
           
           FRONTEND FEATURES:
-          1. System Tools Section
-             - end_call toggle with proper array handling
+          1. System Tools Section (7 tools)
+             - Each tool has unique color-coded icon
+             - Toggle switches for each
              - Real-time sync to ElevenLabs
-             - Cyan color theme
+             - Descriptions for each tool
           
-          2. Server Tools Section (FULL WEBHOOK SUPPORT!)
-             - Loads ALL webhooks from user's ElevenLabs workspace
-             - Each webhook shows as toggleable card
-             - Tool name, description, URL displayed
-             - Purple color theme
-             - Shows count: "Server Tools (5)"
-             - "Create Webhook" button to ElevenLabs dashboard
+          2. Server Tools Section (Unlimited webhooks)
+             - Loads ALL user's webhooks from workspace
+             - Each webhook displays with toggle
+             - Shows tool name, description, URL
+             - Enable/disable per agent
+             - "Create Webhook" button
           
-          3. Complete Data Flow
-             - Loads agent tools (built_in_tools + tool_ids)
-             - Loads workspace tools (all available webhooks)
-             - Displays webhooks with toggle for each
-             - Enable/disable webhooks updates tool_ids array
-             - Changes persist in ElevenLabs
+          3. Info Box
+             - Shows active system tools by name
+             - Shows count of active webhooks
+             - Real-time status updates
           
-          4. UI Enhancements
-             - Tool counter badges
-             - Empty states for no webhooks
-             - Loading states
-             - Info box showing active tool IDs
-             - Color-coded sections
+          COMPLETE ELEVENLABS INTEGRATION:
+          ✅ Correct API structure (conversation_config.agent.prompt)
+          ✅ Correct tool names (end_call, detect_language, etc.)
+          ✅ Proper data persistence
+          ✅ Real-time sync on toggle
+          ✅ Comprehensive logging
           
-          TOOLS AVAILABLE:
-          - System: end_call (built-in)
-          - Server: ALL user's ElevenLabs webhooks (dynamic, could be 10+)
-          - Each webhook can be toggled on/off per agent
-          
-          Ready for testing with synced agent and ElevenLabs API key
+          See: /app/ALL_SYSTEM_TOOLS_GUIDE.md for complete documentation
 
   - task: "Conversational AI Analytics Tab"
     implemented: true
