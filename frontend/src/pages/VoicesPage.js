@@ -89,6 +89,7 @@ const VoicesPage = () => {
     setSimilarityBoost(preset.settings.similarityBoost);
     setStyle(preset.settings.style);
     setSpeakerBoost(preset.settings.speakerBoost);
+    setExaggeration(preset.settings.exaggeration || 0);
     setSpeed(preset.settings.speed);
     setModelId(preset.settings.modelId);
     
