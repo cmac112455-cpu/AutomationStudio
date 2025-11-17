@@ -2249,7 +2249,9 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
         gen_response = requests.post(generate_url, json=payload, headers=headers, timeout=30)
         
         logging.info(f"[MUSIC_STUDIO] Generation response status: {gen_response.status_code}")
-        logging.info(f"[MUSIC_STUDIO] Generation response: {gen_response.text[:200]}")
+        logging.info(f"[MUSIC_STUDIO] Generation response Content-Type: {gen_response.headers.get('Content-Type', 'unknown')}")
+        logging.info(f"[MUSIC_STUDIO] Generation response Content-Length: {len(gen_response.content)}")
+        logging.info(f"[MUSIC_STUDIO] Generation response (first 500 chars): {gen_response.text[:500]}")
         
         if gen_response.status_code != 200:
             await db.voice_completions.update_one(
@@ -2261,8 +2263,11 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
         try:
             gen_data = gen_response.json()
         except Exception as e:
-            logging.error(f"[MUSIC_STUDIO] Failed to parse JSON response: {gen_response.text}")
-            raise HTTPException(status_code=500, detail=f"Invalid API response: {str(e)}")
+            logging.error(f"[MUSIC_STUDIO] Failed to parse initial generation response as JSON!")
+            logging.error(f"[MUSIC_STUDIO] Response content type: {gen_response.headers.get('Content-Type')}")
+            logging.error(f"[MUSIC_STUDIO] Response length: {len(gen_response.content)} bytes")
+            logging.error(f"[MUSIC_STUDIO] Response (first 1000 bytes): {gen_response.content[:1000]}")
+            raise HTTPException(status_code=500, detail=f"Invalid API response from music generation: {str(e)}")
         
         generation_id = gen_data.get("generation_id")
         
