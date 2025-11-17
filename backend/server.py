@@ -3064,7 +3064,14 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
             raise HTTPException(status_code=404, detail="Agent not found")
 
 
-# Duplicate function removed - using the correct one below
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            # Return empty config if not linked to ElevenLabs
+            return {
+                "evaluation_criteria": [],
+                "data_collection": []
+            }
         
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
