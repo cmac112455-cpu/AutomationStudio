@@ -413,23 +413,6 @@ const ConversationalAgentsPage = () => {
     console.log('🎙️ Using Web Audio API for recording (MediaRecorder compatibility issue)...');
     
     try {
-      console.log('🎙️ Starting recording...');
-      console.log('🔍 Checking microphone devices...');
-      
-      // List available audio devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const audioInputs = devices.filter(d => d.kind === 'audioinput');
-      console.log('🎤 Available microphones:', audioInputs.length);
-      audioInputs.forEach((device, i) => {
-        console.log(`  ${i + 1}. ${device.label || 'Microphone ' + (i + 1)} (${device.deviceId.substring(0, 20)}...)`);
-      });
-      
-      if (audioInputs.length === 0) {
-        throw new Error('No microphone found! Please connect a microphone.');
-      }
-      
-      console.log('🎤 Requesting microphone access...');
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -439,6 +422,30 @@ const ConversationalAgentsPage = () => {
       });
       
       console.log('✅ Microphone access granted');
+      
+      // Use Web Audio API to capture audio
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      audioContextRef.current = audioContext;
+      const source = audioContext.createMediaStreamSource(stream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      
+      audioChunksBuffer.current = [];
+      
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        // Convert Float32Array to Int16Array for WAV
+        const int16Data = new Int16Array(inputData.length);
+        for (let i = 0; i < inputData.length; i++) {
+          const s = Math.max(-1, Math.min(1, inputData[i]));
+          int16Data[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        audioChunksBuffer.current.push(int16Data);
+      };
+      
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+      
+      console.log('✅ Web Audio recording started');
       
       // Verify stream
       const tracks = stream.getAudioTracks();
