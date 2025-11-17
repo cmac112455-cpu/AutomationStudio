@@ -39,7 +39,7 @@ const IntegrationsPage = () => {
   const saveIntegration = async (service) => {
     setIntegrations(prev => ({
       ...prev,
-      [service]: { ...prev[service], loading: true }
+      [service]: { ...prev[service], loading: true, errorMessage: '' }
     }));
 
     try {
@@ -52,16 +52,18 @@ const IntegrationsPage = () => {
 
       setIntegrations(prev => ({
         ...prev,
-        [service]: { ...prev[service], connected: true, loading: false }
+        [service]: { ...prev[service], connected: true, loading: false, errorMessage: '' }
       }));
 
       setSaveStatus(prev => ({ ...prev, [service]: 'success' }));
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [service]: null })), 3000);
     } catch (error) {
       console.error('Failed to save integration:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to connect. Please check your API key.';
+      
       setIntegrations(prev => ({
         ...prev,
-        [service]: { ...prev[service], loading: false }
+        [service]: { ...prev[service], loading: false, errorMessage }
       }));
       setSaveStatus(prev => ({ ...prev, [service]: 'error' }));
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [service]: null })), 3000);
