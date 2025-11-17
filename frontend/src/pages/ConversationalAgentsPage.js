@@ -225,19 +225,84 @@ const ConversationalAgentsPage = () => {
     setEditingAgent(agent);
   };
 
-  const startTest = async (agent) => {
+  const startTest = (agent) => {
     setTestingAgent(agent);
     setShowTestModal(true);
     setConversation([]);
+    setCallActive(false);
+    setIsConnecting(false);
+  };
+
+  const initiateCall = async () => {
+    if (!testingAgent) return;
     
-    // Start the phone call session
+    setIsConnecting(true);
+    
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${agent.id}/start-call`);
-      toast.success('Call initiated - Starting conversation...');
+      // Start call session
+      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/start-call`);
+      
+      setCallActive(true);
+      setIsConnecting(false);
+      toast.success('Connected!');
+      
+      // Agent greets immediately if first message exists
+      if (testingAgent.firstMessage) {
+        setIsSending(true);
+        
+        // Generate audio for first message
+        const greetingResponse = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/greeting`);
+        
+        const agentMessage = {
+          role: 'agent',
+          content: testingAgent.firstMessage,
+          audio_url: greetingResponse.data.audio_url,
+          timestamp: new Date().toISOString()
+        };
+        
+        setConversation([agentMessage]);
+        setIsSending(false);
+        
+        // Auto-play greeting
+        if (greetingResponse.data.audio_url) {
+          const audio = new Audio(greetingResponse.data.audio_url);
+          audio.onplay = () => setAudioPlaying(true);
+          audio.onended = () => {
+            setAudioPlaying(false);
+            // Auto-start listening after agent finishes speaking
+            setTimeout(() => {
+              if (callActive) {
+                startRecording();
+              }
+            }, 500);
+          };
+          audio.play();
+        } else {
+          // No audio, just start listening
+          setTimeout(() => startRecording(), 500);
+        }
+      } else {
+        // No greeting, start listening immediately
+        setTimeout(() => startRecording(), 500);
+      }
+      
     } catch (error) {
       console.error('Error starting call:', error);
-      toast.error('Failed to start call');
+      toast.error('Failed to connect');
+      setIsConnecting(false);
     }
+  };
+
+  const endCall = () => {
+    if (isRecording) stopRecording();
+    if (mediaRecorder) {
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+    setCallActive(false);
+    setShowTestModal(false);
+    setTestingAgent(null);
+    setConversation([]);
+    toast.success('Call ended');
   };
 
   const startRecording = async () => {
