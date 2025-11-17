@@ -8,7 +8,7 @@ import json
 import time
 import base64
 
-BACKEND_URL = "https://bizautopilot-10.preview.emergentagent.com/api"
+BACKEND_URL = "https://smart-workflow-hub-3.preview.emergentagent.com/api"
 
 def test_image_generation():
     print("🧪 VERIFYING IMAGE GENERATION FUNCTIONALITY")
