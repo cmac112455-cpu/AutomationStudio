@@ -314,6 +314,22 @@ const TextToMusicNode = ({ data }) => {
 };
 
 
+const AudioStitchNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#f59e0b" hasInput={true} nodeType="audiostitch">
+      <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Volume2 className="w-4 h-4 text-amber-500" />
+          <div className="font-semibold text-white">Audio Stitch</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Mix audio with video
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
 const TaskPlannerNode = ({ data }) => {
   return (
     <NodeWrapper color="#10b981" hasInput={true} nodeType="taskplanner">
