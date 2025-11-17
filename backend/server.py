@@ -2429,9 +2429,11 @@ async def create_agent(agent_data: dict, user_id: str = Depends(get_current_user
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.conversational_agents.insert_one(agent)
+        # Insert and don't return the MongoDB result
+        await db.conversational_agents.insert_one(agent.copy())
         
-        return {"message": "Agent created successfully", "agent": agent}
+        # Return only the agent data without MongoDB _id
+        return {"message": "Agent created successfully", "agent_id": agent["id"]}
     except Exception as e:
         logging.error(f"[CONVERSATIONAL_AI] Error creating agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create agent")
