@@ -393,24 +393,27 @@ const ConversationalAgentsPage = () => {
 
         // Auto-play audio response
         if (response.data.audio_url) {
+          console.log('Playing agent audio response...');
           const audio = new Audio(response.data.audio_url);
-          audio.onplay = () => setAudioPlaying(true);
+          audio.onplay = () => {
+            console.log('Agent audio playing');
+            setAudioPlaying(true);
+          };
           audio.onended = () => {
+            console.log('Agent audio ended, restarting recording...');
             setAudioPlaying(false);
             // Auto-restart listening after agent finishes (seamless conversation)
             setTimeout(() => {
-              if (callActive && !isRecording) {
-                startRecording();
-              }
-            }, 500);
+              console.log('Attempting to restart recording...', { callActive, isRecording });
+              startRecording();
+            }, 800);
           };
-          audio.play();
+          await audio.play();
         } else {
+          console.warn('No audio URL received, restarting recording anyway');
           // No audio, restart listening immediately
           setTimeout(() => {
-            if (callActive && !isRecording) {
-              startRecording();
-            }
+            startRecording();
           }, 500);
         }
       };
@@ -420,9 +423,8 @@ const ConversationalAgentsPage = () => {
       toast.error('Failed to process voice input');
       // Still restart listening on error
       setTimeout(() => {
-        if (callActive && !isRecording) {
-          startRecording();
-        }
+        console.log('Restarting after error...');
+        startRecording();
       }, 1000);
     } finally {
       setIsSending(false);
