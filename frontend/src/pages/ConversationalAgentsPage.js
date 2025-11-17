@@ -2290,13 +2290,45 @@ const ConversationalAgentsPage = () => {
                                   {toolIds.length > 0 ? `${toolIds.length} webhook(s)` : 'None'}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500 mt-2">
-                                All changes save immediately to ElevenLabs
-                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* Save Changes Section */}
+                      {unsavedToolsChanges && (
+                        <div className="sticky bottom-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 border-2 border-orange-500 rounded-xl p-4 animate-pulse">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-xl">⚠️</span>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-orange-300">Unsaved Changes</h4>
+                                <p className="text-sm text-gray-300">
+                                  You have unsaved tool changes. Click "Save to ElevenLabs" to apply them.
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={saveToolsChanges}
+                              disabled={savingTools}
+                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-6 py-3 shadow-lg"
+                            >
+                              {savingTools ? (
+                                <>
+                                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 inline-block"></div>
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  💾 Save to ElevenLabs
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
