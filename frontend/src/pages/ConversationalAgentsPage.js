@@ -366,68 +366,107 @@ const ConversationalAgentsPage = () => {
       reader.readAsDataURL(audioBlob);
       
       reader.onloadend = async () => {
-        const base64Audio = reader.result.split(',')[1];
+        try {
+          const base64Audio = reader.result.split(',')[1];
 
-        // Send to backend for speech-to-text and processing
-        const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
-          audio: base64Audio,
-          conversation_history: conversation
-        });
+          // Send to backend for speech-to-text and processing
+          const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
+            audio: base64Audio,
+            conversation_history: conversation
+          });
 
-        // Add user message (transcribed)
-        const userMessage = {
-          role: 'user',
-          content: response.data.transcription,
-          timestamp: new Date().toISOString()
-        };
-        setConversation(prev => [...prev, userMessage]);
-
-        // Add agent response
-        const agentMessage = {
-          role: 'agent',
-          content: response.data.response,
-          audio_url: response.data.audio_url,
-          timestamp: new Date().toISOString()
-        };
-        setConversation(prev => [...prev, agentMessage]);
-
-        // Auto-play audio response
-        if (response.data.audio_url) {
-          console.log('Playing agent audio response...');
-          const audio = new Audio(response.data.audio_url);
-          audio.onplay = () => {
-            console.log('Agent audio playing');
-            setAudioPlaying(true);
+          // Add user message (transcribed)
+          const userMessage = {
+            role: 'user',
+            content: response.data.transcription,
+            timestamp: new Date().toISOString()
           };
-          audio.onended = () => {
-            console.log('Agent audio ended, restarting recording...');
-            setAudioPlaying(false);
-            // Auto-restart listening after agent finishes (seamless conversation)
+          setConversation(prev => [...prev, userMessage]);
+
+          // Add agent response
+          const agentMessage = {
+            role: 'agent',
+            content: response.data.response,
+            audio_url: response.data.audio_url,
+            timestamp: new Date().toISOString()
+          };
+          setConversation(prev => [...prev, agentMessage]);
+
+          // Set isSending to false BEFORE playing audio
+          setIsSending(false);
+
+          // Auto-play audio response
+          if (response.data.audio_url) {
+            console.log('Playing agent audio response...');
+            const audio = new Audio(response.data.audio_url);
+            audio.onplay = () => {
+              console.log('Agent audio playing');
+              setAudioPlaying(true);
+            };
+            audio.onended = () => {
+              console.log('Agent audio ended, restarting recording...');
+              setAudioPlaying(false);
+              // Auto-restart listening after agent finishes (seamless conversation)
+              setTimeout(() => {
+                if (callActive) {
+                  console.log('Attempting to restart recording...');
+                  startRecording();
+                }
+              }, 800);
+            };
+            audio.onerror = (e) => {
+              console.error('Audio playback error:', e);
+              setAudioPlaying(false);
+              // Restart recording even if audio fails
+              setTimeout(() => {
+                if (callActive) {
+                  startRecording();
+                }
+              }, 500);
+            };
+            audio.play().catch(err => {
+              console.error('Failed to play audio:', err);
+              setAudioPlaying(false);
+              // Restart recording if play fails
+              setTimeout(() => {
+                if (callActive) {
+                  startRecording();
+                }
+              }, 500);
+            });
+          } else {
+            console.warn('No audio URL received, restarting recording anyway');
+            // No audio, restart listening immediately
             setTimeout(() => {
-              console.log('Attempting to restart recording...', { callActive, isRecording });
-              startRecording();
-            }, 800);
-          };
-          await audio.play();
-        } else {
-          console.warn('No audio URL received, restarting recording anyway');
-          // No audio, restart listening immediately
+              if (callActive) {
+                startRecording();
+              }
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error processing voice:', error);
+          toast.error('Failed to process voice input');
+          setIsSending(false);
+          // Still restart listening on error
           setTimeout(() => {
-            startRecording();
-          }, 500);
+            if (callActive) {
+              console.log('Restarting after error...');
+              startRecording();
+            }
+          }, 1000);
         }
       };
 
     } catch (error) {
-      console.error('Error processing voice:', error);
+      console.error('Error in processVoiceInput outer:', error);
       toast.error('Failed to process voice input');
+      setIsSending(false);
       // Still restart listening on error
       setTimeout(() => {
-        console.log('Restarting after error...');
-        startRecording();
+        if (callActive) {
+          startRecording();
+        }
       }, 1000);
-    } finally {
-      setIsSending(false);
     }
   };
 
