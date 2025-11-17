@@ -208,6 +208,42 @@ export default function Layout({ children }) {
               </div>
             )}
           </div>
+
+          {/* Conversational AI Studio Section with Sub-items */}
+          <div>
+            <button
+              onClick={() => setConversationalAIExpanded(!conversationalAIExpanded)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                location.pathname.startsWith('/conversational-ai')
+                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-l-4 border-cyan-500 text-cyan-400'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Bot className="w-5 h-5" />
+              <span className="font-medium flex-1 text-left">Conversational AI</span>
+              {conversationalAIExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+
+            {conversationalAIExpanded && (
+              <div className="ml-8 mt-2 space-y-1">
+                <Link
+                  to="/conversational-ai/agents"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/conversational-ai/agents'
+                      ? 'bg-white/10 text-cyan-400'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Bot className="w-4 h-4" />
+                  Agents
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* User Info & Logout */}
