@@ -1295,27 +1295,83 @@ export default function AutomationStudioPage() {
                   </div>
 
                   <div>
-                    <Label className="text-white">Voice</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-white">Voice Selection</Label>
+                      <Button
+                        onClick={fetchVoices}
+                        disabled={voicesLoading}
+                        size="sm"
+                        className="h-7 text-xs bg-cyan-600 hover:bg-cyan-700"
+                      >
+                        {voicesLoading ? 'Loading...' : 'Load Voices'}
+                      </Button>
+                    </div>
+                    
+                    {availableVoices.length > 0 && (
+                      <div className="mb-2">
+                        <Input
+                          value={voiceSearchQuery}
+                          onChange={(e) => setVoiceSearchQuery(e.target.value)}
+                          placeholder="Search voices..."
+                          className="bg-[#0f1218] border-gray-700 text-white"
+                        />
+                      </div>
+                    )}
+                    
                     <Select
-                      value={nodeConfig.voice || 'Rachel'}
-                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, voice: value })}
+                      value={nodeConfig.voice_id || nodeConfig.voice || '21m00Tcm4TlvDq8ikWAM'}
+                      onValueChange={(value) => {
+                        const selectedVoice = availableVoices.find(v => v.voice_id === value);
+                        setNodeConfig({ 
+                          ...nodeConfig, 
+                          voice_id: value,
+                          voice: selectedVoice?.name || value
+                        });
+                      }}
                     >
-                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
-                        <SelectItem value="Rachel">Rachel (Female, Calm)</SelectItem>
-                        <SelectItem value="Bella">Bella (Female, Soft)</SelectItem>
-                        <SelectItem value="Antoni">Antoni (Male, Well-rounded)</SelectItem>
-                        <SelectItem value="Josh">Josh (Male, Deep)</SelectItem>
-                        <SelectItem value="Arnold">Arnold (Male, Crisp)</SelectItem>
-                        <SelectItem value="Adam">Adam (Male, Deep)</SelectItem>
-                        <SelectItem value="Sam">Sam (Male, Raspy)</SelectItem>
-                        <SelectItem value="Domi">Domi (Female, Strong)</SelectItem>
-                        <SelectItem value="Elli">Elli (Female, Emotional)</SelectItem>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700 max-h-[300px] overflow-y-auto">
+                        {availableVoices.length === 0 ? (
+                          <>
+                            <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Female, Calm)</SelectItem>
+                            <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Female, Soft)</SelectItem>
+                            <SelectItem value="ErXwobaYiN019PkySvjV">Antoni (Male, Well-rounded)</SelectItem>
+                            <SelectItem value="TxGEqnHWrfWFTfGW9XjX">Josh (Male, Deep)</SelectItem>
+                            <SelectItem value="VR6AewLTigWG4xSOukaG">Arnold (Male, Crisp)</SelectItem>
+                            <SelectItem value="pNInz6obpgDQGcFmaJgB">Adam (Male, Deep)</SelectItem>
+                            <SelectItem value="yoZ06aMxZJJ28mfd3POQ">Sam (Male, Raspy)</SelectItem>
+                            <SelectItem value="AZnzlk1XvdvUeBnXmlld">Domi (Female, Strong)</SelectItem>
+                            <SelectItem value="MF3mGyEYCl7XYWbV9V6O">Elli (Female, Emotional)</SelectItem>
+                          </>
+                        ) : (
+                          availableVoices
+                            .filter(voice => 
+                              !voiceSearchQuery || 
+                              voice.name.toLowerCase().includes(voiceSearchQuery.toLowerCase()) ||
+                              (voice.labels?.accent && voice.labels.accent.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
+                              (voice.labels?.description && voice.labels.description.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
+                              (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(voiceSearchQuery.toLowerCase()))
+                            )
+                            .map(voice => {
+                              const labels = voice.labels || {};
+                              const description = `${voice.name} (${labels.gender || 'Unknown'}${labels.age ? ', ' + labels.age : ''}${labels.accent ? ', ' + labels.accent : ''})`;
+                              return (
+                                <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                                  {description}
+                                </SelectItem>
+                              );
+                            })
+                        )}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-gray-500 mt-1">Select from pre-made ElevenLabs voices</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {availableVoices.length > 0 
+                        ? `${availableVoices.filter(v => !voiceSearchQuery || v.name.toLowerCase().includes(voiceSearchQuery.toLowerCase())).length} voices available`
+                        : 'Click "Load Voices" to see all available voices'
+                      }
+                    </p>
                   </div>
 
                   <div>
