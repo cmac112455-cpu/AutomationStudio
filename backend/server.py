@@ -3410,13 +3410,18 @@ async def update_agent_tools(
             logging.error(f"[TOOLS] ElevenLabs API error: {patch_response.text}")
             raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
         
+        # Get updated agent data to return
+        updated_response = patch_response.json()
+        updated_conversation_config = updated_response.get("conversation_config", {})
+        updated_agent_config = updated_conversation_config.get("agent", {})
+        updated_prompt_config = updated_agent_config.get("prompt", {})
+        
         logging.info(f"[TOOLS] ✅ Successfully updated tools for agent {agent_id}")
         
         return {
             "message": "Tools updated successfully",
-            "system_tools": agent_config.get("system_tools", []),
-            "server_tools": agent_config.get("server_tools", []),
-            "client_tools": agent_config.get("client_tools", [])
+            "built_in_tools": updated_prompt_config.get("built_in_tools", []),
+            "tool_ids": updated_prompt_config.get("tool_ids", [])
         }
         
     except HTTPException:
