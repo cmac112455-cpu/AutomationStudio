@@ -3437,9 +3437,20 @@ async def update_agent_tools(
                     new_built_in_tools[tool_key] = None
             
             prompt_config["built_in_tools"] = new_built_in_tools
+            
+            # CRITICAL: Also update the 'tools' array!
+            # ElevenLabs uses BOTH built_in_tools object AND tools array
+            tools_array = []
+            for tool_key, tool_config in new_built_in_tools.items():
+                if tool_config is not None:
+                    tools_array.append(tool_config)
+            
+            prompt_config["tools"] = tools_array
+            
             enabled_count = len([t for t in new_built_in_tools.values() if t])
             logging.info(f"[TOOLS] Built ElevenLabs object structure with {enabled_count} enabled tools")
             logging.info(f"[TOOLS] Enabled tools keys: {[k for k, v in new_built_in_tools.items() if v is not None]}")
+            logging.info(f"[TOOLS] Also updated 'tools' array with {len(tools_array)} items")
         
         if "tool_ids" in tools_update:
             prompt_config["tool_ids"] = tools_update["tool_ids"]
