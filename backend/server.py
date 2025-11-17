@@ -2387,6 +2387,104 @@ async def get_voice_completions(user_id: str = Depends(get_current_user)):
         logging.error(f"[VOICE_STUDIO] Error fetching completions: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch completions")
 
+# ============================================================
+# CONVERSATIONAL AI AGENTS API ENDPOINTS
+# ============================================================
+
+@api_router.get("/conversational-ai/agents")
+async def get_agents(user_id: str = Depends(get_current_user)):
+    """Get all conversational AI agents for user"""
+    try:
+        agents = await db.conversational_agents.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(length=100)
+        
+        return agents
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error fetching agents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch agents")
+
+@api_router.post("/conversational-ai/agents")
+async def create_agent(agent_data: dict, user_id: str = Depends(get_current_user)):
+    """Create a new conversational AI agent"""
+    try:
+        agent = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "name": agent_data.get("name"),
+            "description": agent_data.get("description", ""),
+            "systemPrompt": agent_data.get("systemPrompt", ""),
+            "voice": agent_data.get("voice", ""),
+            "model": agent_data.get("model", "gpt-4o"),
+            "firstMessage": agent_data.get("firstMessage", ""),
+            "language": agent_data.get("language", "en"),
+            "maxDuration": agent_data.get("maxDuration", 600),
+            "temperature": agent_data.get("temperature", 0.7),
+            "responseDelay": agent_data.get("responseDelay", 100),
+            "enableInterruption": agent_data.get("enableInterruption", True),
+            "enableFallback": agent_data.get("enableFallback", True),
+            "status": "active",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.conversational_agents.insert_one(agent)
+        
+        return {"message": "Agent created successfully", "agent": agent}
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error creating agent: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create agent")
+
+@api_router.put("/conversational-ai/agents/{agent_id}")
+async def update_agent(agent_id: str, agent_data: dict, user_id: str = Depends(get_current_user)):
+    """Update a conversational AI agent"""
+    try:
+        update_data = {
+            "name": agent_data.get("name"),
+            "description": agent_data.get("description", ""),
+            "systemPrompt": agent_data.get("systemPrompt", ""),
+            "voice": agent_data.get("voice", ""),
+            "model": agent_data.get("model", "gpt-4o"),
+            "firstMessage": agent_data.get("firstMessage", ""),
+            "language": agent_data.get("language", "en"),
+            "maxDuration": agent_data.get("maxDuration", 600),
+            "temperature": agent_data.get("temperature", 0.7),
+            "responseDelay": agent_data.get("responseDelay", 100),
+            "enableInterruption": agent_data.get("enableInterruption", True),
+            "enableFallback": agent_data.get("enableFallback", True),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        result = await db.conversational_agents.update_one(
+            {"id": agent_id, "user_id": user_id},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        return {"message": "Agent updated successfully"}
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error updating agent: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update agent")
+
+@api_router.delete("/conversational-ai/agents/{agent_id}")
+async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Delete a conversational AI agent"""
+    try:
+        result = await db.conversational_agents.delete_one(
+            {"id": agent_id, "user_id": user_id}
+        )
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        return {"message": "Agent deleted successfully"}
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete agent")
+
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
     """Mark a completion as saved"""
