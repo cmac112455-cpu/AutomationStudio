@@ -20,6 +20,7 @@ const ConversationalAgentsPage = () => {
   // Test modal state
   const [showTestModal, setShowTestModal] = useState(false);
   const [testingAgent, setTestingAgent] = useState(null);
+  const [syncing, setSyncing] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [callActive, setCallActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
