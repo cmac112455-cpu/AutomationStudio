@@ -683,11 +683,16 @@ export default function AutomationStudioPage() {
       const token = localStorage.getItem('apoe_token');
       const previewText = nodeConfig.text || "Hello! This is a preview of the selected voice. You can customize the voice settings to achieve your desired sound.";
       
+      // Use voice_id if available, otherwise fall back to voice name
+      const voiceToUse = nodeConfig.voice_id || nodeConfig.voice || '21m00Tcm4TlvDq8ikWAM';
+      
+      console.log('Preview config:', { voiceToUse, nodeConfig });
+      
       const response = await axios.post(
         `${BACKEND_URL}/api/tts/preview`,
         {
           text: previewText,
-          voice: nodeConfig.voice || nodeConfig.voice_id || 'Rachel',
+          voice: voiceToUse,
           model_id: nodeConfig.model_id || 'eleven_turbo_v2_5',
           stability: nodeConfig.stability || 0.5,
           similarity_boost: nodeConfig.similarity_boost || 0.75,
