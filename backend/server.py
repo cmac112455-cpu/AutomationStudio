@@ -2563,8 +2563,17 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                 'josh': 'TxGEqnHWrfWFTfGW9XjX',
                                 'arnold': 'VR6AewLTigWG4xSOukaG',
                                 'sam': 'yoZ06aMxZJJ28mfd3POQ',
+                                'domi': 'AZnzlk1XvdvUeBnXmlld',
+                                'elli': 'MF3mGyEYCl7XYWbV9V6O',
                             }
                             voice_id = voice_map.get(voice.lower(), voice)
+                            
+                            # Get customization settings from node config
+                            model_id = node_data.get('model_id', 'eleven_monolingual_v1')
+                            stability = node_data.get('stability', 0.5)
+                            similarity_boost = node_data.get('similarity_boost', 0.75)
+                            style = node_data.get('style', 0)
+                            speaker_boost = node_data.get('speaker_boost', False)
                             
                             url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
                             headers = {
@@ -2573,14 +2582,25 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                 "xi-api-key": elevenlabs_key
                             }
                             
+                            # Build voice settings with all customizations
+                            voice_settings = {
+                                "stability": float(stability),
+                                "similarity_boost": float(similarity_boost),
+                            }
+                            
+                            # Add optional settings
+                            if style > 0:
+                                voice_settings["style"] = float(style)
+                            if speaker_boost:
+                                voice_settings["use_speaker_boost"] = True
+                            
                             payload = {
                                 "text": text,
-                                "model_id": "eleven_monolingual_v1",
-                                "voice_settings": {
-                                    "stability": 0.5,
-                                    "similarity_boost": 0.75
-                                }
+                                "model_id": model_id,
+                                "voice_settings": voice_settings
                             }
+                            
+                            logging.info(f"[TTS] Voice settings: stability={stability}, similarity={similarity_boost}, style={style}, boost={speaker_boost}")
                             
                             response = requests.post(url, json=payload, headers=headers, timeout=60)
                             
