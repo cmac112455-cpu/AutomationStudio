@@ -3251,7 +3251,6 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     
                     # Get additional settings
                     duration_seconds = node_data.get('duration_seconds', 120)  # Default 2 minutes
-                    model_id = node_data.get('model_id', 'eleven_music_v1')
                     
                     if not prompt:
                         result = {"status": "error", "error": "No prompt provided for music generation"}
@@ -3277,7 +3276,6 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             
                             payload = {
                                 "prompt": prompt,
-                                "model_id": model_id,
                                 "duration_seconds": int(duration_seconds)
                             }
                             
