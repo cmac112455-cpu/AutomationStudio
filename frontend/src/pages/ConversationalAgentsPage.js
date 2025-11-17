@@ -1202,13 +1202,120 @@ const ConversationalAgentsPage = () => {
               {/* Knowledge Base Tab Content */}
               {activeTab === 'knowledge' && (
                 <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
-                      <span className="text-4xl">📚</span>
+                  <div className="bg-[#13141a] border border-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Upload Documents</h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      Add documents, URLs, or text to give your agent domain-specific knowledge. 
+                      Supported formats: PDF, TXT, DOCX, HTML
+                    </p>
+                    
+                    {/* File Upload */}
+                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-cyan-500/50 transition-colors">
+                      <input
+                        type="file"
+                        id="kb-file-upload"
+                        accept=".pdf,.txt,.docx,.html,.epub"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          
+                          setUploadingFile(true);
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          try {
+                            const response = await axios.post(
+                              `${BACKEND_URL}/api/conversational-ai/knowledge-base/upload`,
+                              formData,
+                              { headers: { 'Content-Type': 'multipart/form-data' } }
+                            );
+                            toast.success(`✅ ${file.name} uploaded successfully!`);
+                            // Reload knowledge base list
+                            loadKnowledgeBase();
+                          } catch (error) {
+                            toast.error('Failed to upload file: ' + (error.response?.data?.detail || error.message));
+                          } finally {
+                            setUploadingFile(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <label htmlFor="kb-file-upload" className="cursor-pointer">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-cyan-500/10 rounded-full flex items-center justify-center">
+                          {uploadingFile ? (
+                            <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <span className="text-3xl">📄</span>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-gray-300 mb-1">
+                          {uploadingFile ? 'Uploading...' : 'Click to upload or drag and drop'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF, TXT, DOCX, HTML, EPUB (max 10MB)
+                        </p>
+                      </label>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Knowledge Base</h3>
-                    <p className="text-gray-400 mb-6">Upload documents, add URLs, or input text to give your agent domain-specific knowledge</p>
-                    <p className="text-sm text-cyan-400">Coming Soon - Full Knowledge Base Integration</p>
+                  </div>
+
+                  {/* Knowledge Base List */}
+                  <div className="bg-[#13141a] border border-gray-800 rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Your Knowledge Base</h3>
+                      <Button
+                        onClick={loadKnowledgeBase}
+                        className="bg-gray-700 hover:bg-gray-600"
+                        size="sm"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {knowledgeBase.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="text-sm">No documents uploaded yet</p>
+                        <p className="text-xs mt-1">Upload your first document above</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {knowledgeBase.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between p-3 bg-[#0a0b0d] rounded-lg border border-gray-800 hover:border-cyan-500/30 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">
+                                {item.type === 'file' ? '📄' : item.type === 'url' ? '🔗' : '📝'}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium text-gray-200">{item.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {item.type} • {new Date(item.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                if (confirm('Delete this knowledge base item?')) {
+                                  try {
+                                    await axios.delete(`${BACKEND_URL}/api/conversational-ai/knowledge-base/${item.id}`);
+                                    toast.success('Knowledge base item deleted');
+                                    loadKnowledgeBase();
+                                  } catch (error) {
+                                    toast.error('Failed to delete item');
+                                  }
+                                }
+                              }}
+                              className="bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                              size="sm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
