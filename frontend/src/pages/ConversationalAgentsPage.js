@@ -2439,29 +2439,63 @@ const ConversationalAgentsPage = () => {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {/* Audio Recording */}
-              <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Mic className="w-5 h-5 text-cyan-500" />
-                    Call Recording
-                  </h3>
-                  <a
-                    href={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
-                    download={`conversation_${selectedConversation.conversation_id}.mp3`}
-                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+              {selectedConversation.has_audio && (
+                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Mic className="w-5 h-5 text-cyan-500" />
+                      Call Recording
+                    </h3>
+                    <a
+                      href={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
+                      download={`conversation_${selectedConversation.conversation_id}.mp3`}
+                      className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                      onClick={(e) => {
+                        console.log('🎵 Downloading audio from:', e.target.href);
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </a>
+                  </div>
+                  <audio 
+                    controls 
+                    className="w-full"
+                    src={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
+                    onError={(e) => {
+                      console.error('❌ Audio playback error:', e);
+                      console.error('Audio URL:', e.target.src);
+                    }}
+                    onLoadStart={(e) => {
+                      console.log('🎵 Starting to load audio from:', e.target.src);
+                    }}
+                    onLoadedData={(e) => {
+                      console.log('✅ Audio loaded successfully');
+                    }}
                   >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </a>
+                    Your browser does not support the audio element.
+                  </audio>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {selectedConversation.has_user_audio && selectedConversation.has_response_audio 
+                      ? 'Complete recording (user + agent)'
+                      : selectedConversation.has_user_audio 
+                      ? 'User audio only'
+                      : selectedConversation.has_response_audio
+                      ? 'Agent audio only'
+                      : 'Audio available'
+                    }
+                  </p>
                 </div>
-                <audio 
-                  controls 
-                  className="w-full"
-                  src={`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analytics/conversations/${selectedConversation.conversation_id}/audio`}
-                >
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
+              )}
+              
+              {!selectedConversation.has_audio && (
+                <div className="bg-black/40 border border-yellow-500/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-yellow-400">
+                    <Activity className="w-5 h-5" />
+                    <p className="text-sm">No audio recording available for this conversation</p>
+                  </div>
+                </div>
+              )}
 
               {/* Overview - Collapsible */}
               <div className="bg-black/40 border border-gray-700 rounded-xl">
