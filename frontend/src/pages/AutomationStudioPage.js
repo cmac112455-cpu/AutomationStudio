@@ -659,7 +659,7 @@ export default function AutomationStudioPage() {
         {
           text: previewText,
           voice: nodeConfig.voice || 'Rachel',
-          model_id: nodeConfig.model_id || 'eleven_monolingual_v1',
+          model_id: nodeConfig.model_id || 'eleven_turbo_v2_5',
           stability: nodeConfig.stability || 0.5,
           similarity_boost: nodeConfig.similarity_boost || 0.75,
           style: nodeConfig.style || 0,
