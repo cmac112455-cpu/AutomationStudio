@@ -3951,11 +3951,16 @@ async def get_conversation_audio(
         logging.info(f"[ANALYTICS] ✅ Successfully fetched audio for conversation {conversation_id}")
         
         # Return the audio content with proper headers
+        # Note: We need to allow inline playback, not force download
+        content_type = response.headers.get('content-type', 'audio/mpeg')
+        
         return Response(
             content=response.content,
-            media_type="audio/mpeg",
+            media_type=content_type,
             headers={
-                "Content-Disposition": f"attachment; filename=conversation_{conversation_id}.mp3"
+                "Content-Disposition": f'inline; filename="conversation_{conversation_id}.mp3"',
+                "Accept-Ranges": "bytes",
+                "Cache-Control": "public, max-age=3600"
             }
         )
         
