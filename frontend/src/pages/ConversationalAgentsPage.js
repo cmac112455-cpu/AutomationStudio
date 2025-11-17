@@ -1035,7 +1035,10 @@ const ConversationalAgentsPage = () => {
                   🤖 Agent
                 </button>
                 <button
-                  onClick={() => setActiveTab('knowledge')}
+                  onClick={() => {
+                    setActiveTab('knowledge');
+                    loadKnowledgeBase();
+                  }}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     activeTab === 'knowledge'
                       ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
