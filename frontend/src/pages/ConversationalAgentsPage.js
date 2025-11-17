@@ -60,6 +60,19 @@ const ConversationalAgentsPage = () => {
     startDate: '',
     endDate: ''
   });
+  const [analysisSection, setAnalysisSection] = useState('evaluation'); // evaluation, data-collection, analytics
+  const [evaluationCriteria, setEvaluationCriteria] = useState([]);
+  const [dataCollectionItems, setDataCollectionItems] = useState([]);
+  const [showAddCriteriaModal, setShowAddCriteriaModal] = useState(false);
+  const [showAddDataItemModal, setShowAddDataItemModal] = useState(false);
+  const [editingCriteria, setEditingCriteria] = useState(null);
+  const [editingDataItem, setEditingDataItem] = useState(null);
+  const [criteriaForm, setCriteriaForm] = useState({ identifier: '', description: '' });
+  const [dataItemForm, setDataItemForm] = useState({ 
+    identifier: '', 
+    data_type: 'string', 
+    description: '' 
+  });
   
   // Form state
   const [formData, setFormData] = useState({
