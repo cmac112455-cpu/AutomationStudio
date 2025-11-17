@@ -2554,6 +2554,87 @@ export default function AutomationStudioPage() {
           </div>
         </div>
       )}
+
+      {/* New Workflow Modal */}
+      {showNewWorkflowModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Create New Workflow</h2>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-gray-400 mb-2 block">Workflow Name</Label>
+                <input
+                  type="text"
+                  value={newWorkflowName}
+                  onChange={(e) => setNewWorkflowName(e.target.value)}
+                  placeholder="Enter workflow name..."
+                  className="w-full px-4 py-2 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  onKeyPress={(e) => e.key === 'Enter' && createNewWorkflow()}
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={createNewWorkflow}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  Create
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowNewWorkflowModal(false);
+                    setNewWorkflowName('');
+                  }}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Workflow Modal */}
+      {showRenameModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Rename Workflow</h2>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-gray-400 mb-2 block">New Name</Label>
+                <input
+                  type="text"
+                  value={renameWorkflowName}
+                  onChange={(e) => setRenameWorkflowName(e.target.value)}
+                  placeholder="Enter new name..."
+                  className="w-full px-4 py-2 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                  onKeyPress={(e) => e.key === 'Enter' && renameWorkflow()}
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={renameWorkflow}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  Rename
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowRenameModal(false);
+                    setRenameWorkflowId(null);
+                    setRenameWorkflowName('');
+                  }}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
