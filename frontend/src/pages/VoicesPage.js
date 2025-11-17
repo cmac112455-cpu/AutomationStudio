@@ -540,12 +540,12 @@ const VoicesPage = () => {
               <div className="space-y-4">
                 {/* Model */}
                 <div>
-                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 block">Model</Label>
+                  <Label className="text-xs text-gray-400 mb-2 block">Model</Label>
                   <Select value={modelId} onValueChange={setModelId}>
-                    <SelectTrigger className="bg-white dark:bg-[#13141a] border-gray-200 dark:border-gray-800">
+                    <SelectTrigger className="bg-[#13141a] border-gray-800">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#1a1d2e] border-gray-700">
                       <SelectItem value="eleven_turbo_v2_5">Turbo v2.5</SelectItem>
                       <SelectItem value="eleven_turbo_v2">Turbo v2</SelectItem>
                       <SelectItem value="eleven_multilingual_v2">Multilingual v2</SelectItem>
@@ -555,7 +555,7 @@ const VoicesPage = () => {
 
                 {/* Stability */}
                 <div>
-                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
+                  <Label className="text-xs text-gray-400 mb-2 flex justify-between">
                     <span>Stability</span>
                     <span>{stability}</span>
                   </Label>
@@ -566,13 +566,13 @@ const VoicesPage = () => {
                     step="0.05"
                     value={stability}
                     onChange={(e) => setStability(parseFloat(e.target.value))}
-                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
                 {/* Similarity */}
                 <div>
-                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
+                  <Label className="text-xs text-gray-400 mb-2 flex justify-between">
                     <span>Similarity</span>
                     <span>{similarityBoost}</span>
                   </Label>
@@ -583,13 +583,13 @@ const VoicesPage = () => {
                     step="0.05"
                     value={similarityBoost}
                     onChange={(e) => setSimilarityBoost(parseFloat(e.target.value))}
-                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
                 {/* Speed */}
                 <div>
-                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
+                  <Label className="text-xs text-gray-400 mb-2 flex justify-between">
                     <span>Speed</span>
                     <span>{speed}x</span>
                   </Label>
@@ -600,7 +600,7 @@ const VoicesPage = () => {
                     step="0.05"
                     value={speed}
                     onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
@@ -612,7 +612,7 @@ const VoicesPage = () => {
                     onChange={(e) => setSpeakerBoost(e.target.checked)}
                     className="w-4 h-4 accent-blue-500"
                   />
-                  <Label className="text-xs text-gray-600 dark:text-gray-400">Clarity boost</Label>
+                  <Label className="text-xs text-gray-400">Clarity boost</Label>
                 </div>
               </div>
             </div>
