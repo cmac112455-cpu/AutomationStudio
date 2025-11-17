@@ -455,11 +455,24 @@ const ConversationalAgentsPage = () => {
         }
       }, 10000);
 
-      // Start recording with timeslice to ensure data is captured
-      // Using 100ms timeslice for more frequent data collection
-      recorder.start(100);
-      console.log('🎙️ Recorder started with 100ms timeslice');
+      // Start recording - don't use timeslice, let it collect until stop
+      recorder.start();
+      console.log('🎙️ Recorder started');
       console.log('🔴 Recording active - SPEAK NOW!');
+      
+      // Request data periodically to ensure chunks are captured
+      const dataRequestInterval = setInterval(() => {
+        if (recorder.state === 'recording') {
+          recorder.requestData();
+          console.log('📊 Manually requested data from recorder');
+        } else {
+          clearInterval(dataRequestInterval);
+        }
+      }, 500); // Request data every 500ms
+      
+      // Store interval ID to clear on stop
+      recorder._dataInterval = dataRequestInterval;
+      
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
