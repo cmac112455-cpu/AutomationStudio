@@ -3375,21 +3375,19 @@ async def update_agent_tools(
         current_agent = get_response.json()
         conversation_config = current_agent.get("conversation_config", {})
         agent_config = conversation_config.get("agent", {})
+        prompt_config = agent_config.get("prompt", {})
         
-        # Update tools in agent config
-        if "system_tools" in tools_update:
-            agent_config["system_tools"] = tools_update["system_tools"]
-            logging.info(f"[TOOLS] Updating system tools: {len(tools_update['system_tools'])} items")
+        # Update tools in the correct nested location: conversation_config.agent.prompt
+        if "built_in_tools" in tools_update:
+            prompt_config["built_in_tools"] = tools_update["built_in_tools"]
+            logging.info(f"[TOOLS] Updating built-in tools: {tools_update['built_in_tools']}")
         
-        if "server_tools" in tools_update:
-            agent_config["server_tools"] = tools_update["server_tools"]
-            logging.info(f"[TOOLS] Updating server tools: {len(tools_update['server_tools'])} items")
+        if "tool_ids" in tools_update:
+            prompt_config["tool_ids"] = tools_update["tool_ids"]
+            logging.info(f"[TOOLS] Updating tool IDs: {tools_update['tool_ids']}")
         
-        if "client_tools" in tools_update:
-            agent_config["client_tools"] = tools_update["client_tools"]
-            logging.info(f"[TOOLS] Updating client tools: {len(tools_update['client_tools'])} items")
-        
-        # Update conversation config with modified agent config
+        # Update prompt config back into agent config
+        agent_config["prompt"] = prompt_config
         conversation_config["agent"] = agent_config
         
         # Send update to ElevenLabs
