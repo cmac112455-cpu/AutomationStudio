@@ -2148,20 +2148,20 @@ const ConversationalAgentsPage = () => {
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-gray-400">Completed Calls:</span>
                               <span className="font-semibold text-green-400">
-                                {conversationsData.filter(c => c.status === 'completed').length}
+                                {analyticsData?.completed_calls || 0}
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-gray-400">Failed Calls:</span>
                               <span className="font-semibold text-red-400">
-                                {conversationsData.filter(c => c.status === 'failed').length}
+                                {analyticsData?.failed_calls || 0}
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-gray-400">Success Rate:</span>
                               <span className="font-semibold text-cyan-400">
-                                {conversationsData.length > 0 
-                                  ? `${Math.round((conversationsData.filter(c => c.status === 'completed').length / conversationsData.length) * 100)}%`
+                                {analyticsData?.success_rate 
+                                  ? `${Math.round(analyticsData.success_rate)}%`
                                   : 'N/A'
                                 }
                               </span>
