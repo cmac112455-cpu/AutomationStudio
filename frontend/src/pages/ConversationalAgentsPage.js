@@ -47,6 +47,20 @@ const ConversationalAgentsPage = () => {
   // ElevenLabs Conversation Hook
   const elevenlabsConversation = useConversation();
   
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [conversationsData, setConversationsData] = useState([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showConversationModal, setShowConversationModal] = useState(false);
+  const [analyticsTimeRange, setAnalyticsTimeRange] = useState('week'); // day, week, month
+  const [conversationFilters, setConversationFilters] = useState({
+    minDuration: '',
+    maxDuration: '',
+    startDate: '',
+    endDate: ''
+  });
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
