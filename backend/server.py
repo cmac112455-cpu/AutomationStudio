@@ -1863,6 +1863,97 @@ async def delete_integration(service: str, user_id: str = Depends(get_current_us
     """Remove integration API key for a service"""
     await db.users.update_one(
         {"id": user_id},
+
+
+# ============ TTS PREVIEW ENDPOINT ============
+
+class TTSPreviewRequest(BaseModel):
+    text: str
+    voice: str = 'Rachel'
+    model_id: str = 'eleven_monolingual_v1'
+    stability: float = 0.5
+    similarity_boost: float = 0.75
+    style: float = 0
+    speaker_boost: bool = False
+
+@api_router.post("/tts/preview")
+async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_current_user)):
+    """Generate a preview of text-to-speech with current settings"""
+    try:
+        # Get ElevenLabs API key from user's integrations
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+        
+        if not elevenlabs_key:
+            raise HTTPException(
+                status_code=400,
+                detail="ElevenLabs API key not configured. Please add it in Integrations page."
+            )
+        
+        # Map voice names to IDs
+        voice_map = {
+            'rachel': '21m00Tcm4TlvDq8ikWAM',
+            'adam': 'pNInz6obpgDQGcFmaJgB',
+            'bella': 'EXAVITQu4vr4xnSDxMaL',
+            'antoni': 'ErXwobaYiN019PkySvjV',
+            'josh': 'TxGEqnHWrfWFTfGW9XjX',
+            'arnold': 'VR6AewLTigWG4xSOukaG',
+            'sam': 'yoZ06aMxZJJ28mfd3POQ',
+            'domi': 'AZnzlk1XvdvUeBnXmlld',
+            'elli': 'MF3mGyEYCl7XYWbV9V6O',
+        }
+        voice_id = voice_map.get(request.voice.lower(), request.voice)
+        
+        # Call ElevenLabs API
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": elevenlabs_key
+        }
+        
+        # Build voice settings
+        voice_settings = {
+            "stability": float(request.stability),
+            "similarity_boost": float(request.similarity_boost),
+        }
+        
+        if request.style > 0:
+            voice_settings["style"] = float(request.style)
+        if request.speaker_boost:
+            voice_settings["use_speaker_boost"] = True
+        
+        payload = {
+            "text": request.text,
+            "model_id": request.model_id,
+            "voice_settings": voice_settings
+        }
+        
+        logging.info(f"[TTS_PREVIEW] Generating preview with voice: {request.voice}")
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+        
+        if response.status_code != 200:
+            logging.error(f"[TTS_PREVIEW] ElevenLabs API error: {response.status_code} - {response.text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"ElevenLabs API error: {response.text}"
+            )
+        
+        # Return audio data
+        from fastapi.responses import Response
+        return Response(
+            content=response.content,
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "inline; filename=preview.mp3"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[TTS_PREVIEW] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Preview generation failed: {str(e)}")
+
         {"$unset": {f"integrations.{service}": ""}}
     )
     return {"status": "success", "service": service}
