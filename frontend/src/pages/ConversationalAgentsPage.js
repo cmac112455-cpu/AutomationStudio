@@ -361,6 +361,21 @@ const ConversationalAgentsPage = () => {
     
     try {
       console.log('🎙️ Starting recording...');
+      console.log('🔍 Checking microphone devices...');
+      
+      // List available audio devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = devices.filter(d => d.kind === 'audioinput');
+      console.log('🎤 Available microphones:', audioInputs.length);
+      audioInputs.forEach((device, i) => {
+        console.log(`  ${i + 1}. ${device.label || 'Microphone ' + (i + 1)} (${device.deviceId.substring(0, 20)}...)`);
+      });
+      
+      if (audioInputs.length === 0) {
+        throw new Error('No microphone found! Please connect a microphone.');
+      }
+      
+      console.log('🎤 Requesting microphone access...');
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -372,28 +387,125 @@ const ConversationalAgentsPage = () => {
       
       console.log('✅ Microphone access granted');
       
-      // Use 1 second timeslice for reliable data collection
+      // Verify stream
+      const tracks = stream.getAudioTracks();
+      console.log('🎵 Audio tracks:', tracks.length);
+      tracks.forEach((track, i) => {
+        console.log(`  Track ${i + 1}:`, {
+          label: track.label,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState
+        });
+      });
+      
+      if (tracks.length === 0 || tracks[0].readyState !== 'live') {
+        throw new Error('Microphone track is not active!');
+      }
+      
+      // Test if audio is actually flowing
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      
+      // Check audio level
+      setTimeout(() => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        console.log('🔊 Audio level test:', average.toFixed(2), '(should be > 0 when speaking)');
+        if (average === 0) {
+          console.warn('⚠️ WARNING: Microphone not picking up any sound! Check:');
+          console.warn('   1. Microphone is not muted');
+          console.warn('   2. Correct microphone is selected in browser');
+          console.warn('   3. System volume/mic volume is up');
+          toast.error('⚠️ Microphone not picking up sound! Check mic settings.', { duration: 5000 });
+        }
+      }, 1000);
+      
+      // Check supported MIME types
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4'
+      ];
+      
+      console.log('🎚️ Checking supported formats...');
+      let selectedMimeType = null;
+      for (const type of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          selectedMimeType = type;
+          console.log(`✅ Using: ${type}`);
+          break;
+        }
+      }
+      
+      if (!selectedMimeType) {
+        console.error('❌ No supported audio format found!');
+        throw new Error('Browser does not support audio recording');
+      }
+      
+      // Create recorder
       const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: selectedMimeType
+      });
+      
+      console.log('📝 MediaRecorder created:', {
+        state: recorder.state,
+        mimeType: recorder.mimeType
       });
       
       const chunks = [];
+      let chunkCount = 0;
 
       recorder.ondataavailable = (e) => {
+        chunkCount++;
+        console.log(`📊 Chunk ${chunkCount}:`, e.data.size, 'bytes');
         if (e.data.size > 0) {
           chunks.push(e.data);
-          console.log('📊 Chunk received:', e.data.size, 'bytes, Total:', chunks.length);
+          console.log(`   ✅ Added to queue. Total chunks: ${chunks.length}, Total size: ${chunks.reduce((sum, c) => sum + c.size, 0)} bytes`);
+        } else {
+          console.warn('   ⚠️ Empty chunk received!');
         }
       };
 
       recorder.onstop = async () => {
-        console.log('🛑 Recording stopped, chunks:', chunks.length);
+        console.log('🛑 Recording stopped');
+        console.log('📊 Final stats:', {
+          chunks: chunks.length,
+          totalSize: chunks.reduce((sum, c) => sum + c.size, 0),
+          chunkSizes: chunks.map(c => c.size)
+        });
         
-        stream.getTracks().forEach(track => track.stop());
+        // Clean up
+        stream.getTracks().forEach(track => {
+          console.log('🔇 Stopping track:', track.label);
+          track.stop();
+        });
+        audioContext.close();
         
         if (chunks.length === 0) {
-          console.error('❌ No audio chunks!');
-          toast.error('No audio recorded. Please speak louder.');
+          console.error('❌ NO CHUNKS RECORDED!');
+          console.error('This means MediaRecorder did not capture ANY audio data.');
+          console.error('Possible causes:');
+          console.error('  1. Browser bug with MediaRecorder');
+          console.error('  2. Microphone permission granted but not working');
+          console.error('  3. Browser incompatibility');
+          toast.error('No audio recorded. Try refreshing the page.', { duration: 5000 });
+          setIsRecording(false);
+          setMediaRecorder(null);
+          return;
+        }
+        
+        const audioBlob = new Blob(chunks, { type: selectedMimeType });
+        console.log('🎵 Audio blob created:', audioBlob.size, 'bytes, type:', audioBlob.type);
+        
+        if (audioBlob.size < 100) {
+          console.error('❌ Audio blob too small:', audioBlob.size, 'bytes');
+          toast.error('Audio too short. Please speak for at least 3 seconds.', { duration: 5000 });
           setIsRecording(false);
           setMediaRecorder(null);
           setTimeout(() => {
@@ -401,9 +513,6 @@ const ConversationalAgentsPage = () => {
           }, 1000);
           return;
         }
-        
-        const audioBlob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
-        console.log('🎵 Audio blob created:', audioBlob.size, 'bytes');
         
         setIsRecording(false);
         setMediaRecorder(null);
@@ -414,13 +523,24 @@ const ConversationalAgentsPage = () => {
       // Start with 1 second timeslice
       recorder.start(1000);
       console.log('🎙️ Recording started with 1s timeslice');
+      console.log('🔴 STATE: Recording is ACTIVE - SPEAK NOW!');
       
       setMediaRecorder(recorder);
       setIsRecording(true);
-      toast.success('🎤 Listening... Speak now!', { duration: 10000 });
+      toast.success('🎤 Recording active! SPEAK NOW!', { duration: 10000 });
+      
+      // Log state every 2 seconds
+      const stateLogger = setInterval(() => {
+        if (recorder.state === 'recording') {
+          console.log('🔴 Still recording... Chunks so far:', chunks.length);
+        } else {
+          clearInterval(stateLogger);
+        }
+      }, 2000);
       
       // Auto-stop after 10 seconds
       setTimeout(() => {
+        clearInterval(stateLogger);
         if (recorder && recorder.state === 'recording') {
           console.log('⏱️ Auto-stopping after 10s');
           recorder.stop();
@@ -429,7 +549,12 @@ const ConversationalAgentsPage = () => {
       
     } catch (error) {
       console.error('❌ Recording error:', error);
-      toast.error('Microphone error: ' + error.message);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      toast.error('Microphone error: ' + error.message, { duration: 5000 });
       setIsRecording(false);
       setMediaRecorder(null);
     }
