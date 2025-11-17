@@ -2265,12 +2265,24 @@ const ConversationalAgentsPage = () => {
                         <div className="flex gap-3">
                           <div className="text-cyan-400 mt-1">ℹ️</div>
                           <div className="text-sm text-gray-300">
-                            <p className="font-medium mb-2">About Tools:</p>
-                            <ul className="space-y-1 list-disc list-inside text-gray-400">
-                              <li><strong>System Tools:</strong> Built-in controls (end_call) managed by ElevenLabs</li>
-                              <li><strong>Server Tools:</strong> Webhooks you create in ElevenLabs workspace - enable them here to let your agent use them</li>
-                              <li><strong>Tool IDs:</strong> {toolIds.length > 0 ? toolIds.join(', ') : 'None enabled'}</li>
-                            </ul>
+                            <p className="font-medium mb-2">Tools Configuration:</p>
+                            <div className="space-y-2">
+                              <div>
+                                <strong className="text-cyan-400">System Tools Active:</strong>
+                                <span className="ml-2 text-gray-400">
+                                  {builtInTools.length > 0 ? builtInTools.join(', ') : 'None'}
+                                </span>
+                              </div>
+                              <div>
+                                <strong className="text-purple-400">Server Tools Active:</strong>
+                                <span className="ml-2 text-gray-400">
+                                  {toolIds.length > 0 ? `${toolIds.length} webhook(s)` : 'None'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                All changes save immediately to ElevenLabs
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
