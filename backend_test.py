@@ -655,7 +655,7 @@ class BackendTester:
             return False
     
     def test_workflow_retrieval(self, workflow_id):
-        """Test retrieving workflow details"""
+        """Test retrieving Video Ad Creator workflow details"""
         if not self.auth_token or not workflow_id:
             self.log_result("Workflow Retrieval", False, "No auth token or workflow ID available")
             return False
@@ -668,19 +668,43 @@ class BackendTester:
                 nodes = data.get("nodes", [])
                 edges = data.get("edges", [])
                 
-                # Verify workflow structure
-                has_start = any(node.get("type") == "start" for node in nodes)
-                has_imagegen = any(node.get("type") == "imagegen" for node in nodes)
-                has_end = any(node.get("type") == "end" for node in nodes)
+                # Verify Video Ad Creator workflow structure
+                node_types = [node.get("type") for node in nodes]
+                expected_types = ["start", "gemini", "videogen", "screenshot", "gemini", "imagetovideo", "screenshot", "stitch", "end"]
                 
-                if has_start and has_imagegen and has_end and len(edges) >= 2:
+                has_start = "start" in node_types
+                has_gemini = node_types.count("gemini") >= 2  # Should have 2 AI nodes
+                has_videogen = "videogen" in node_types
+                has_screenshot = node_types.count("screenshot") >= 2  # Should have 2 screenshot nodes
+                has_imagetovideo = "imagetovideo" in node_types
+                has_stitch = "stitch" in node_types
+                has_end = "end" in node_types
+                
+                # Check for correct number of nodes and edges
+                correct_node_count = len(nodes) == 9
+                correct_edge_count = len(edges) == 8
+                
+                if (has_start and has_gemini and has_videogen and has_screenshot and 
+                    has_imagetovideo and has_stitch and has_end and 
+                    correct_node_count and correct_edge_count):
                     self.log_result("Workflow Retrieval", True, 
-                                  f"Workflow retrieved successfully with correct structure", 
-                                  f"Nodes: {len(nodes)}, Edges: {len(edges)}")
+                                  f"Video Ad Creator workflow retrieved successfully with correct structure", 
+                                  f"Nodes: {len(nodes)}, Edges: {len(edges)}, Types: {node_types}")
                     return True
                 else:
+                    missing = []
+                    if not has_start: missing.append("start")
+                    if not has_gemini: missing.append("gemini(x2)")
+                    if not has_videogen: missing.append("videogen")
+                    if not has_screenshot: missing.append("screenshot(x2)")
+                    if not has_imagetovideo: missing.append("imagetovideo")
+                    if not has_stitch: missing.append("stitch")
+                    if not has_end: missing.append("end")
+                    if not correct_node_count: missing.append(f"node_count({len(nodes)}!=9)")
+                    if not correct_edge_count: missing.append(f"edge_count({len(edges)}!=8)")
+                    
                     self.log_result("Workflow Retrieval", False, 
-                                  f"Workflow structure incorrect. Start: {has_start}, ImageGen: {has_imagegen}, End: {has_end}")
+                                  f"Video Ad Creator workflow structure incorrect. Missing: {missing}")
                     return False
             else:
                 self.log_result("Workflow Retrieval", False, 
