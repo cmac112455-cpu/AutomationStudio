@@ -2011,7 +2011,8 @@ const ConversationalAgentsPage = () => {
                                   const newTools = e.target.checked
                                     ? [...builtInTools, 'end_call']
                                     : builtInTools.filter(t => t !== 'end_call');
-                                  updateAgentTools(newTools, toolIds);
+                                  setBuiltInTools(newTools);
+                                  setUnsavedToolsChanges(true);
                                 }}
                                 className="sr-only peer"
                               />
