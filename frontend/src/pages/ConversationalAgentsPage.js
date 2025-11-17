@@ -354,17 +354,25 @@ const ConversationalAgentsPage = () => {
         ? dataCollectionItems.map(item => item.identifier === editingDataItem.identifier ? dataItemForm : item)
         : [...dataCollectionItems, dataItemForm];
 
-      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+      console.log('🔄 Saving data collection items:', updatedItems);
+      
+      const response = await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
         data_collection: updatedItems
       });
+
+      console.log('✅ Data collection saved:', response.data);
 
       setDataCollectionItems(updatedItems);
       setShowAddDataItemModal(false);
       setDataItemForm({ identifier: '', data_type: 'string', description: '' });
       setEditingDataItem(null);
-      toast.success(editingDataItem ? 'Data item updated successfully' : 'Data item added successfully');
+      toast.success(editingDataItem ? 'Data item updated in ElevenLabs!' : 'Data item added to ElevenLabs!');
+      
+      // Reload config to verify
+      await loadAgentAnalysisConfig(editingAgent.id);
     } catch (error) {
-      console.error('Error saving data item:', error);
+      console.error('❌ Error saving data item:', error);
+      console.error('Error response:', error.response);
       toast.error(error.response?.data?.detail || 'Failed to save data item');
     }
   };
