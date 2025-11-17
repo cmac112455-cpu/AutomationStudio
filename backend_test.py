@@ -1402,21 +1402,27 @@ class BackendTester:
             agent_data = {
                 "name": f"Test Analytics Agent {int(time.time())}",
                 "description": "Test agent for analytics endpoints",
-                "voice_id": "21m00Tcm4TlvDq8ikWAM",
-                "prompt": "You are a helpful assistant for testing analytics.",
-                "first_message": "Hello! I'm a test agent.",
-                "language": "en"
+                "systemPrompt": "You are a helpful assistant for testing analytics.",
+                "voice": "21m00Tcm4TlvDq8ikWAM",
+                "model": "gpt-4o",
+                "firstMessage": "Hello! I'm a test agent.",
+                "language": "en",
+                "maxDuration": 600,
+                "temperature": 0.7,
+                "responseDelay": 100,
+                "enableInterruption": True,
+                "enableFallback": True
             }
             
             response = self.session.post(f"{self.base_url}/conversational-ai/agents", json=agent_data)
             
             if response.status_code == 200:
                 data = response.json()
-                agent_id = data.get("id")
+                agent_id = data.get("agent_id")  # Changed from "id" to "agent_id"
                 print(f"✅ Created test agent: {agent_id}")
                 return agent_id
             else:
-                print(f"❌ Failed to create test agent: {response.status_code}")
+                print(f"❌ Failed to create test agent: {response.status_code} - {response.text}")
                 return None
                 
         except Exception as e:
