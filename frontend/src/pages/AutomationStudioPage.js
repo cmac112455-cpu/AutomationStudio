@@ -297,6 +297,22 @@ const AudioOverlayNode = ({ data }) => {
   );
 };
 
+const TextToMusicNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#a855f7" hasInput={true} nodeType="texttomusic">
+      <div className="px-4 py-3 rounded-lg border-2 border-purple-500 bg-purple-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Mic className="w-4 h-4 text-purple-500" />
+          <div className="font-semibold text-white">Text-to-Music</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.prompt ? `${data.prompt.substring(0, 30)}...` : 'Generate music from text'}
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
 
 const TaskPlannerNode = ({ data }) => {
   return (
