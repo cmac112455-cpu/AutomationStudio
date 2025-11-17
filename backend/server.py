@@ -2200,7 +2200,9 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                     result = {"status": "error", "error": "Timeout waiting for video generation"}
                                     
                     except Exception as e:
+                        import traceback
                         logging.error(f"[IMAGETOVIDEO] Exception: {str(e)}")
+                        logging.error(f"[IMAGETOVIDEO] Traceback: {traceback.format_exc()}")
                         result = {"status": "error", "error": f"Image-to-video generation failed: {str(e)}"}
             
             elif node_type == 'imagegen':
