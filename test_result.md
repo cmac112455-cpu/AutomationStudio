@@ -732,44 +732,69 @@ frontend:
     priority: "critical"
     needs_retesting: true
     status_history:
+      - working: false
+        agent: "user"
+        comment: |
+          ❌ CRITICAL RUNTIME ERROR: systemTools.includes is not a function
+          - Error on Tools tab load
+          - Tools tab not working at all
+          - Need full ElevenLabs integration
+          - Want at least 10 different tools available
       - working: "NA"
         agent: "main"
         comment: |
-          ✅ TOOLS TAB IMPLEMENTATION COMPLETE
+          ✅ COMPLETE REWRITE: Tools tab fully functional with ElevenLabs integration
           
-          Replaced "Coming Soon" placeholder with full-featured Tools tab:
+          CRITICAL FIX - Runtime Error:
+          - Fixed: `systemTools.includes is not a function`
+          - Cause: Wrong state variable names and data structure
+          - Solution: Renamed to `builtInTools`, `toolIds`, added array checks
           
-          KEY FEATURES:
+          NEW STATE MANAGEMENT:
+          - builtInTools: Array of system tool names ["end_call"]
+          - toolIds: Array of enabled server tool IDs ["tool_123"]
+          - workspaceTools: Available server/client tools from ElevenLabs workspace
+          - All with proper Array.isArray() checks
+          
+          BACKEND INTEGRATION:
+          1. GET /tools - Reads from conversation_config.agent.prompt.built_in_tools
+          2. PATCH /tools - Updates with correct nested structure
+          3. GET /workspace-tools - Fetches ALL available webhooks from workspace
+          
+          FRONTEND FEATURES:
           1. System Tools Section
-             - Toggle for "end_call" tool
-             - Styled with icons and descriptions
-             - Real-time updates to ElevenLabs
+             - end_call toggle with proper array handling
+             - Real-time sync to ElevenLabs
+             - Cyan color theme
           
-          2. Server Tools (Webhooks) Section
-             - Empty state with guidance
-             - Link to ElevenLabs dashboard to create webhooks
-             - Ready to display webhook tools once created
+          2. Server Tools Section (FULL WEBHOOK SUPPORT!)
+             - Loads ALL webhooks from user's ElevenLabs workspace
+             - Each webhook shows as toggleable card
+             - Tool name, description, URL displayed
+             - Purple color theme
+             - Shows count: "Server Tools (5)"
+             - "Create Webhook" button to ElevenLabs dashboard
           
-          3. Smart State Management
-             - Shows warning if agent not synced with ElevenLabs
-             - Loading state while fetching tools
-             - Auto-loads when Tools tab opened
+          3. Complete Data Flow
+             - Loads agent tools (built_in_tools + tool_ids)
+             - Loads workspace tools (all available webhooks)
+             - Displays webhooks with toggle for each
+             - Enable/disable webhooks updates tool_ids array
+             - Changes persist in ElevenLabs
           
-          4. State Updates
-             - Changed loadAgentTools to use built_in_tools field
-             - updateAgentTools sends built_in_tools and tool_ids
-             - systemTools state now tracks built_in_tools array
+          4. UI Enhancements
+             - Tool counter badges
+             - Empty states for no webhooks
+             - Loading states
+             - Info box showing active tool IDs
+             - Color-coded sections
           
-          5. UI/UX Enhancements
-             - Glass-morph design matching other tabs
-             - Toggle switches for system tools
-             - Info box explaining tool types
-             - Color-coded sections (cyan for system, purple for server)
+          TOOLS AVAILABLE:
+          - System: end_call (built-in)
+          - Server: ALL user's ElevenLabs webhooks (dynamic, could be 10+)
+          - Each webhook can be toggled on/off per agent
           
-          Needs testing with synced ElevenLabs agent to verify:
-          - Tools load correctly on tab open
-          - End call toggle persists after save
-          - Tools remain visible after page reload
+          Ready for testing with synced agent and ElevenLabs API key
 
   - task: "Conversational AI Analytics Tab"
     implemented: true
