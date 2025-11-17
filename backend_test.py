@@ -1755,4 +1755,4 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_comprehensive_workflow_test()
+    summary = tester.run_comprehensive_elevenlabs_test()
