@@ -220,6 +220,65 @@ const ConversationalAgentsPage = () => {
     setEditingAgent(agent);
   };
 
+  const startTest = (agent) => {
+    setTestingAgent(agent);
+    setShowTestModal(true);
+    setConversation([]);
+    
+    // Add first message if configured
+    if (agent.firstMessage) {
+      setConversation([{
+        role: 'agent',
+        content: agent.firstMessage,
+        timestamp: new Date().toISOString()
+      }]);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!userInput.trim() || isSending) return;
+
+    const userMessage = {
+      role: 'user',
+      content: userInput.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    setConversation(prev => [...prev, userMessage]);
+    setUserInput('');
+    setIsSending(true);
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/chat`, {
+        message: userMessage.content,
+        conversation_history: conversation
+      });
+
+      const agentMessage = {
+        role: 'agent',
+        content: response.data.response,
+        audio_url: response.data.audio_url,
+        timestamp: new Date().toISOString()
+      };
+
+      setConversation(prev => [...prev, agentMessage]);
+
+      // Auto-play audio response if available
+      if (response.data.audio_url) {
+        const audio = new Audio(response.data.audio_url);
+        audio.onplay = () => setAudioPlaying(true);
+        audio.onended = () => setAudioPlaying(false);
+        audio.play();
+      }
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to get response from agent');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white">
       {/* Header */}
