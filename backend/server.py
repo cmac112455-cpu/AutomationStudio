@@ -2534,14 +2534,31 @@ async def upload_knowledge_base_file(agent_id: str, file: UploadFile = File(...)
         documentation_id = kb_data.get("document_id") or kb_data.get("id")
         logging.info(f"[KNOWLEDGE_BASE] File uploaded successfully: {documentation_id}")
         
-        # Step 2: Link to agent
-        link_response = requests.post(
-            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}/add-to-knowledge-base",
+        # Step 2: Get current agent knowledge base IDs
+        agent_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if agent_response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] Error fetching agent: {agent_response.text}")
+            raise HTTPException(status_code=agent_response.status_code, detail="Failed to fetch agent")
+        
+        agent_data = agent_response.json()
+        current_kb_ids = agent_data.get("knowledge_base", [])
+        
+        # Add new document ID to the list
+        if documentation_id not in current_kb_ids:
+            current_kb_ids.append(documentation_id)
+        
+        # Step 3: Update agent with new knowledge base IDs
+        link_response = requests.patch(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
             headers={
                 "xi-api-key": elevenlabs_key,
                 "Content-Type": "application/json"
             },
-            json={"document_id": documentation_id}
+            json={"knowledge_base": current_kb_ids}
         )
         
         if link_response.status_code not in [200, 201]:
