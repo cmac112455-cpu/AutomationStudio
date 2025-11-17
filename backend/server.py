@@ -2826,6 +2826,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             similarity_boost = node_data.get('similarity_boost', 0.75)
                             style = node_data.get('style', 0)
                             speaker_boost = node_data.get('speaker_boost', False)
+                            speed = node_data.get('speed', 1.0)
                             
                             url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
                             headers = {
@@ -2852,7 +2853,11 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                 "voice_settings": voice_settings
                             }
                             
-                            logging.info(f"[TTS] Voice settings: stability={stability}, similarity={similarity_boost}, style={style}, boost={speaker_boost}")
+                            # Add speed parameter if not default
+                            if speed != 1.0:
+                                payload["speed"] = float(speed)
+                            
+                            logging.info(f"[TTS] Voice settings: stability={stability}, similarity={similarity_boost}, style={style}, boost={speaker_boost}, speed={speed}")
                             
                             response = requests.post(url, json=payload, headers=headers, timeout=60)
                             
