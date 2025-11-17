@@ -708,3 +708,65 @@ agent_communication:
       2. Consider adding retry logic for external API failures
       3. Add fallback handling when video generation fails
       4. Monitor Sora 2 API service status for reliability improvements
+  - agent: "main"
+    message: |
+      ELEVENLABS INTEGRATION AND NEW NODES IMPLEMENTATION COMPLETED
+      
+      🎯 NEW FEATURES IMPLEMENTED:
+      
+      BACKEND CHANGES:
+      ✅ ElevenLabs Integration API Endpoints:
+         - POST /api/integrations: Save encrypted API keys
+         - GET /api/integrations: List user's integrations
+         - DELETE /api/integrations/{service}: Remove integrations
+      ✅ TTS Preview Endpoint:
+         - POST /api/tts/preview: Preview voice with sample text
+      ✅ Text-to-Speech Workflow Node:
+         - Node type: 'texttospeech'
+         - Converts text to speech using ElevenLabs API
+         - Configurable voice selection and parameters
+      ✅ Audio Overlay Workflow Node:
+         - Node type: 'audiooverlay'
+         - Merges audio track with video using FFmpeg
+         - Replaces or mixes audio as configured
+      ✅ Enhanced Gemini Node:
+         - Now searches for previous AI node outputs in workflow
+         - Prepends chat history for contextual continuity
+      ✅ Enhanced Stitch Node:
+         - Professional audio crossfading with FFmpeg complex filter
+         - Seamless transitions between video clips
+      
+      FRONTEND CHANGES:
+      ✅ New Integrations Page (/integrations):
+         - UI for managing third-party API keys
+         - ElevenLabs integration with validation
+         - Encrypted key storage
+      ✅ AutomationStudioPage Updates:
+         - Added Text-to-Speech node to palette
+         - Added Audio Overlay node to palette
+         - TTS node config panel with voice selection
+         - Voice preview button functionality
+         - Fixed backspace deletion (deleteKeyCode: null)
+      ✅ App.js Router:
+         - Added /integrations route
+      
+      🐛 CRITICAL FIX APPLIED:
+      ❌ ISSUE: ReferenceError: previewVoice is not defined
+         - previewVoice function was in wrong scope (inside deleteWorkflow)
+         - Clicking TTS node crashed entire application
+      ✅ FIX: Moved previewVoice to correct scope in AutomationStudioPage
+         - Function now accessible to component render
+         - Frontend service restarted
+      
+      🧪 TESTING NEEDED:
+      1. Backend: All new endpoints and node types
+      2. Frontend: TTS node config panel and voice preview
+      3. End-to-end: Complete workflow with TTS and Audio Overlay nodes
+      
+      Priority tasks for testing:
+      - ElevenLabs integration endpoints
+      - TTS preview functionality  
+      - Text-to-Speech node execution
+      - Audio Overlay node execution
+      - Integrations page functionality
+      - AutomationStudioPage TTS node (verify no crash)
