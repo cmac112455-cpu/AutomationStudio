@@ -3433,11 +3433,14 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                                     break
                                             except Exception as json_error:
                                                 logging.warning(f"[TEXT_TO_MUSIC] Could not parse status JSON: {str(json_error)}")
-                                    else:
-                                        logging.warning(f"[TEXT_TO_MUSIC] Retrieve failed: {retrieve_response.status_code}")
-                                
-                                if attempt >= max_attempts and 'result' not in locals():
-                                    result = {"status": "error", "error": "Music generation timed out after 5 minutes"}
+                                                    else:
+                                                        logging.warning(f"[TEXT_TO_MUSIC] Retrieve failed: {retrieve_response.status_code}")
+                                                
+                                                if attempt >= max_attempts and 'result' not in locals():
+                                                    result = {"status": "error", "error": "Music generation timed out after 5 minutes"}
+                                    except Exception as parse_error:
+                                        logging.error(f"[TEXT_TO_MUSIC] Failed to parse initial response: {str(parse_error)}")
+                                        result = {"status": "error", "error": f"Invalid API response: {str(parse_error)}"}
                 
                 except Exception as e:
                     import traceback
