@@ -485,7 +485,7 @@ const VoicesPage = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )))}
                   </div>
                 </div>
               )}
