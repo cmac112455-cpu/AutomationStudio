@@ -639,19 +639,22 @@ frontend:
           Low priority testing needed
 
 metadata:
-  created_by: "testing_agent"
-  version: "2.0"
-  test_sequence: 1
+  created_by: "main_agent"
+  version: "3.0"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Video Ad Creator Workflow Complete End-to-End Test"
-    - "Image-To-Video Node (imagetovideo) in Workflow Engine"
+    - "ElevenLabs Integration API Endpoints"
+    - "TTS Preview Endpoint"
+    - "Text-to-Speech Workflow Node"
+    - "Audio Overlay Workflow Node"
+    - "AutomationStudioPage - Text-to-Speech Node"
   stuck_tasks:
-    - "Image-To-Video Node (imagetovideo) in Workflow Engine"
+    - "AutomationStudioPage - Text-to-Speech Node"
   test_all: false
-  test_priority: "stuck_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
