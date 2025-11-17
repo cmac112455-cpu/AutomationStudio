@@ -3891,6 +3891,11 @@ async def get_conversation_details(
         conversation_data = response.json()
         logging.info(f"[ANALYTICS] Fetched conversation details for {conversation_id}")
         
+        # Log the keys available to see what data we have
+        logging.info(f"[ANALYTICS] Conversation data keys: {conversation_data.keys()}")
+        logging.info(f"[ANALYTICS] Has analysis: {conversation_data.get('analysis')}")
+        logging.info(f"[ANALYTICS] Has transcript: {len(conversation_data.get('transcript', []))} items")
+        
         return conversation_data
         
     except HTTPException:
