@@ -6,19 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mic, Play, Download, Loader, Search } from 'lucide-react';
+import { Play, Download, Loader, Search, Plus, X, ChevronDown, ChevronRight, Volume2 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 const VoicesPage = () => {
   const [text, setText] = useState('');
-  const [voices, setVoices] = useState([]);
+  const [allVoices, setAllVoices] = useState([]);
+  const [personalVoices, setPersonalVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [audioPlayer, setAudioPlayer] = useState(null);
+  const [showAllVoices, setShowAllVoices] = useState(false);
+  const [previewingVoice, setPreviewingVoice] = useState(null);
   
   // Voice settings
   const [stability, setStability] = useState(0.5);
@@ -30,6 +33,7 @@ const VoicesPage = () => {
 
   useEffect(() => {
     fetchVoices();
+    loadPersonalVoices();
   }, []);
 
   const fetchVoices = async () => {
@@ -40,16 +44,77 @@ const VoicesPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setVoices(response.data.voices || []);
-      if (response.data.voices && response.data.voices.length > 0) {
-        setSelectedVoice(response.data.voices[0]);
-      }
+      setAllVoices(response.data.voices || []);
       toast.success(`Loaded ${response.data.voices?.length || 0} voices`);
     } catch (error) {
       console.error('Failed to fetch voices:', error);
       toast.error('Failed to load voices');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPersonalVoices = () => {
+    const stored = localStorage.getItem('personal_voices');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setPersonalVoices(parsed);
+      if (parsed.length > 0 && !selectedVoice) {
+        setSelectedVoice(parsed[0]);
+      }
+    } else {
+      // Set defaults
+      const defaults = [
+        { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', labels: { gender: 'female' } },
+        { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', labels: { gender: 'male' } },
+        { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella', labels: { gender: 'female' } },
+      ];
+      setPersonalVoices(defaults);
+      setSelectedVoice(defaults[0]);
+      localStorage.setItem('personal_voices', JSON.stringify(defaults));
+    }
+  };
+
+  const addToPersonalVoices = (voice) => {
+    if (personalVoices.some(v => v.voice_id === voice.voice_id)) {
+      toast.error('Voice already in your list');
+      return;
+    }
+    const updated = [...personalVoices, voice];
+    setPersonalVoices(updated);
+    localStorage.setItem('personal_voices', JSON.stringify(updated));
+    toast.success(`${voice.name} added to your voices`);
+  };
+
+  const removeFromPersonalVoices = (voiceId) => {
+    const updated = personalVoices.filter(v => v.voice_id !== voiceId);
+    setPersonalVoices(updated);
+    localStorage.setItem('personal_voices', JSON.stringify(updated));
+    if (selectedVoice?.voice_id === voiceId && updated.length > 0) {
+      setSelectedVoice(updated[0]);
+    }
+    toast.success('Voice removed from your list');
+  };
+
+  const playVoicePreview = async (voice) => {
+    if (!voice.preview_url) {
+      toast.error('Preview not available for this voice');
+      return;
+    }
+    
+    try {
+      setPreviewingVoice(voice.voice_id);
+      const audio = new Audio(voice.preview_url);
+      audio.onended = () => setPreviewingVoice(null);
+      audio.onerror = () => {
+        setPreviewingVoice(null);
+        toast.error('Failed to play preview');
+      };
+      await audio.play();
+    } catch (error) {
+      console.error('Preview error:', error);
+      setPreviewingVoice(null);
+      toast.error('Failed to play preview');
     }
   };
 
@@ -73,6 +138,7 @@ const VoicesPage = () => {
           text,
           voice_id: selectedVoice.voice_id,
           voice_name: selectedVoice.name,
+          voice: selectedVoice.voice_id,
           model_id: modelId,
           stability,
           similarity_boost: similarityBoost,
@@ -86,18 +152,13 @@ const VoicesPage = () => {
         }
       );
 
-      // Create audio URL from blob
       const url = URL.createObjectURL(response.data);
-      
-      // Stop previous audio if playing
       if (audioPlayer) {
         audioPlayer.pause();
         URL.revokeObjectURL(audioUrl);
       }
       
       setAudioUrl(url);
-      
-      // Create and play new audio
       const audio = new Audio(url);
       audio.onended = () => setGenerating(false);
       setAudioPlayer(audio);
@@ -113,7 +174,6 @@ const VoicesPage = () => {
 
   const downloadAudio = () => {
     if (!audioUrl) return;
-    
     const a = document.createElement('a');
     a.href = audioUrl;
     a.download = `voice_${selectedVoice?.name || 'audio'}_${Date.now()}.mp3`;
@@ -147,10 +207,9 @@ const VoicesPage = () => {
         setSpeed(0.9);
         break;
     }
-    toast.success('Preset applied');
   };
 
-  const filteredVoices = voices.filter(voice => 
+  const filteredAllVoices = allVoices.filter(voice => 
     !searchQuery || 
     voice.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -158,106 +217,199 @@ const VoicesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white dark:bg-[#0a0b0d] text-gray-900 dark:text-white">
+      <div className="max-w-6xl mx-auto p-6 md:p-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            Voice Studio
-          </h1>
-          <p className="text-gray-400">Generate high-quality AI voices with ElevenLabs</p>
+          <h1 className="text-2xl md:text-3xl font-semibold mb-2">Voice Studio</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Generate natural-sounding speech with AI voices</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Voice Selection Panel */}
-          <div className="lg:col-span-1 bg-[#13141a] rounded-xl border border-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Voices</h2>
-              <Button onClick={fetchVoices} size="sm" disabled={loading}>
-                {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Refresh'}
-              </Button>
-            </div>
-
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search voices..."
-                  className="bg-[#0a0b0d] border-gray-700 text-white pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {filteredVoices.map(voice => (
-                <div
-                  key={voice.voice_id}
-                  onClick={() => setSelectedVoice(voice)}
-                  className={`p-3 rounded-lg cursor-pointer transition-all ${
-                    selectedVoice?.voice_id === voice.voice_id
-                      ? 'bg-cyan-500/20 border-2 border-cyan-500'
-                      : 'bg-[#0a0b0d] border border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <div className="font-semibold">{voice.name}</div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {voice.labels?.gender || 'Unknown'}
-                    {voice.labels?.age && `, ${voice.labels.age}`}
-                    {voice.labels?.accent && `, ${voice.labels.accent}`}
-                  </div>
-                  {voice.labels?.source && (
-                    <div className="text-xs text-cyan-400 mt-1">{voice.labels.source}</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Main Generation Panel */}
+          {/* Main Panel */}
           <div className="lg:col-span-2 space-y-6">
             {/* Text Input */}
-            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-              <Label className="text-white text-lg mb-4 block">Text to Speech</Label>
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Enter text</Label>
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Enter the text you want to convert to speech..."
-                className="bg-[#0a0b0d] border-gray-700 text-white min-h-[150px]"
+                placeholder="Type or paste your text here..."
+                className="min-h-[160px] resize-none bg-white dark:bg-[#13141a] border-gray-200 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-600"
               />
-              <div className="text-xs text-gray-400 mt-2">
-                {text.length} characters
+              <div className="text-xs text-gray-500 mt-2">{text.length} characters</div>
+            </div>
+
+            {/* Voice Selection */}
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Select voice</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {personalVoices.map(voice => (
+                  <button
+                    key={voice.voice_id}
+                    onClick={() => setSelectedVoice(voice)}
+                    className={`relative p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedVoice?.voice_id === voice.voice_id
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
+                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{voice.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {voice.labels?.gender || 'Voice'}
+                    </div>
+                    {personalVoices.length > 3 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromPersonalVoices(voice.voice_id);
+                        }}
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Voice Settings */}
-            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-              <h3 className="text-lg font-semibold mb-4">Voice Settings</h3>
+            {/* Browse All Voices */}
+            <div>
+              <button
+                onClick={() => setShowAllVoices(!showAllVoices)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              >
+                {showAllVoices ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                Browse all voices
+              </button>
+
+              {showAllVoices && (
+                <div className="mt-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4 bg-white dark:bg-[#13141a]">
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search voices..."
+                        className="pl-10 bg-white dark:bg-[#0a0b0d] border-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {filteredAllVoices.map(voice => (
+                      <div
+                        key={voice.voice_id}
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm">{voice.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {voice.labels?.gender || 'Unknown'}
+                            {voice.labels?.age && `, ${voice.labels.age}`}
+                            {voice.labels?.accent && `, ${voice.labels.accent}`}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {voice.preview_url && (
+                            <button
+                              onClick={() => playVoicePreview(voice)}
+                              disabled={previewingVoice === voice.voice_id}
+                              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                            >
+                              {previewingVoice === voice.voice_id ? (
+                                <Loader className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Volume2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => addToPersonalVoices(voice)}
+                            className="p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Generate Button */}
+            <Button
+              onClick={generateSpeech}
+              disabled={generating || !selectedVoice || !text.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-base font-medium"
+            >
+              {generating ? (
+                <>
+                  <Loader className="w-5 h-5 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>Generate</>
+              )}
+            </Button>
+
+            {audioUrl && (
+              <div className="space-y-3">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                  <audio controls src={audioUrl} className="w-full" />
+                </div>
+                <Button
+                  onClick={downloadAudio}
+                  className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Settings Panel */}
+          <div className="space-y-6">
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Settings</Label>
               
-              {/* Quick Presets */}
+              {/* Presets */}
               <div className="grid grid-cols-3 gap-2 mb-6">
-                <Button onClick={() => applyPreset('natural')} size="sm" className="bg-green-600 hover:bg-green-700">
+                <button
+                  onClick={() => applyPreset('natural')}
+                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
                   Natural
-                </Button>
-                <Button onClick={() => applyPreset('expressive')} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                </button>
+                <button
+                  onClick={() => applyPreset('expressive')}
+                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
                   Expressive
-                </Button>
-                <Button onClick={() => applyPreset('professional')} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                </button>
+                <button
+                  onClick={() => applyPreset('professional')}
+                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
                   Professional
-                </Button>
+                </button>
               </div>
 
               <div className="space-y-4">
-                {/* Model Selection */}
+                {/* Model */}
                 <div>
-                  <Label className="text-white">Model</Label>
+                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 block">Model</Label>
                   <Select value={modelId} onValueChange={setModelId}>
-                    <SelectTrigger className="bg-[#0a0b0d] border-gray-700 text-white mt-2">
+                    <SelectTrigger className="bg-white dark:bg-[#13141a] border-gray-200 dark:border-gray-800">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1d2e] border-gray-700">
-                      <SelectItem value="eleven_turbo_v2_5">Turbo v2.5 (Fast, Free tier)</SelectItem>
-                      <SelectItem value="eleven_turbo_v2">Turbo v2 (Fast)</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="eleven_turbo_v2_5">Turbo v2.5</SelectItem>
+                      <SelectItem value="eleven_turbo_v2">Turbo v2</SelectItem>
                       <SelectItem value="eleven_multilingual_v2">Multilingual v2</SelectItem>
                     </SelectContent>
                   </Select>
@@ -265,9 +417,9 @@ const VoicesPage = () => {
 
                 {/* Stability */}
                 <div>
-                  <Label className="text-white flex justify-between">
+                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
                     <span>Stability</span>
-                    <span className="text-gray-400">{stability}</span>
+                    <span>{stability}</span>
                   </Label>
                   <input
                     type="range"
@@ -276,15 +428,15 @@ const VoicesPage = () => {
                     step="0.05"
                     value={stability}
                     onChange={(e) => setStability(parseFloat(e.target.value))}
-                    className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
-                {/* Similarity Boost */}
+                {/* Similarity */}
                 <div>
-                  <Label className="text-white flex justify-between">
-                    <span>Similarity Boost</span>
-                    <span className="text-gray-400">{similarityBoost}</span>
+                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
+                    <span>Similarity</span>
+                    <span>{similarityBoost}</span>
                   </Label>
                   <input
                     type="range"
@@ -293,15 +445,15 @@ const VoicesPage = () => {
                     step="0.05"
                     value={similarityBoost}
                     onChange={(e) => setSimilarityBoost(parseFloat(e.target.value))}
-                    className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
                 {/* Speed */}
                 <div>
-                  <Label className="text-white flex justify-between">
-                    <span>Speaking Speed</span>
-                    <span className="text-gray-400">{speed}x</span>
+                  <Label className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
+                    <span>Speed</span>
+                    <span>{speed}x</span>
                   </Label>
                   <input
                     type="range"
@@ -310,7 +462,7 @@ const VoicesPage = () => {
                     step="0.05"
                     value={speed}
                     onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                    className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
 
@@ -320,47 +472,11 @@ const VoicesPage = () => {
                     type="checkbox"
                     checked={speakerBoost}
                     onChange={(e) => setSpeakerBoost(e.target.checked)}
-                    className="w-4 h-4 accent-cyan-500"
+                    className="w-4 h-4 accent-blue-500"
                   />
-                  <Label className="text-white">Speaker Boost</Label>
+                  <Label className="text-xs text-gray-600 dark:text-gray-400">Clarity boost</Label>
                 </div>
               </div>
-            </div>
-
-            {/* Generate Button */}
-            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-              <Button
-                onClick={generateSpeech}
-                disabled={generating || !selectedVoice || !text.trim()}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-6 text-lg"
-              >
-                {generating ? (
-                  <>
-                    <Loader className="w-5 h-5 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-5 h-5 mr-2" />
-                    Generate Speech
-                  </>
-                )}
-              </Button>
-
-              {audioUrl && (
-                <div className="mt-4 space-y-3">
-                  <div className="bg-[#0a0b0d] rounded-lg p-4 border border-gray-700">
-                    <audio controls src={audioUrl} className="w-full" />
-                  </div>
-                  <Button
-                    onClick={downloadAudio}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Audio
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         </div>
