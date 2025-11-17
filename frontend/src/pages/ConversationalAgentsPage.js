@@ -49,6 +49,7 @@ const ConversationalAgentsPage = () => {
     responseDelay: 100,
     enableInterruption: true,
     enableFallback: true,
+    elevenlabs_agent_id: ''
    });
 
   const templates = [
