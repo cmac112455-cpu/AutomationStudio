@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Play, Download, Loader, Search, Plus, X, ChevronDown, ChevronRight, Volume2 } from 'lucide-react';
+import { Play, Download, Loader, Search, Plus, X, ChevronDown, ChevronRight, Volume2, Save, Trash2, Star } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
