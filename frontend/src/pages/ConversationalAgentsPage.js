@@ -178,6 +178,77 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  // Analytics functions
+  const loadAnalytics = async (agentId) => {
+    if (!agentId) return;
+    
+    setLoadingAnalytics(true);
+    try {
+      // Fetch usage analytics
+      const usageResponse = await axios.get(
+        `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/usage`,
+        {
+          params: {
+            aggregation_interval: analyticsTimeRange
+          }
+        }
+      );
+      
+      // Fetch conversations list
+      const conversationsResponse = await axios.get(
+        `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/conversations`,
+        {
+          params: {
+            page_size: 50,
+            ...conversationFilters
+          }
+        }
+      );
+      
+      setAnalyticsData(usageResponse.data);
+      setConversationsData(conversationsResponse.data.conversations || []);
+      
+      console.log('📊 Analytics loaded:', usageResponse.data);
+      console.log('💬 Conversations loaded:', conversationsResponse.data);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to load analytics';
+      
+      // Only show error if it's not a "not linked to ElevenLabs" error
+      if (!errorMsg.includes('not linked')) {
+        toast.error(errorMsg);
+      }
+      
+      // Set empty data so UI shows properly
+      setAnalyticsData(null);
+      setConversationsData([]);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  const loadConversationDetails = async (agentId, conversationId) => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/conversations/${conversationId}`
+      );
+      
+      setSelectedConversation(response.data);
+      setShowConversationModal(true);
+      console.log('💬 Conversation details:', response.data);
+    } catch (error) {
+      console.error('Error loading conversation details:', error);
+      toast.error('Failed to load conversation details');
+    }
+  };
+
+  // Load analytics when Analysis tab is opened
+  useEffect(() => {
+    if (activeTab === 'analysis' && editingAgent?.id) {
+      loadAnalytics(editingAgent.id);
+    }
+  }, [activeTab, editingAgent?.id, analyticsTimeRange]);
+
   const loadKnowledgeBase = async () => {
     try {
       const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/knowledge-base/list`);
