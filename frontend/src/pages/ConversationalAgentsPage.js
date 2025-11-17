@@ -297,17 +297,25 @@ const ConversationalAgentsPage = () => {
         ? evaluationCriteria.map(c => c.identifier === editingCriteria.identifier ? criteriaForm : c)
         : [...evaluationCriteria, criteriaForm];
 
-      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+      console.log('🔄 Saving evaluation criteria:', updatedCriteria);
+      
+      const response = await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
         evaluation_criteria: updatedCriteria
       });
+
+      console.log('✅ Evaluation criteria saved:', response.data);
 
       setEvaluationCriteria(updatedCriteria);
       setShowAddCriteriaModal(false);
       setCriteriaForm({ identifier: '', description: '' });
       setEditingCriteria(null);
-      toast.success(editingCriteria ? 'Criteria updated successfully' : 'Criteria added successfully');
+      toast.success(editingCriteria ? 'Criteria updated in ElevenLabs!' : 'Criteria added to ElevenLabs!');
+      
+      // Reload config to verify
+      await loadAgentAnalysisConfig(editingAgent.id);
     } catch (error) {
-      console.error('Error saving criteria:', error);
+      console.error('❌ Error saving criteria:', error);
+      console.error('Error response:', error.response);
       toast.error(error.response?.data?.detail || 'Failed to save criteria');
     }
   };
