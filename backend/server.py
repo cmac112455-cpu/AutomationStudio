@@ -2923,17 +2923,26 @@ async def update_agent_analysis_config(
             raise HTTPException(status_code=get_response.status_code, detail="Failed to get agent configuration")
         
         current_agent = get_response.json()
+        logging.info(f"[ANALYSIS_CONFIG] Current agent keys: {current_agent.keys()}")
+        
         conversation_config = current_agent.get("conversation_config", {})
+        logging.info(f"[ANALYSIS_CONFIG] Conversation config keys: {conversation_config.keys()}")
+        
         agent_config = conversation_config.get("agent", {})
+        logging.info(f"[ANALYSIS_CONFIG] Agent config keys: {agent_config.keys()}")
+        logging.info(f"[ANALYSIS_CONFIG] Current evaluation_criteria: {agent_config.get('evaluation_criteria', [])}")
+        logging.info(f"[ANALYSIS_CONFIG] Current data_collection: {agent_config.get('data_collection', [])}")
         
         # Update evaluation criteria and/or data collection
         if "evaluation_criteria" in config_update:
             agent_config["evaluation_criteria"] = config_update["evaluation_criteria"]
             logging.info(f"[ANALYSIS_CONFIG] Updating evaluation criteria: {len(config_update['evaluation_criteria'])} items")
+            logging.info(f"[ANALYSIS_CONFIG] New evaluation_criteria: {config_update['evaluation_criteria']}")
         
         if "data_collection" in config_update:
             agent_config["data_collection"] = config_update["data_collection"]
             logging.info(f"[ANALYSIS_CONFIG] Updating data collection: {len(config_update['data_collection'])} items")
+            logging.info(f"[ANALYSIS_CONFIG] New data_collection: {config_update['data_collection']}")
         
         # Update conversation config with modified agent config
         conversation_config["agent"] = agent_config
