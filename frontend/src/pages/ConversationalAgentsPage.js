@@ -1705,66 +1705,165 @@ const ConversationalAgentsPage = () => {
                     </div>
                   </div>
 
-                  {/* Knowledge Base List */}
-                  <div className="bg-[#13141a] border border-gray-800 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Your Knowledge Base</h3>
+                  {/* Agent Knowledge Base Section */}
+                  <div className="bg-gradient-to-br from-gray-900/50 to-black/50 border border-gray-700 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-semibold flex items-center gap-2">
+                          <span className="text-2xl">📚</span>
+                          Agent Knowledge Base
+                        </h3>
+                        <p className="text-sm text-gray-400 mt-1">
+                          Documents linked to this agent ({knowledgeBase.length} total)
+                        </p>
+                      </div>
                       <Button
                         onClick={() => editingAgent?.id && loadKnowledgeBase(editingAgent.id)}
-                        className="bg-gray-700 hover:bg-gray-600"
+                        className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
                         size="sm"
                       >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Refresh
                       </Button>
                     </div>
                     
-                    {knowledgeBase.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <p className="text-sm">No documents uploaded yet</p>
-                        <p className="text-xs mt-1">Upload your first document above</p>
+                    {!editingAgent?.elevenlabs_agent_id ? (
+                      <div className="text-center py-12 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-yellow-500/10 rounded-full flex items-center justify-center">
+                          <span className="text-3xl">⚠️</span>
+                        </div>
+                        <p className="text-yellow-400 font-medium mb-2">Agent Not Synced</p>
+                        <p className="text-sm text-gray-400">
+                          This agent needs to be synced with ElevenLabs to use Knowledge Base.
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Use "Sync from ElevenLabs" on the main page to import your agents.
+                        </p>
+                      </div>
+                    ) : knowledgeBase.length === 0 ? (
+                      <div className="text-center py-12 bg-gray-800/30 border border-gray-700 rounded-lg">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-700/30 rounded-full flex items-center justify-center">
+                          <span className="text-3xl">📄</span>
+                        </div>
+                        <p className="text-gray-300 font-medium mb-2">No Knowledge Base Yet</p>
+                        <p className="text-sm text-gray-400">
+                          Upload documents or add text knowledge to help your agent answer questions.
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Supported formats: PDF, TXT, DOCX, HTML, EPUB
+                        </p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        {knowledgeBase.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-3 bg-[#0a0b0d] rounded-lg border border-gray-800 hover:border-cyan-500/30 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl">
-                                {item.type === 'file' ? '📄' : item.type === 'url' ? '🔗' : '📝'}
-                              </span>
-                              <div>
-                                <p className="text-sm font-medium text-gray-200">{item.name}</p>
-                                <p className="text-xs text-gray-500">
-                                  {item.type} • {new Date(item.created_at).toLocaleDateString()}
-                                </p>
+                      <div className="space-y-3">
+                        {knowledgeBase.map((item, idx) => {
+                          const docType = item.type || 'text';
+                          const docName = item.name || item.document_name || 'Untitled Document';
+                          const docId = item.id || item.document_id;
+                          const createdAt = item.created_at || item.created_time_unix;
+                          
+                          // Determine icon based on type
+                          let icon = '📝';
+                          let iconBg = 'bg-blue-500/10';
+                          let iconBorder = 'border-blue-500/20';
+                          let iconColor = 'text-blue-400';
+                          
+                          if (docType === 'file' || docType === 'pdf') {
+                            icon = '📄';
+                            iconBg = 'bg-red-500/10';
+                            iconBorder = 'border-red-500/20';
+                            iconColor = 'text-red-400';
+                          } else if (docType === 'url' || docType === 'web') {
+                            icon = '🔗';
+                            iconBg = 'bg-green-500/10';
+                            iconBorder = 'border-green-500/20';
+                            iconColor = 'text-green-400';
+                          } else if (docType === 'text') {
+                            icon = '📝';
+                            iconBg = 'bg-purple-500/10';
+                            iconBorder = 'border-purple-500/20';
+                            iconColor = 'text-purple-400';
+                          }
+                          
+                          return (
+                            <div
+                              key={docId || idx}
+                              className="group flex items-center justify-between p-4 bg-black/40 rounded-xl border border-gray-700 hover:border-cyan-500/50 hover:bg-black/60 transition-all duration-200"
+                            >
+                              <div className="flex items-center gap-4 flex-1">
+                                {/* Icon */}
+                                <div className={`w-12 h-12 rounded-lg ${iconBg} border ${iconBorder} flex items-center justify-center ${iconColor} text-2xl`}>
+                                  {icon}
+                                </div>
+                                
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-gray-100 truncate">
+                                    {docName}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1">
+                                    <span className="text-xs px-2 py-0.5 bg-gray-700/50 rounded text-gray-400 capitalize">
+                                      {docType}
+                                    </span>
+                                    {createdAt && (
+                                      <span className="text-xs text-gray-500">
+                                        Added {typeof createdAt === 'number' 
+                                          ? new Date(createdAt * 1000).toLocaleDateString()
+                                          : new Date(createdAt).toLocaleDateString()
+                                        }
+                                      </span>
+                                    )}
+                                    {docId && (
+                                      <span className="text-xs text-gray-600 font-mono">
+                                        ID: {docId.substring(0, 8)}...
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Actions */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={async () => {
+                                    if (confirm(`Remove "${docName}" from agent's knowledge base?\n\nThe document will no longer be available to this agent.`)) {
+                                      try {
+                                        if (!editingAgent?.id) {
+                                          toast.error('No agent selected');
+                                          return;
+                                        }
+                                        
+                                        await axios.delete(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/knowledge-base/${docId}`);
+                                        toast.success(`✅ Removed "${docName}" from agent`);
+                                        loadKnowledgeBase(editingAgent.id);
+                                      } catch (error) {
+                                        console.error('Delete error:', error);
+                                        toast.error('Failed to remove: ' + (error.response?.data?.detail || error.message));
+                                      }
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 text-red-400 transition-all duration-200"
+                                  title="Remove from agent"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             </div>
-                            <Button
-                              onClick={async () => {
-                                if (confirm('Remove this knowledge base item from agent?')) {
-                                  try {
-                                    if (!editingAgent?.id) {
-                                      toast.error('No agent selected');
-                                      return;
-                                    }
-                                    
-                                    await axios.delete(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/knowledge-base/${item.id || item.document_id}`);
-                                    toast.success('Knowledge base item removed from agent');
-                                    loadKnowledgeBase(editingAgent.id);
-                                  } catch (error) {
-                                    toast.error('Failed to remove item: ' + (error.response?.data?.detail || error.message));
-                                  }
-                                }
-                              }}
-                              className="bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                              size="sm"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* Info Footer */}
+                    {knowledgeBase.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>
+                            💡 Documents are used to answer questions and provide context
+                          </span>
+                          <span>
+                            {knowledgeBase.length} document{knowledgeBase.length !== 1 ? 's' : ''} linked
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
