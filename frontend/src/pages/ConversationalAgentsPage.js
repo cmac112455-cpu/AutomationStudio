@@ -2465,6 +2465,11 @@ const ConversationalAgentsPage = () => {
                 onClick={() => {
                   setShowConversationModal(false);
                   setSelectedConversation(null);
+                  // Clean up audio URL to free memory
+                  if (audioUrl) {
+                    URL.revokeObjectURL(audioUrl);
+                    setAudioUrl(null);
+                  }
                 }}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
