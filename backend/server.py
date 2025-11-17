@@ -3506,6 +3506,294 @@ async def add_call_exchange(log_id: str, exchange_data: dict, user_id: str = Dep
         logging.error(f"[CONVERSATIONAL_AI] Error adding exchange: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to add exchange")
 
+
+# ============ CONVERSATIONAL AI ANALYTICS ENDPOINTS ============
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analytics/usage")
+async def get_agent_usage_analytics(
+    agent_id: str,
+    user_id: str = Depends(get_current_user),
+    aggregation_interval: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    """Get usage analytics for an agent from ElevenLabs"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Build query parameters
+        params = {}
+        if aggregation_interval:
+            params["aggregation_interval"] = aggregation_interval
+        if start_date:
+            params["start_date"] = start_date
+        if end_date:
+            params["end_date"] = end_date
+        
+        # Fetch usage data from ElevenLabs
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/usage/character-stats",
+            headers={"xi-api-key": elevenlabs_key},
+            params=params
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        usage_data = response.json()
+        logging.info(f"[ANALYTICS] Fetched usage data for agent {agent_id}")
+        
+        return usage_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error fetching usage analytics: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch usage analytics: {str(e)}")
+
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analytics/conversations")
+async def get_agent_conversations(
+    agent_id: str,
+    user_id: str = Depends(get_current_user),
+    page_size: Optional[int] = 50,
+    cursor: Optional[str] = None,
+    call_duration_min_secs: Optional[int] = None,
+    call_duration_max_secs: Optional[int] = None,
+    call_start_after_unix: Optional[int] = None,
+    call_start_before_unix: Optional[int] = None
+):
+    """Get conversations list for an agent from ElevenLabs"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Build query parameters
+        params = {
+            "agent_id": elevenlabs_agent_id,
+            "page_size": page_size
+        }
+        if cursor:
+            params["cursor"] = cursor
+        if call_duration_min_secs is not None:
+            params["call_duration_min_secs"] = call_duration_min_secs
+        if call_duration_max_secs is not None:
+            params["call_duration_max_secs"] = call_duration_max_secs
+        if call_start_after_unix is not None:
+            params["call_start_after_unix"] = call_start_after_unix
+        if call_start_before_unix is not None:
+            params["call_start_before_unix"] = call_start_before_unix
+        
+        # Fetch conversations from ElevenLabs
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/conversations",
+            headers={"xi-api-key": elevenlabs_key},
+            params=params
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        conversations_data = response.json()
+        logging.info(f"[ANALYTICS] Fetched {len(conversations_data.get('conversations', []))} conversations for agent {agent_id}")
+        
+        return conversations_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error fetching conversations: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch conversations: {str(e)}")
+
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analytics/conversations/{conversation_id}")
+async def get_conversation_details(
+    agent_id: str,
+    conversation_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Get detailed conversation data from ElevenLabs"""
+    try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch conversation details from ElevenLabs
+        response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        conversation_data = response.json()
+        logging.info(f"[ANALYTICS] Fetched conversation details for {conversation_id}")
+        
+        return conversation_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error fetching conversation details: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch conversation details: {str(e)}")
+
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analytics/dashboard")
+async def get_analytics_dashboard(
+    agent_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Get custom dashboard configuration from ElevenLabs"""
+    try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch dashboard configuration from ElevenLabs
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/dashboard",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        dashboard_data = response.json()
+        logging.info(f"[ANALYTICS] Fetched dashboard configuration for agent {agent_id}")
+        
+        return dashboard_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error fetching dashboard: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard: {str(e)}")
+
+
+@api_router.patch("/conversational-ai/agents/{agent_id}/analytics/dashboard")
+async def update_analytics_dashboard(
+    agent_id: str,
+    dashboard_config: dict,
+    user_id: str = Depends(get_current_user)
+):
+    """Update custom dashboard configuration in ElevenLabs"""
+    try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Update dashboard configuration in ElevenLabs
+        response = requests.patch(
+            "https://api.elevenlabs.io/v1/convai/dashboard",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json=dashboard_config
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        dashboard_data = response.json()
+        logging.info(f"[ANALYTICS] Updated dashboard configuration for agent {agent_id}")
+        
+        return dashboard_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error updating dashboard: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update dashboard: {str(e)}")
+
+
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
     """Mark a completion as saved"""
