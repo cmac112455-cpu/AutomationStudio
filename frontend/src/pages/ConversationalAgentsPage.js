@@ -2518,17 +2518,43 @@ const ConversationalAgentsPage = () => {
                     </div>
                     
                     {/* Summary */}
-                    {selectedConversation.analysis?.summary && (
+                    {selectedConversation.analysis && (
                       <div className="mt-4 pt-4 border-t border-gray-700">
-                        <p className="text-sm text-gray-400 mb-2">Summary</p>
-                        <p className="text-sm text-gray-200">{selectedConversation.analysis.summary}</p>
+                        {selectedConversation.analysis.call_summary_title && (
+                          <div className="mb-3">
+                            <p className="text-sm text-gray-400 mb-1">Title</p>
+                            <p className="text-base font-semibold text-cyan-400">{selectedConversation.analysis.call_summary_title}</p>
+                          </div>
+                        )}
+                        
+                        {selectedConversation.analysis.transcript_summary && (
+                          <div>
+                            <p className="text-sm text-gray-400 mb-2">Summary</p>
+                            <p className="text-sm text-gray-200 leading-relaxed">{selectedConversation.analysis.transcript_summary}</p>
+                          </div>
+                        )}
+                        
+                        {selectedConversation.analysis.call_successful && (
+                          <div className="mt-3 pt-3 border-t border-gray-700">
+                            <p className="text-sm text-gray-400 mb-1">Call Result</p>
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                              selectedConversation.analysis.call_successful === 'success' 
+                                ? 'bg-green-500/20 text-green-400'
+                                : selectedConversation.analysis.call_successful === 'failure'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              {selectedConversation.analysis.call_successful}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                     
-                    {!selectedConversation.analysis?.summary && (
+                    {!selectedConversation.analysis?.transcript_summary && (
                       <div className="mt-4 pt-4 border-t border-gray-700">
                         <p className="text-sm text-gray-400">
-                          A summary of this conversation including key points, outcomes, and action items.
+                          No summary available for this conversation.
                         </p>
                       </div>
                     )}
