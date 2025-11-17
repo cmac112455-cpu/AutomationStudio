@@ -241,6 +241,17 @@ export default function Layout({ children }) {
                   <Bot className="w-4 h-4" />
                   Agents
                 </Link>
+                <Link
+                  to="/conversational-ai/completions"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/conversational-ai/completions'
+                      ? 'bg-white/10 text-cyan-400'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <History className="w-4 h-4" />
+                  Call History
+                </Link>
               </div>
             )}
           </div>
