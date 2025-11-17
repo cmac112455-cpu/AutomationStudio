@@ -3155,6 +3155,20 @@ async def update_agent_analysis_config(
         logging.info(f"[ANALYSIS_CONFIG] ✅ Successfully updated analysis config for agent {agent_id}")
         logging.info(f"[ANALYSIS_CONFIG] ElevenLabs response status: {patch_response.status_code}")
         
+        # Verify the update by fetching the agent again
+        verify_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if verify_response.status_code == 200:
+            verified_data = verify_response.json()
+            verified_platform = verified_data.get("platform_settings", {})
+            verified_eval = verified_platform.get("evaluation", {})
+            verified_criteria = verified_eval.get("criteria", [])
+            logging.info(f"[ANALYSIS_CONFIG] ✅ VERIFICATION: ElevenLabs now has {len(verified_criteria)} criteria")
+            logging.info(f"[ANALYSIS_CONFIG] Verified criteria: {verified_criteria}")
+        
         # Parse response to see what ElevenLabs returned
         try:
             response_data = patch_response.json()
