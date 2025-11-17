@@ -990,11 +990,7 @@ export default function AutomationStudioPage() {
         <div className="w-64 border-r border-gray-800 p-4 overflow-y-auto">
           <h3 className="text-lg font-semibold mb-4">Your Workflows</h3>
           <Button
-            onClick={() => {
-              setCurrentWorkflow(null);
-              setNodes(initialNodes);
-              setEdges(initialEdges);
-            }}
+            onClick={() => setShowNewWorkflowModal(true)}
             className="w-full mb-4 bg-gradient-to-r from-purple-500 to-pink-500"
             size="sm"
           >
@@ -1006,7 +1002,7 @@ export default function AutomationStudioPage() {
             {workflows.map((workflow) => (
               <div
                 key={workflow.id}
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`p-3 rounded-lg border cursor-pointer transition-colors relative ${
                   currentWorkflow?.id === workflow.id
                     ? 'border-purple-500 bg-purple-500/10'
                     : 'border-gray-700 hover:border-gray-600'
@@ -1014,16 +1010,49 @@ export default function AutomationStudioPage() {
                 onClick={() => loadWorkflow(workflow)}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{workflow.name}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteWorkflow(workflow.id);
-                    }}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="text-sm font-medium flex-1 truncate">{workflow.name}</span>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === workflow.id ? null : workflow.id);
+                      }}
+                      className="text-gray-400 hover:text-white p-1"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Dropdown Menu */}
+                    {openMenuId === workflow.id && (
+                      <div className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 min-w-[150px]">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenameWorkflowId(workflow.id);
+                            setRenameWorkflowName(workflow.name);
+                            setShowRenameModal(true);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 flex items-center gap-2 transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Delete workflow "${workflow.name}"?`)) {
+                              deleteWorkflow(workflow.id);
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
                   {workflow.nodes?.length || 0} nodes
