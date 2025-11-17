@@ -407,14 +407,12 @@ export default function AutomationStudioPage() {
         name: 'Video Ad Creator - Extended Videos',
         nodes: [
           {id: 'start-1', type: 'start', position: {x: 100, y: 50}, data: {}},
-          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 50}, data: {prompt: 'A modern smartphone sitting on a minimalist white desk with soft natural window lighting. The camera smoothly pans around the device showing its sleek aluminum design and curved edges.', model: 'gemini-2.5-pro'}},
-          {id: 'video-1', type: 'videogen', position: {x: 500, y: 50}, data: {duration: 4, size: '1280x720'}},
-          {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 50}, data: {}},
-          {id: 'ai-2', type: 'gemini', position: {x: 700, y: 200}, data: {prompt: 'The smartphone screen lights up with a vibrant colorful app interface. The camera slowly zooms in to focus on the bright OLED display showing icons and animations.', model: 'gemini-2.5-pro'}},
-          {id: 'video-2', type: 'imagetovideo', position: {x: 900, y: 125}, data: {duration: 4, size: '1280x720'}},
-          {id: 'screenshot-2', type: 'screenshot', position: {x: 1100, y: 125}, data: {}},
-          {id: 'stitch-1', type: 'stitch', position: {x: 1300, y: 87}, data: {}},
-          {id: 'end-1', type: 'end', position: {x: 1500, y: 87}, data: {}}
+          {id: 'video-1', type: 'videogen', position: {x: 300, y: 50}, data: {duration: 4, size: '1280x720', prompt: 'A sleek modern smartphone resting on a clean white marble desk in a bright office with natural sunlight streaming through floor-to-ceiling windows. The camera slowly orbits around the phone, highlighting its premium metallic frame and glass back with subtle reflections.'}},
+          {id: 'screenshot-1', type: 'screenshot', position: {x: 500, y: 50}, data: {}},
+          {id: 'video-2', type: 'imagetovideo', position: {x: 700, y: 50}, data: {duration: 4, size: '1280x720', prompt: 'The smartphone screen illuminates with a smooth animation. Colorful app icons appear on the vibrant OLED display. The camera gently zooms in to show the crisp interface details and smooth transitions between screens.'}},
+          {id: 'screenshot-2', type: 'screenshot', position: {x: 900, y: 50}, data: {}},
+          {id: 'stitch-1', type: 'stitch', position: {x: 1100, y: 50}, data: {}},
+          {id: 'end-1', type: 'end', position: {x: 1300, y: 50}, data: {}}
         ],
         edges: [
           {id: 'e1', source: 'start-1', target: 'ai-1'},
