@@ -2489,6 +2489,112 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
+@api_router.post("/conversational-ai/knowledge-base/upload")
+async def upload_knowledge_base_file(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """Upload a file to ElevenLabs knowledge base"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        logging.info(f"[KNOWLEDGE_BASE] Uploading file: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload to ElevenLabs
+        import requests
+        response = requests.post(
+            "https://api.elevenlabs.io/v1/convai/knowledge-base/file",
+            headers={"xi-api-key": elevenlabs_key},
+            files={"file": (file.filename, file_content, file.content_type)}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        kb_data = response.json()
+        logging.info(f"[KNOWLEDGE_BASE] File uploaded successfully: {kb_data}")
+        
+        return kb_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[KNOWLEDGE_BASE] Error uploading file: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+@api_router.get("/conversational-ai/knowledge-base/list")
+async def list_knowledge_base(user_id: str = Depends(get_current_user)):
+    """List all knowledge base items from ElevenLabs"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch knowledge base items from ElevenLabs
+        import requests
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/knowledge-base",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        kb_items = response.json()
+        logging.info(f"[KNOWLEDGE_BASE] Found {len(kb_items.get('knowledge_base', []))} items")
+        
+        return kb_items
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[KNOWLEDGE_BASE] Error fetching knowledge base: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch knowledge base: {str(e)}")
+
+@api_router.delete("/conversational-ai/knowledge-base/{kb_id}")
+async def delete_knowledge_base_item(kb_id: str, user_id: str = Depends(get_current_user)):
+    """Delete a knowledge base item from ElevenLabs"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Delete from ElevenLabs
+        import requests
+        response = requests.delete(
+            f"https://api.elevenlabs.io/v1/convai/knowledge-base/{kb_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        logging.info(f"[KNOWLEDGE_BASE] Deleted item: {kb_id}")
+        
+        return {"message": "Knowledge base item deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[KNOWLEDGE_BASE] Error deleting item: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}")
+
 @api_router.post("/conversational-ai/sync-elevenlabs-agents")
 async def sync_elevenlabs_agents(user_id: str = Depends(get_current_user)):
     """Sync agents from ElevenLabs account"""
