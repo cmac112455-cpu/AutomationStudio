@@ -1285,13 +1285,7 @@ const ConversationalAgentsPage = () => {
                     </div>
                   )}
 
-                  {/* Test Microphone Button */}
-                  <button
-                    onClick={testMicrophone}
-                    className="w-full py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 mb-2"
-                  >
-                    🎤 Test Microphone
-                  </button>
+                  {/* Test Microphone Button removed - using ElevenLabs SDK */}
 
                   {/* Test Backend Button */}
                   <button
