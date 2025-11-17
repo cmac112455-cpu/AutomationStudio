@@ -517,7 +517,7 @@ const ConversationalAgentsPage = () => {
     setLoadingTools(true);
     try {
       const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/tools`);
-      setSystemTools(response.data.system_tools || []);
+      setSystemTools(response.data.built_in_tools || []);
       console.log('🔧 Tools loaded:', response.data);
     } catch (error) {
       console.error('Error loading tools:', error);
