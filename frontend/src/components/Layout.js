@@ -13,7 +13,9 @@ import {
   ChevronDown,
   ChevronRight,
   PlaySquare,
-  ListChecks
+  ListChecks,
+  Mic,
+  Music
 } from 'lucide-react';
 
 export default function Layout({ children }) {
