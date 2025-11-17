@@ -306,7 +306,13 @@ const ConversationalAgentsPage = () => {
   };
 
   const startRecording = async () => {
+    if (!callActive || isRecording || isSending) {
+      console.log('Cannot start recording:', { callActive, isRecording, isSending });
+      return;
+    }
+    
     try {
+      console.log('Starting recording...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       const chunks = [];
@@ -318,16 +324,25 @@ const ConversationalAgentsPage = () => {
       };
 
       recorder.onstop = async () => {
+        console.log('Recording stopped, processing audio...');
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
         await processVoiceInput(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
+      // Auto-stop after 10 seconds
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          console.log('Auto-stopping recording after 10s');
+          recorder.stop();
+        }
+      }, 10000);
+
       recorder.start();
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
-      toast.success('Recording... Speak now');
+      toast.success('🎤 Listening...', { duration: 2000 });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast.error('Could not access microphone');
