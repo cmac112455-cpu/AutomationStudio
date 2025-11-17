@@ -1316,6 +1316,34 @@ const ConversationalAgentsPage = () => {
                     )}
                   </p>
 
+                  {/* Microphone Level Indicator */}
+                  {isRecording && (
+                    <div className="w-full mb-4 p-4 bg-gray-800/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-300">Microphone Level</span>
+                        {micWorking ? (
+                          <span className="text-xs text-green-400">✓ Working</span>
+                        ) : (
+                          <span className="text-xs text-red-400">✗ Not Detecting Audio</span>
+                        )}
+                      </div>
+                      <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-100 ${
+                            audioLevel > 30 ? 'bg-green-500' : audioLevel > 10 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${audioLevel}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {audioLevel === 0 && '❌ No sound detected - Check your microphone!'}
+                        {audioLevel > 0 && audioLevel < 10 && '🔇 Very quiet - Speak louder!'}
+                        {audioLevel >= 10 && audioLevel < 30 && '🔉 Quiet - Speak louder!'}
+                        {audioLevel >= 30 && '✅ Good level - Keep speaking!'}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Test Backend Button */}
                   <button
                     onClick={testBackendPipeline}
