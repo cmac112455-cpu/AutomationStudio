@@ -44,11 +44,22 @@ const IntegrationsPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      
+      if (!token) {
+        throw new Error('Not authenticated. Please log in again.');
+      }
+
+      console.log('Saving integration:', service);
+      console.log('API Key length:', integrations[service].apiKey.length);
+      console.log('Backend URL:', BACKEND_URL);
+
+      const response = await axios.post(
         `${BACKEND_URL}/api/integrations/${service}`,
         { apiKey: integrations[service].apiKey },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log('Integration saved successfully:', response.data);
 
       setIntegrations(prev => ({
         ...prev,
@@ -59,7 +70,17 @@ const IntegrationsPage = () => {
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [service]: null })), 3000);
     } catch (error) {
       console.error('Failed to save integration:', error);
-      const errorMessage = error.response?.data?.detail || 'Failed to connect. Please check your API key.';
+      console.error('Error response:', error.response);
+      
+      let errorMessage = 'Failed to connect. Please check your API key.';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Session expired. Please refresh the page and log in again.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       setIntegrations(prev => ({
         ...prev,
