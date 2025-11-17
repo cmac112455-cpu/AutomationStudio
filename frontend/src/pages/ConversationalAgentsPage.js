@@ -365,29 +365,54 @@ const ConversationalAgentsPage = () => {
       const chunks = [];
 
       recorder.ondataavailable = (e) => {
+        console.log('📊 Data available, size:', e.data.size);
         if (e.data.size > 0) {
           chunks.push(e.data);
+          console.log('✅ Chunk added, total chunks:', chunks.length);
         }
       };
 
       recorder.onstop = async () => {
-        console.log('Recording stopped, processing audio...');
+        console.log('🛑 Recording stopped');
+        console.log('📦 Total chunks collected:', chunks.length);
+        
+        if (chunks.length === 0) {
+          console.error('❌ No audio chunks recorded!');
+          toast.error('No audio was recorded. Please try again.');
+          stream.getTracks().forEach(track => track.stop());
+          setIsRecording(false);
+          setMediaRecorder(null);
+          
+          // Try to restart recording
+          setTimeout(() => {
+            if (callActive) {
+              startRecording();
+            }
+          }, 1000);
+          return;
+        }
+        
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        console.log('🎵 Audio blob created, size:', audioBlob.size, 'bytes');
+        
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
         setMediaRecorder(null);
+        
         await processVoiceInput(audioBlob);
       };
 
       // Auto-stop after 10 seconds
       setTimeout(() => {
         if (recorder.state === 'recording') {
-          console.log('Auto-stopping recording after 10s');
+          console.log('⏱️ Auto-stopping recording after 10s');
           recorder.stop();
         }
       }, 10000);
 
-      recorder.start();
+      // Start recording with timeslice to ensure data is captured
+      recorder.start(1000); // Request data every 1 second
+      console.log('🎙️ Recorder started with 1s timeslice');
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
