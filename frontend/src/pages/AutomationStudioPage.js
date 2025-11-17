@@ -1343,7 +1343,7 @@ export default function AutomationStudioPage() {
                       <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1d2e] border-gray-700 max-h-[300px] overflow-y-auto">
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700 max-h-[400px] overflow-y-auto">
                         {availableVoices.length === 0 ? (
                           <>
                             <SelectItem value="21m00Tcm4TlvDq8ikWAM">Rachel (Female, Calm)</SelectItem>
@@ -1357,30 +1357,45 @@ export default function AutomationStudioPage() {
                             <SelectItem value="MF3mGyEYCl7XYWbV9V6O">Elli (Female, Emotional)</SelectItem>
                           </>
                         ) : (
-                          availableVoices
-                            .filter(voice => 
+                          (() => {
+                            const filteredVoices = availableVoices.filter(voice => 
                               !voiceSearchQuery || 
                               voice.name.toLowerCase().includes(voiceSearchQuery.toLowerCase()) ||
                               (voice.labels?.accent && voice.labels.accent.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
                               (voice.labels?.description && voice.labels.description.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
-                              (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(voiceSearchQuery.toLowerCase()))
-                            )
-                            .map(voice => {
+                              (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
+                              (voice.labels?.use_case && voice.labels.use_case.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
+                              (voice.category && voice.category.toLowerCase().includes(voiceSearchQuery.toLowerCase()))
+                            );
+                            
+                            return filteredVoices.map(voice => {
                               const labels = voice.labels || {};
-                              const description = `${voice.name} (${labels.gender || 'Unknown'}${labels.age ? ', ' + labels.age : ''}${labels.accent ? ', ' + labels.accent : ''})`;
+                              const source = labels.source ? `[${labels.source}] ` : '';
+                              const gender = labels.gender || '';
+                              const age = labels.age ? `, ${labels.age}` : '';
+                              const accent = labels.accent ? `, ${labels.accent}` : '';
+                              const useCase = labels.use_case ? ` - ${labels.use_case}` : '';
+                              const description = `${source}${voice.name} (${gender}${age}${accent})${useCase}`;
+                              
                               return (
                                 <SelectItem key={voice.voice_id} value={voice.voice_id}>
                                   {description}
                                 </SelectItem>
                               );
-                            })
+                            });
+                          })()
                         )}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500 mt-1">
                       {availableVoices.length > 0 
-                        ? `${availableVoices.filter(v => !voiceSearchQuery || v.name.toLowerCase().includes(voiceSearchQuery.toLowerCase())).length} voices available`
-                        : 'Click "Load Voices" to see all available voices'
+                        ? `${availableVoices.filter(v => 
+                            !voiceSearchQuery || 
+                            v.name.toLowerCase().includes(voiceSearchQuery.toLowerCase()) ||
+                            (v.labels?.accent && v.labels.accent.toLowerCase().includes(voiceSearchQuery.toLowerCase())) ||
+                            (v.labels?.gender && v.labels.gender.toLowerCase().includes(voiceSearchQuery.toLowerCase()))
+                          ).length} of ${availableVoices.length} voices shown`
+                        : 'Click "Load Voices" to see all available voices (including Voice Library)'
                       }
                     </p>
                   </div>
