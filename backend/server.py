@@ -2351,15 +2351,26 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                         # Output file
                         output_path = f"{temp_dir}/stitched_output.mp4"
                         
-                        # Run ffmpeg to concatenate videos
+                        # Run ffmpeg to concatenate videos with seamless audio
+                        # Re-encode with audio normalization and proper format
                         cmd = [
                             'ffmpeg', '-f', 'concat', '-safe', '0',
                             '-i', concat_file,
-                            '-c', 'copy',  # Copy streams without re-encoding for speed
+                            # Video encoding - use fast preset for reasonable speed
+                            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                            # Audio encoding - normalize audio levels and ensure consistent format
+                            '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                            # Audio filter to normalize volume across all clips
+                            '-af', 'loudnorm=I=-16:LRA=11:TP=-1.5',
+                            # Pixel format for compatibility
+                            '-pix_fmt', 'yuv420p',
+                            # Overwrite output file
+                            '-y',
                             output_path
                         ]
                         
-                        logging.info(f"[STITCH] Running ffmpeg command: {' '.join(cmd)}")
+                        logging.info(f"[STITCH] Running ffmpeg with audio normalization")
+                        logging.info(f"[STITCH] Command: {' '.join(cmd)}")
                         result_proc = subprocess.run(cmd, capture_output=True, text=True)
                         
                         if result_proc.returncode != 0:
@@ -2367,7 +2378,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             logging.error(f"[STITCH] ffmpeg stderr: {result_proc.stderr}")
                             raise Exception(f"ffmpeg failed: {result_proc.stderr}")
                         
-                        logging.info(f"[STITCH] ffmpeg completed successfully")
+                        logging.info(f"[STITCH] ffmpeg completed successfully with normalized audio")
                         
                         # Read stitched video
                         with open(output_path, 'rb') as f:
