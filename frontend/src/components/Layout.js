@@ -23,6 +23,9 @@ export default function Layout({ children }) {
   const [automationExpanded, setAutomationExpanded] = React.useState(
     location.pathname.startsWith('/automation')
   );
+  const [voiceStudioExpanded, setVoiceStudioExpanded] = React.useState(
+    location.pathname.startsWith('/voice-studio')
+  );
 
   const handleLogout = () => {
     logout();
