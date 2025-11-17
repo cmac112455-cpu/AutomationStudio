@@ -618,6 +618,130 @@ const ConversationalAgentsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Test Agent Modal */}
+      {showTestModal && testingAgent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#13141a] rounded-xl border border-gray-800 w-full max-w-3xl h-[80vh] flex flex-col">
+            {/* Header */}
+            <div className="border-b border-gray-800 p-6 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold">Testing: {testingAgent.name}</h2>
+                    <p className="text-sm text-gray-400">Chat with your agent</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTestModal(false);
+                    setTestingAgent(null);
+                    setConversation([]);
+                  }}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Conversation Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {conversation.length === 0 ? (
+                <div className="text-center py-20 text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Start a conversation with your agent</p>
+                </div>
+              ) : (
+                conversation.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[70%] rounded-xl p-4 ${
+                        message.role === 'user'
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-gray-800 text-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2 mb-1">
+                        {message.role === 'agent' && (
+                          <Bot className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1">
+                          <p className="text-sm">{message.content}</p>
+                          {message.audio_url && (
+                            <button
+                              onClick={() => {
+                                const audio = new Audio(message.audio_url);
+                                audio.onplay = () => setAudioPlaying(true);
+                                audio.onended = () => setAudioPlaying(false);
+                                audio.play();
+                              }}
+                              className="mt-2 text-xs flex items-center gap-1 hover:text-cyan-300 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                              Play audio
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs opacity-70">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 rounded-xl p-4 max-w-[70%]">
+                    <div className="flex items-center gap-2">
+                      <Bot className="w-4 h-4" />
+                      <span className="text-sm text-gray-400">Thinking...</span>
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="border-t border-gray-800 p-4 flex-shrink-0">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-3 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
+                  disabled={isSending}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!userInput.trim() || isSending}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 px-6"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Press Enter to send • Agent will respond with voice
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
