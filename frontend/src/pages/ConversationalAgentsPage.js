@@ -85,7 +85,9 @@ const ConversationalAgentsPage = () => {
   });
   const [audioUrl, setAudioUrl] = useState(null);
   const [loadingAudio, setLoadingAudio] = useState(false);
-  const [systemTools, setSystemTools] = useState([]);
+  const [builtInTools, setBuiltInTools] = useState([]);
+  const [toolIds, setToolIds] = useState([]);
+  const [workspaceTools, setWorkspaceTools] = useState({ server_tools: [], client_tools: [] });
   const [loadingTools, setLoadingTools] = useState(false);
   
   // Form state
