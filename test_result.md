@@ -105,6 +105,39 @@
 user_problem_statement: "Fix the Conversational AI voice-to-voice feature. User reports that after starting a call and speaking, the AI agent doesn't respond with voice. The microphone should listen, transcribe, get AI response, play it back, and automatically restart listening for a continuous conversation."
 
 backend:
+  - task: "Conversational AI Analytics Endpoints"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ IMPLEMENTATION COMPLETE: 5 new analytics proxy endpoints
+          - GET /api/conversational-ai/agents/{agent_id}/analytics/usage
+            * Proxies to ElevenLabs usage/character-stats
+            * Returns minutes_used, request_count, ttfb_avg, ttfb_p95
+            * Supports aggregation_interval, start_date, end_date params
+          - GET /api/conversational-ai/agents/{agent_id}/analytics/conversations
+            * Proxies to ElevenLabs convai/conversations
+            * Returns conversations list with metadata
+            * Supports pagination and filtering (duration, dates)
+          - GET /api/conversational-ai/agents/{agent_id}/analytics/conversations/{conversation_id}
+            * Proxies to ElevenLabs conversation details
+            * Returns full conversation data, transcript, evaluations
+          - GET /api/conversational-ai/agents/{agent_id}/analytics/dashboard
+            * Proxies to ElevenLabs dashboard config
+          - PATCH /api/conversational-ai/agents/{agent_id}/analytics/dashboard
+            * Updates ElevenLabs dashboard config
+          - All endpoints verify agent ownership
+          - All endpoints retrieve ElevenLabs API key from user integrations
+          - Proper error handling and logging
+          - Backend restarted successfully
+          Needs testing with valid ElevenLabs API key and synced agent
+
   - task: "Music Generation Polling Fix (Voice Studio & Workflow Node)"
     implemented: true
     working: true
