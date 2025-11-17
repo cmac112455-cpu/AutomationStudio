@@ -1878,6 +1878,48 @@ class TTSPreviewRequest(BaseModel):
     style: float = 0
     speaker_boost: bool = False
 
+@api_router.get("/tts/voices")
+async def get_elevenlabs_voices(user_id: str = Depends(get_current_user)):
+    """Fetch all available voices from ElevenLabs API"""
+    try:
+        # Get ElevenLabs API key from user's integrations
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        
+        if not user:
+            raise HTTPException(status_code=400, detail="User not found")
+        
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+        
+        if not elevenlabs_key:
+            raise HTTPException(
+                status_code=400,
+                detail="ElevenLabs API key not configured. Please add it in Integrations page."
+            )
+        
+        # Fetch voices from ElevenLabs
+        url = "https://api.elevenlabs.io/v1/voices"
+        headers = {"xi-api-key": elevenlabs_key}
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code != 200:
+            logging.error(f"[TTS_VOICES] ElevenLabs API error: {response.status_code} - {response.text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to fetch voices: {response.text}"
+            )
+        
+        voices_data = response.json()
+        logging.info(f"[TTS_VOICES] Fetched {len(voices_data.get('voices', []))} voices")
+        
+        return voices_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[TTS_VOICES] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch voices: {str(e)}")
+
 @api_router.post("/tts/preview")
 async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_current_user)):
     """Generate a preview of text-to-speech with current settings"""
