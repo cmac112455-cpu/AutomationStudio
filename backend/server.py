@@ -2749,15 +2749,13 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         
         if voice_id:
             try:
-                integration = await db.user_integrations.find_one(
-                    {"user_id": user_id, "platform": "elevenlabs"},
-                    {"_id": 0}
-                )
+                # Get ElevenLabs API key from user integrations (same as Voice Studio)
+                user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+                elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
                 
-                logging.info(f"[CONVERSATIONAL_AI] ElevenLabs integration found: {bool(integration)}")
+                logging.info(f"[CONVERSATIONAL_AI] ElevenLabs API key found: {bool(elevenlabs_key)}")
                 
-                if integration and integration.get("api_key"):
-                    elevenlabs_key = integration["api_key"]
+                if elevenlabs_key:
                     
                     logging.info(f"[CONVERSATIONAL_AI] Generating TTS for voice {voice_id}")
                     
