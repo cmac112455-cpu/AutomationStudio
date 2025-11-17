@@ -2128,7 +2128,7 @@ const ConversationalAgentsPage = () => {
                 <Button
                   onClick={editingAgent ? updateAgent : createAgent}
                   className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
-                  disabled={activeTab !== 'agent'}
+                  disabled={activeTab !== 'agent' && activeTab !== 'knowledge' && activeTab !== 'analysis'}
                 >
                   <Save className="w-4 h-4 mr-2" />
                   {editingAgent ? 'Update Agent' : 'Create Agent'}
