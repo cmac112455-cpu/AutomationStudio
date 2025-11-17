@@ -380,14 +380,35 @@ const ConversationalAgentsPage = () => {
         if (response.data.audio_url) {
           const audio = new Audio(response.data.audio_url);
           audio.onplay = () => setAudioPlaying(true);
-          audio.onended = () => setAudioPlaying(false);
+          audio.onended = () => {
+            setAudioPlaying(false);
+            // Auto-restart listening after agent finishes (seamless conversation)
+            setTimeout(() => {
+              if (callActive && !isRecording) {
+                startRecording();
+              }
+            }, 500);
+          };
           audio.play();
+        } else {
+          // No audio, restart listening immediately
+          setTimeout(() => {
+            if (callActive && !isRecording) {
+              startRecording();
+            }
+          }, 500);
         }
       };
 
     } catch (error) {
       console.error('Error processing voice:', error);
       toast.error('Failed to process voice input');
+      // Still restart listening on error
+      setTimeout(() => {
+        if (callActive && !isRecording) {
+          startRecording();
+        }
+      }, 1000);
     } finally {
       setIsSending(false);
     }
