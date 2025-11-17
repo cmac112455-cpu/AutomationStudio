@@ -2793,6 +2793,24 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         else:
             logging.warning(f"[CONVERSATIONAL_AI] No voice configured for agent")
         
+        # Log successful call
+        try:
+            call_log = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "agent_id": agent_id,
+                "agent_name": agent.get("name", "Unknown"),
+                "status": "completed",
+                "transcription": user_message,
+                "response": response_text,
+                "audio_generated": bool(audio_url),
+                "exchanges_count": len(conversation_history) // 2 + 1,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.conversational_call_logs.insert_one(call_log)
+        except Exception as log_error:
+            logging.error(f"[CONVERSATIONAL_AI] Failed to save call log: {str(log_error)}")
+        
         return {
             "transcription": user_message,
             "response": response_text,
@@ -2801,6 +2819,21 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         }
         
     except Exception as e:
+        # Log failed call
+        try:
+            call_log = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "agent_id": agent_id,
+                "agent_name": agent.get("name", "Unknown") if 'agent' in locals() else "Unknown",
+                "status": "failed",
+                "error": str(e),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.conversational_call_logs.insert_one(call_log)
+        except Exception as log_error:
+            logging.error(f"[CONVERSATIONAL_AI] Failed to save error log: {str(log_error)}")
+        
         logging.error(f"[CONVERSATIONAL_AI] Error in voice chat: {str(e)}")
         import traceback
         logging.error(traceback.format_exc())
