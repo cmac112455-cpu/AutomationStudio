@@ -105,6 +105,38 @@
 user_problem_statement: "Fix the Video Ad Creator workflow's Image-To-Video node. The node was failing because the screenshot image was not being passed correctly to the Sora 2 API. Issue: Sora 2 API expects multipart/form-data file upload, not JSON with base64 data."
 
 backend:
+  - task: "Image-To-Video Node (imagetovideo) in Workflow Engine"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: |
+          ❌ INITIAL STATE: Image-to-video generation failing
+          - Sora 2 API returning 400 Bad Request  
+          - Error: "Unknown parameter: 'reference_image'"
+          - emergentintegrations library using wrong parameter name
+      - working: false
+        agent: "main"
+        comment: |
+          ❌ SECOND ATTEMPT: Fixed parameter name to 'input_reference' but still failing
+          - Error: "Invalid type for 'input_reference': expected a file, but got an object instead"
+          - API expects multipart/form-data file upload, not JSON object
+      - working: true
+        agent: "main"
+        comment: |
+          ✅ FIX SUCCESSFUL: Implemented proper multipart/form-data upload
+          - Changed from JSON payload to multipart form data
+          - Upload image as file: files = {'input_reference': ('image.png', image_bytes, 'image/png')}
+          - Screenshot image successfully passed from previous node
+          - Video generation completes successfully (~75 seconds)
+          - Downloaded video: 503800 bytes
+          - Workflow execution end-to-end working
+
   - task: "Workflow Creation API (/api/workflows)"
     implemented: true
     working: true
