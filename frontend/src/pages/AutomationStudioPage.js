@@ -263,6 +263,39 @@ const StitchNode = ({ data }) => {
   );
 };
 
+const TextToSpeechNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#06b6d4" hasInput={true} nodeType="texttospeech">
+      <div className="px-4 py-3 rounded-lg border-2 border-cyan-500 bg-cyan-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Mic className="w-4 h-4 text-cyan-500" />
+          <div className="font-semibold text-white">Text-to-Speech</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          {data.voice || 'ElevenLabs Voice'}
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
+const AudioOverlayNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#8b5cf6" hasInput={true} nodeType="audiooverlay">
+      <div className="px-4 py-3 rounded-lg border-2 border-violet-500 bg-violet-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <Mic className="w-4 h-4 text-violet-500" />
+          <div className="font-semibold text-white">Audio Overlay</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Add voiceover to video
+        </div>
+      </div>
+    </NodeWrapper>
+  );
+};
+
+
 const TaskPlannerNode = ({ data }) => {
   return (
     <NodeWrapper color="#10b981" hasInput={true} nodeType="taskplanner">
