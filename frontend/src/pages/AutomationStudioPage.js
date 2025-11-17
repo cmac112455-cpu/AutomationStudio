@@ -660,8 +660,14 @@ export default function AutomationStudioPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setAvailableVoices(response.data.voices || []);
-      console.log('Fetched voices:', response.data.voices?.length);
+      const voices = response.data.voices || [];
+      setAvailableVoices(voices);
+      console.log('Fetched voices:', voices.length);
+      console.log('Sample voices:', voices.slice(0, 3).map(v => ({ name: v.name, id: v.voice_id })));
+      
+      if (voices.length > 0) {
+        toast.success(`Loaded ${voices.length} voices from ElevenLabs`);
+      }
     } catch (error) {
       console.error('Failed to fetch voices:', error);
       toast.error('Failed to load voices. Using defaults.');
