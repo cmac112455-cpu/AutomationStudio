@@ -409,7 +409,8 @@ const ConversationalAgentsPage = () => {
           // Send to backend for speech-to-text and processing
           const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
             audio: base64Audio,
-            conversation_history: conversation
+            conversation_history: conversation,
+            call_log_id: currentCallLogId
           });
           
           console.log('✅ Backend response received:', response.data);
