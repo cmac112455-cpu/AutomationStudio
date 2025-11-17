@@ -463,7 +463,22 @@ const ConversationalAgentsPage = () => {
             }, 500);
           }
         } catch (error) {
-          console.error('Error processing voice:', error);
+          console.error('❌ Error processing voice:', error);
+          console.error('Error details:', error.response?.data || error.message);
+          
+          // Log the error to backend
+          try {
+            await axios.post(`${BACKEND_URL}/api/conversational-ai/call-logs`, {
+              agent_id: testingAgent.id,
+              agent_name: testingAgent.name,
+              status: 'failed',
+              error: error.response?.data?.detail || error.message || 'Unknown error',
+              exchanges_count: Math.floor(conversation.length / 2)
+            });
+          } catch (logError) {
+            console.error('Failed to log error:', logError);
+          }
+          
           toast.error('Failed to process voice input');
           setIsSending(false);
           // Still restart listening on error
@@ -477,7 +492,7 @@ const ConversationalAgentsPage = () => {
       };
 
     } catch (error) {
-      console.error('Error in processVoiceInput outer:', error);
+      console.error('❌ Error in processVoiceInput outer:', error);
       toast.error('Failed to process voice input');
       setIsSending(false);
       // Still restart listening on error
