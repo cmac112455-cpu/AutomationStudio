@@ -103,6 +103,7 @@ function App() {
                         <Route path="/voice-studio/completions" element={<VoiceCompletionsPage />} />
                         <Route path="/voice-studio" element={<Navigate to="/voice-studio/voices" />} />
                         <Route path="/conversational-ai/agents" element={<ConversationalAgentsPage />} />
+                        <Route path="/conversational-ai/completions" element={<ConversationalAICompletionsPage />} />
                         <Route path="/conversational-ai" element={<Navigate to="/conversational-ai/agents" />} />
                         <Route path="/" element={<Navigate to="/dashboard" />} />
                       </Routes>
