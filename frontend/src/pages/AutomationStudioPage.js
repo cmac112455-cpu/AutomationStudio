@@ -679,9 +679,49 @@ export default function AutomationStudioPage() {
         setNodes(initialNodes);
         setEdges(initialEdges);
       }
+      setOpenMenuId(null);
     } catch (error) {
       toast.error('Failed to delete workflow');
     }
+  };
+
+  const renameWorkflow = async () => {
+    if (!renameWorkflowName.trim()) {
+      toast.error('Workflow name cannot be empty');
+      return;
+    }
+    
+    try {
+      await axios.put(`/workflows/${renameWorkflowId}`, {
+        ...workflows.find(w => w.id === renameWorkflowId),
+        name: renameWorkflowName
+      });
+      toast.success('Workflow renamed');
+      loadWorkflows();
+      if (currentWorkflow?.id === renameWorkflowId) {
+        setCurrentWorkflow({...currentWorkflow, name: renameWorkflowName});
+      }
+      setShowRenameModal(false);
+      setRenameWorkflowId(null);
+      setRenameWorkflowName('');
+      setOpenMenuId(null);
+    } catch (error) {
+      toast.error('Failed to rename workflow');
+    }
+  };
+
+  const createNewWorkflow = () => {
+    if (!newWorkflowName.trim()) {
+      toast.error('Workflow name cannot be empty');
+      return;
+    }
+    
+    setCurrentWorkflow({ name: newWorkflowName });
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+    setShowNewWorkflowModal(false);
+    setNewWorkflowName('');
+    toast.success(`Created workflow: ${newWorkflowName}`);
   };
 
 
