@@ -301,9 +301,43 @@ const ConversationalAgentsPage = () => {
       setSelectedConversation(response.data);
       setShowConversationModal(true);
       console.log('💬 Conversation details:', response.data);
+      
+      // Fetch audio if available
+      if (response.data.has_audio) {
+        loadConversationAudio(agentId, conversationId);
+      }
     } catch (error) {
       console.error('Error loading conversation details:', error);
       toast.error('Failed to load conversation details');
+    }
+  };
+
+  const loadConversationAudio = async (agentId, conversationId) => {
+    setLoadingAudio(true);
+    try {
+      console.log('🎵 Fetching audio for conversation:', conversationId);
+      
+      const response = await axios.get(
+        `${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analytics/conversations/${conversationId}/audio`,
+        {
+          responseType: 'blob' // Important: get binary data as blob
+        }
+      );
+      
+      console.log('✅ Audio fetched, size:', response.data.size, 'bytes');
+      
+      // Create a blob URL for the audio
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+      
+      console.log('✅ Audio blob URL created:', url);
+    } catch (error) {
+      console.error('❌ Error loading audio:', error);
+      console.error('Error details:', error.response);
+      toast.error('Failed to load audio recording');
+    } finally {
+      setLoadingAudio(false);
     }
   };
 
