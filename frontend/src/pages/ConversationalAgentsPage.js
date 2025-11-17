@@ -16,6 +16,14 @@ const ConversationalAgentsPage = () => {
   const [editingAgent, setEditingAgent] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
   
+  // Test modal state
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [testingAgent, setTestingAgent] = useState(null);
+  const [conversation, setConversation] = useState([]);
+  const [userInput, setUserInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
