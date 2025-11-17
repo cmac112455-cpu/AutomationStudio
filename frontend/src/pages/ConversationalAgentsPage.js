@@ -2001,6 +2001,154 @@ const ConversationalAgentsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Conversation Details Modal */}
+      {showConversationModal && selectedConversation && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl border border-cyan-500/30 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  Conversation Details
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  ID: {selectedConversation.conversation_id}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowConversationModal(false);
+                  setSelectedConversation(null);
+                }}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-cyan-500" />
+                  Overview
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">Status</p>
+                    <p className={`font-medium ${
+                      selectedConversation.status === 'completed' 
+                        ? 'text-green-400' 
+                        : 'text-red-400'
+                    }`}>
+                      {selectedConversation.status || 'Unknown'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Duration</p>
+                    <p className="font-medium">
+                      {selectedConversation.call_duration_secs 
+                        ? `${Math.round(selectedConversation.call_duration_secs)}s` 
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Started</p>
+                    <p className="font-medium">
+                      {selectedConversation.start_time_unix 
+                        ? new Date(selectedConversation.start_time_unix * 1000).toLocaleString()
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Agent ID</p>
+                    <p className="font-medium text-xs">
+                      {selectedConversation.agent_id?.substring(0, 16)}...
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transcript */}
+              {selectedConversation.transcript && selectedConversation.transcript.length > 0 && (
+                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-cyan-500" />
+                    Transcript
+                  </h3>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {selectedConversation.transcript.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-lg ${
+                          item.role === 'user' 
+                            ? 'bg-blue-500/10 border border-blue-500/20' 
+                            : 'bg-purple-500/10 border border-purple-500/20'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-xs font-semibold uppercase ${
+                            item.role === 'user' ? 'text-blue-400' : 'text-purple-400'
+                          }`}>
+                            {item.role === 'user' ? 'User' : 'Agent'}
+                          </span>
+                          {item.timestamp && (
+                            <span className="text-xs text-gray-500">
+                              {new Date(item.timestamp).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-300">{item.message || item.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Evaluation Results */}
+              {selectedConversation.evaluation_results && (
+                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-green-500" />
+                    Evaluation Results
+                  </h3>
+                  <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
+                    {JSON.stringify(selectedConversation.evaluation_results, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Metadata */}
+              {selectedConversation.metadata && (
+                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-gray-400" />
+                    Metadata
+                  </h3>
+                  <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
+                    {JSON.stringify(selectedConversation.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-800">
+              <Button
+                onClick={() => {
+                  setShowConversationModal(false);
+                  setSelectedConversation(null);
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
