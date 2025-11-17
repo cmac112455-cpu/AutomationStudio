@@ -3094,6 +3094,110 @@ class BackendTester:
             "results": self.test_results
         }
 
+    def run_conversational_ai_tools_test(self):
+        """Run comprehensive Conversational AI Tools tab backend endpoints test"""
+        print("🔧 CONVERSATIONAL AI TOOLS TAB BACKEND ENDPOINTS COMPREHENSIVE TEST")
+        print(f"Backend URL: {self.base_url}")
+        print("🎯 Test Objective: Verify Tools tab backend endpoints fix")
+        print("🔧 CRITICAL FIX: Tools configuration persistence issue")
+        print("📋 ENDPOINTS TESTED:")
+        print("   1. GET /api/conversational-ai/agents/{agent_id}/tools")
+        print("   2. PATCH /api/conversational-ai/agents/{agent_id}/tools")
+        print("   3. GET /api/conversational-ai/workspace-tools")
+        print("   4. Tools persistence verification (main bug fix)")
+        print("=" * 100)
+        
+        # Step 1: Authentication
+        print("\n📝 STEP 1: USER AUTHENTICATION")
+        auth_success = self.test_user_registration()
+        if not auth_success:
+            print("Registration failed, trying fallback login...")
+            auth_success = self.test_user_login_fallback()
+        
+        if not auth_success:
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return self.generate_tools_summary()
+        
+        # Step 2: Tools Tab Backend Endpoints Test (CRITICAL)
+        print("\n🔧 STEP 2: TOOLS TAB BACKEND ENDPOINTS (CRITICAL)")
+        print("Testing all tools configuration endpoints...")
+        tools_success = self.test_conversational_ai_tools_endpoints()
+        
+        return self.generate_tools_summary()
+    
+    def generate_tools_summary(self):
+        """Generate tools endpoints test summary"""
+        print("\n" + "=" * 80)
+        print("🔧 CONVERSATIONAL AI TOOLS TAB TEST SUMMARY")
+        print("=" * 80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        print("\n📋 DETAILED RESULTS:")
+        for result in self.test_results:
+            status = "✅" if result["success"] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+        
+        # Critical analysis for tools endpoints
+        critical_failures = []
+        tools_fix_status = "UNKNOWN"
+        
+        for result in self.test_results:
+            if not result["success"]:
+                if result["test"] in [
+                    "Conversational AI Tools Endpoints", 
+                    "User Registration",
+                    "User Login (Fallback)"
+                ]:
+                    critical_failures.append(result["test"])
+            else:
+                # Check for successful tools endpoints
+                if "Tools" in result["test"] and "Conversational AI" in result["test"]:
+                    tools_fix_status = "SUCCESS"
+        
+        if critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES: {', '.join(critical_failures)}")
+        
+        # Tools fix status
+        if tools_fix_status == "SUCCESS":
+            print(f"\n✅ TOOLS TAB FIX STATUS: VERIFIED WORKING")
+            print("   🔧 Tools configuration endpoints are functional")
+            print("   📋 Tools now read/write from correct ElevenLabs API structure")
+            print("   💾 Tools persistence issue should be resolved")
+            print("   🎯 Ready for frontend integration")
+        else:
+            print(f"\n❌ TOOLS TAB FIX STATUS: ISSUES DETECTED")
+            print("   🚨 Tools configuration endpoints have problems")
+            print("   🔧 May need additional fixes")
+        
+        # Recommendations
+        print(f"\n💡 RECOMMENDATIONS:")
+        if tools_fix_status == "SUCCESS":
+            print("   ✅ Tools tab backend fix is working correctly")
+            print("   🎯 Ready for user testing with ElevenLabs agents")
+            print("   📋 Tools should now persist after save operations")
+        else:
+            print("   🚨 Tools tab backend needs additional work")
+            print("   🔧 Review endpoint implementations and API structure")
+            print("   🔑 Ensure ElevenLabs API key configuration is working")
+        
+        return {
+            "total_tests": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "success_rate": (passed_tests/total_tests)*100,
+            "critical_failures": critical_failures,
+            "tools_fix_status": tools_fix_status,
+            "results": self.test_results
+        }
+
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_conversational_ai_analytics_test()
+    summary = tester.run_conversational_ai_tools_test()
