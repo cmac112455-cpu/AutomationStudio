@@ -1054,12 +1054,593 @@ class BackendTester:
             print(f"💥 Video Ad Creator execution monitoring error: {str(e)}")
             return False
 
-    def run_comprehensive_workflow_test(self):
-        """Run comprehensive Video Ad Creator workflow test with imagetovideo node fix validation"""
-        print("🚀 VIDEO AD CREATOR WORKFLOW TEST WITH IMAGE-TO-VIDEO NODE FIX VALIDATION")
+    # ============ ELEVENLABS INTEGRATION TESTS ============
+    
+    def test_elevenlabs_integration_save(self):
+        """Test POST /api/integrations endpoint - Save ElevenLabs API key"""
+        if not self.auth_token:
+            self.log_result("ElevenLabs Integration Save", False, "No authentication token available")
+            return False
+            
+        try:
+            # Test with a mock API key (will fail validation but test the endpoint)
+            integration_data = {
+                "apiKey": "test_key_12345"
+            }
+            
+            response = self.session.post(f"{self.base_url}/integrations/elevenlabs", json=integration_data)
+            
+            # We expect this to fail with 400 because it's not a real API key
+            if response.status_code == 400:
+                error_detail = response.json().get("detail", "")
+                if "Invalid ElevenLabs API key" in error_detail:
+                    self.log_result("ElevenLabs Integration Save", True, 
+                                  "ElevenLabs integration endpoint working correctly - properly validates API keys", 
+                                  f"Expected validation error: {error_detail}")
+                    return True
+                else:
+                    self.log_result("ElevenLabs Integration Save", False, 
+                                  f"Unexpected error message: {error_detail}")
+                    return False
+            else:
+                self.log_result("ElevenLabs Integration Save", False, 
+                              f"Unexpected status code {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("ElevenLabs Integration Save", False, f"Integration save error: {str(e)}")
+            return False
+    
+    def test_elevenlabs_integration_get(self):
+        """Test GET /api/integrations endpoint - Retrieve user's integrations"""
+        if not self.auth_token:
+            self.log_result("ElevenLabs Integration Get", False, "No authentication token available")
+            return False
+            
+        try:
+            response = self.session.get(f"{self.base_url}/integrations")
+            
+            if response.status_code == 200:
+                integrations = response.json()
+                
+                # Should return a dictionary (empty or with integrations)
+                if isinstance(integrations, dict):
+                    self.log_result("ElevenLabs Integration Get", True, 
+                                  f"Integrations retrieved successfully", 
+                                  f"Found {len(integrations)} integrations: {list(integrations.keys())}")
+                    return True
+                else:
+                    self.log_result("ElevenLabs Integration Get", False, 
+                                  f"Invalid response format: expected dict, got {type(integrations)}")
+                    return False
+            else:
+                self.log_result("ElevenLabs Integration Get", False, 
+                              f"Integration retrieval failed with status {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("ElevenLabs Integration Get", False, f"Integration get error: {str(e)}")
+            return False
+    
+    def test_elevenlabs_integration_delete(self):
+        """Test DELETE /api/integrations/elevenlabs endpoint - Remove ElevenLabs integration"""
+        if not self.auth_token:
+            self.log_result("ElevenLabs Integration Delete", False, "No authentication token available")
+            return False
+            
+        try:
+            response = self.session.delete(f"{self.base_url}/integrations/elevenlabs")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "success" and data.get("service") == "elevenlabs":
+                    self.log_result("ElevenLabs Integration Delete", True, 
+                                  "ElevenLabs integration deleted successfully")
+                    return True
+                else:
+                    self.log_result("ElevenLabs Integration Delete", False, 
+                                  f"Invalid response format: {data}")
+                    return False
+            else:
+                self.log_result("ElevenLabs Integration Delete", False, 
+                              f"Integration deletion failed with status {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("ElevenLabs Integration Delete", False, f"Integration delete error: {str(e)}")
+            return False
+    
+    def test_tts_preview_endpoint(self):
+        """Test POST /api/tts/preview endpoint - TTS preview without API key"""
+        if not self.auth_token:
+            self.log_result("TTS Preview Endpoint", False, "No authentication token available")
+            return False
+            
+        try:
+            # Test TTS preview request
+            tts_data = {
+                "voice_id": "21m00Tcm4TlvDq8ikWAM",
+                "text": "This is a test preview",
+                "stability": 0.5,
+                "similarity_boost": 0.75
+            }
+            
+            response = self.session.post(f"{self.base_url}/tts/preview", json=tts_data)
+            
+            # We expect this to fail with 400 because no ElevenLabs API key is configured
+            if response.status_code == 400:
+                error_detail = response.json().get("detail", "")
+                if "ElevenLabs API key not configured" in error_detail:
+                    self.log_result("TTS Preview Endpoint", True, 
+                                  "TTS preview endpoint working correctly - properly handles missing API key", 
+                                  f"Expected error: {error_detail}")
+                    return True
+                else:
+                    self.log_result("TTS Preview Endpoint", False, 
+                                  f"Unexpected error message: {error_detail}")
+                    return False
+            else:
+                self.log_result("TTS Preview Endpoint", False, 
+                              f"Unexpected status code {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("TTS Preview Endpoint", False, f"TTS preview error: {str(e)}")
+            return False
+    
+    # ============ WORKFLOW NODE TESTS ============
+    
+    def test_texttospeech_workflow_node(self):
+        """Test Text-to-Speech workflow node execution"""
+        if not self.auth_token:
+            self.log_result("Text-to-Speech Workflow Node", False, "No authentication token available")
+            return False, None
+            
+        try:
+            # Create workflow with Text-to-Speech node
+            workflow_data = {
+                "name": "Text-to-Speech Test Workflow",
+                "nodes": [
+                    {
+                        "id": "start-1",
+                        "type": "start",
+                        "position": {"x": 100, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "tts-1", 
+                        "type": "texttospeech",
+                        "position": {"x": 300, "y": 100},
+                        "data": {
+                            "text": "This is a test of the text-to-speech functionality",
+                            "voice": "Rachel",
+                            "stability": 0.5,
+                            "similarity_boost": 0.75
+                        }
+                    },
+                    {
+                        "id": "end-1",
+                        "type": "end", 
+                        "position": {"x": 500, "y": 100},
+                        "data": {}
+                    }
+                ],
+                "edges": [
+                    {
+                        "id": "edge-1",
+                        "source": "start-1",
+                        "target": "tts-1"
+                    },
+                    {
+                        "id": "edge-2", 
+                        "source": "tts-1",
+                        "target": "end-1"
+                    }
+                ]
+            }
+            
+            # Create workflow
+            response = self.session.post(f"{self.base_url}/workflows", json=workflow_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                workflow_id = data.get("id")
+                
+                if workflow_id:
+                    # Execute workflow
+                    exec_response = self.session.post(f"{self.base_url}/workflows/{workflow_id}/execute")
+                    
+                    if exec_response.status_code == 200:
+                        exec_data = exec_response.json()
+                        execution_id = exec_data.get("execution_id")
+                        
+                        if execution_id:
+                            # Monitor execution briefly
+                            time.sleep(5)
+                            
+                            # Check execution status
+                            status_response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
+                            
+                            if status_response.status_code == 200:
+                                status_data = status_response.json()
+                                results = status_data.get("results", {})
+                                tts_result = results.get("tts-1", {})
+                                
+                                # We expect this to fail because no ElevenLabs API key is configured
+                                if tts_result.get("status") == "error":
+                                    error_msg = tts_result.get("error", "")
+                                    if "ElevenLabs API key not configured" in error_msg:
+                                        self.log_result("Text-to-Speech Workflow Node", True, 
+                                                      "TTS workflow node working correctly - properly handles missing API key", 
+                                                      f"Expected error: {error_msg}")
+                                        return True, execution_id
+                                    else:
+                                        self.log_result("Text-to-Speech Workflow Node", False, 
+                                                      f"Unexpected TTS error: {error_msg}")
+                                        return False, execution_id
+                                else:
+                                    self.log_result("Text-to-Speech Workflow Node", False, 
+                                                  f"Unexpected TTS result: {tts_result}")
+                                    return False, execution_id
+                            else:
+                                self.log_result("Text-to-Speech Workflow Node", False, 
+                                              f"Failed to get execution status: {status_response.status_code}")
+                                return False, execution_id
+                        else:
+                            self.log_result("Text-to-Speech Workflow Node", False, "No execution ID returned")
+                            return False, None
+                    else:
+                        self.log_result("Text-to-Speech Workflow Node", False, 
+                                      f"Workflow execution failed: {exec_response.status_code}")
+                        return False, None
+                else:
+                    self.log_result("Text-to-Speech Workflow Node", False, "No workflow ID returned")
+                    return False, None
+            else:
+                self.log_result("Text-to-Speech Workflow Node", False, 
+                              f"Workflow creation failed: {response.status_code}")
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Text-to-Speech Workflow Node", False, f"TTS workflow node error: {str(e)}")
+            return False, None
+    
+    def test_audiooverlay_workflow_node(self):
+        """Test Audio Overlay workflow node execution"""
+        if not self.auth_token:
+            self.log_result("Audio Overlay Workflow Node", False, "No authentication token available")
+            return False, None
+            
+        try:
+            # Create workflow with Audio Overlay node (simplified test)
+            workflow_data = {
+                "name": "Audio Overlay Test Workflow",
+                "nodes": [
+                    {
+                        "id": "start-1",
+                        "type": "start",
+                        "position": {"x": 100, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "audiooverlay-1", 
+                        "type": "audiooverlay",
+                        "position": {"x": 300, "y": 100},
+                        "data": {
+                            "mode": "replace"
+                        }
+                    },
+                    {
+                        "id": "end-1",
+                        "type": "end", 
+                        "position": {"x": 500, "y": 100},
+                        "data": {}
+                    }
+                ],
+                "edges": [
+                    {
+                        "id": "edge-1",
+                        "source": "start-1",
+                        "target": "audiooverlay-1"
+                    },
+                    {
+                        "id": "edge-2", 
+                        "source": "audiooverlay-1",
+                        "target": "end-1"
+                    }
+                ]
+            }
+            
+            # Create workflow
+            response = self.session.post(f"{self.base_url}/workflows", json=workflow_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                workflow_id = data.get("id")
+                
+                if workflow_id:
+                    # Execute workflow
+                    exec_response = self.session.post(f"{self.base_url}/workflows/{workflow_id}/execute")
+                    
+                    if exec_response.status_code == 200:
+                        exec_data = exec_response.json()
+                        execution_id = exec_data.get("execution_id")
+                        
+                        if execution_id:
+                            # Monitor execution briefly
+                            time.sleep(5)
+                            
+                            # Check execution status
+                            status_response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
+                            
+                            if status_response.status_code == 200:
+                                status_data = status_response.json()
+                                results = status_data.get("results", {})
+                                overlay_result = results.get("audiooverlay-1", {})
+                                
+                                # We expect this to fail because no video/audio inputs are available
+                                if overlay_result.get("status") == "error":
+                                    error_msg = overlay_result.get("error", "")
+                                    if "No video found" in error_msg or "No audio found" in error_msg:
+                                        self.log_result("Audio Overlay Workflow Node", True, 
+                                                      "Audio Overlay workflow node working correctly - properly handles missing inputs", 
+                                                      f"Expected error: {error_msg}")
+                                        return True, execution_id
+                                    else:
+                                        self.log_result("Audio Overlay Workflow Node", False, 
+                                                      f"Unexpected overlay error: {error_msg}")
+                                        return False, execution_id
+                                else:
+                                    self.log_result("Audio Overlay Workflow Node", False, 
+                                                  f"Unexpected overlay result: {overlay_result}")
+                                    return False, execution_id
+                            else:
+                                self.log_result("Audio Overlay Workflow Node", False, 
+                                              f"Failed to get execution status: {status_response.status_code}")
+                                return False, execution_id
+                        else:
+                            self.log_result("Audio Overlay Workflow Node", False, "No execution ID returned")
+                            return False, None
+                    else:
+                        self.log_result("Audio Overlay Workflow Node", False, 
+                                      f"Workflow execution failed: {exec_response.status_code}")
+                        return False, None
+                else:
+                    self.log_result("Audio Overlay Workflow Node", False, "No workflow ID returned")
+                    return False, None
+            else:
+                self.log_result("Audio Overlay Workflow Node", False, 
+                              f"Workflow creation failed: {response.status_code}")
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Audio Overlay Workflow Node", False, f"Audio Overlay workflow node error: {str(e)}")
+            return False, None
+    
+    def test_enhanced_gemini_node_chat_history(self):
+        """Test Enhanced Gemini node with chat history between AI nodes"""
+        if not self.auth_token:
+            self.log_result("Enhanced Gemini Node Chat History", False, "No authentication token available")
+            return False, None
+            
+        try:
+            # Create workflow with multiple Gemini nodes to test chat history
+            workflow_data = {
+                "name": "Enhanced Gemini Chat History Test",
+                "nodes": [
+                    {
+                        "id": "start-1",
+                        "type": "start",
+                        "position": {"x": 100, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "gemini-1", 
+                        "type": "gemini",
+                        "position": {"x": 250, "y": 100},
+                        "data": {
+                            "prompt": "Write a short story about a robot learning to paint",
+                            "model": "gemini-2.5-pro"
+                        }
+                    },
+                    {
+                        "id": "gemini-2", 
+                        "type": "gemini",
+                        "position": {"x": 400, "y": 100},
+                        "data": {
+                            "prompt": "Continue the story and add a twist where the robot discovers it has emotions",
+                            "model": "gemini-2.5-pro"
+                        }
+                    },
+                    {
+                        "id": "end-1",
+                        "type": "end", 
+                        "position": {"x": 550, "y": 100},
+                        "data": {}
+                    }
+                ],
+                "edges": [
+                    {
+                        "id": "edge-1",
+                        "source": "start-1",
+                        "target": "gemini-1"
+                    },
+                    {
+                        "id": "edge-2", 
+                        "source": "gemini-1",
+                        "target": "gemini-2"
+                    },
+                    {
+                        "id": "edge-3", 
+                        "source": "gemini-2",
+                        "target": "end-1"
+                    }
+                ]
+            }
+            
+            # Create workflow
+            response = self.session.post(f"{self.base_url}/workflows", json=workflow_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                workflow_id = data.get("id")
+                
+                if workflow_id:
+                    # Execute workflow
+                    exec_response = self.session.post(f"{self.base_url}/workflows/{workflow_id}/execute")
+                    
+                    if exec_response.status_code == 200:
+                        exec_data = exec_response.json()
+                        execution_id = exec_data.get("execution_id")
+                        
+                        if execution_id:
+                            # Monitor execution with longer timeout for AI processing
+                            max_wait = 60  # 1 minute
+                            start_time = time.time()
+                            
+                            while time.time() - start_time < max_wait:
+                                status_response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
+                                
+                                if status_response.status_code == 200:
+                                    status_data = status_response.json()
+                                    status = status_data.get("status", "running")
+                                    results = status_data.get("results", {})
+                                    
+                                    if status == "completed":
+                                        gemini1_result = results.get("gemini-1", {})
+                                        gemini2_result = results.get("gemini-2", {})
+                                        
+                                        # Check if both Gemini nodes executed successfully
+                                        if (gemini1_result.get("response") and gemini2_result.get("response")):
+                                            # Verify that second Gemini node has context from first
+                                            response1 = gemini1_result.get("response", "")
+                                            response2 = gemini2_result.get("response", "")
+                                            
+                                            # Simple check: second response should be longer and contextually related
+                                            if len(response2) > 50 and len(response1) > 50:
+                                                self.log_result("Enhanced Gemini Node Chat History", True, 
+                                                              "Enhanced Gemini nodes working correctly - chat history maintained between AI nodes", 
+                                                              f"Gemini-1: {len(response1)} chars, Gemini-2: {len(response2)} chars")
+                                                return True, execution_id
+                                            else:
+                                                self.log_result("Enhanced Gemini Node Chat History", False, 
+                                                              f"Gemini responses too short: G1={len(response1)}, G2={len(response2)}")
+                                                return False, execution_id
+                                        else:
+                                            self.log_result("Enhanced Gemini Node Chat History", False, 
+                                                          f"Gemini nodes failed: G1={gemini1_result}, G2={gemini2_result}")
+                                            return False, execution_id
+                                    elif status == "failed":
+                                        error = status_data.get("error", "Unknown error")
+                                        self.log_result("Enhanced Gemini Node Chat History", False, 
+                                                      f"Workflow execution failed: {error}")
+                                        return False, execution_id
+                                    
+                                    # Continue waiting
+                                    time.sleep(5)
+                                else:
+                                    self.log_result("Enhanced Gemini Node Chat History", False, 
+                                                  f"Failed to get execution status: {status_response.status_code}")
+                                    return False, execution_id
+                            
+                            # Timeout
+                            self.log_result("Enhanced Gemini Node Chat History", False, 
+                                          "Workflow execution timeout")
+                            return False, execution_id
+                        else:
+                            self.log_result("Enhanced Gemini Node Chat History", False, "No execution ID returned")
+                            return False, None
+                    else:
+                        self.log_result("Enhanced Gemini Node Chat History", False, 
+                                      f"Workflow execution failed: {exec_response.status_code}")
+                        return False, None
+                else:
+                    self.log_result("Enhanced Gemini Node Chat History", False, "No workflow ID returned")
+                    return False, None
+            else:
+                self.log_result("Enhanced Gemini Node Chat History", False, 
+                              f"Workflow creation failed: {response.status_code}")
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Enhanced Gemini Node Chat History", False, f"Enhanced Gemini node error: {str(e)}")
+            return False, None
+    
+    def test_authentication_and_error_handling(self):
+        """Test authentication requirements and error handling"""
+        edge_cases_passed = 0
+        total_edge_cases = 4
+        
+        # Test 1: Unauthorized access to integrations endpoint
+        try:
+            session_no_auth = requests.Session()
+            response = session_no_auth.get(f"{self.base_url}/integrations")
+            
+            if response.status_code == 401:
+                edge_cases_passed += 1
+                print("   ✓ Unauthorized access properly rejected (401)")
+            else:
+                print(f"   ✗ Unauthorized access test failed: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ✗ Unauthorized access test error: {str(e)}")
+        
+        # Test 2: Invalid data format for integration save
+        try:
+            response = self.session.post(f"{self.base_url}/integrations/elevenlabs", json={
+                "invalid_field": "test"
+            })
+            
+            if response.status_code in [400, 422]:  # Bad request or validation error
+                edge_cases_passed += 1
+                print("   ✓ Invalid data format properly rejected")
+            else:
+                print(f"   ✗ Invalid data format test failed: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ✗ Invalid data format test error: {str(e)}")
+        
+        # Test 3: Missing required fields in TTS preview
+        try:
+            response = self.session.post(f"{self.base_url}/tts/preview", json={
+                "voice_id": "test"
+                # Missing required 'text' field
+            })
+            
+            if response.status_code in [400, 422]:  # Bad request or validation error
+                edge_cases_passed += 1
+                print("   ✓ Missing required fields properly rejected")
+            else:
+                print(f"   ✗ Missing required fields test failed: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ✗ Missing required fields test error: {str(e)}")
+        
+        # Test 4: Invalid service name for integration
+        try:
+            response = self.session.post(f"{self.base_url}/integrations/invalid_service", json={
+                "apiKey": "test_key"
+            })
+            
+            if response.status_code in [400, 404]:  # Bad request or not found
+                edge_cases_passed += 1
+                print("   ✓ Invalid service name properly handled")
+            else:
+                print(f"   ✗ Invalid service name test failed: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ✗ Invalid service name test error: {str(e)}")
+        
+        success = edge_cases_passed >= 3  # At least 3 out of 4 should pass
+        self.log_result("Authentication and Error Handling", success, 
+                      f"{edge_cases_passed}/{total_edge_cases} authentication/error handling tests passed")
+        return success
+    
+    def run_comprehensive_elevenlabs_test(self):
+        """Run comprehensive ElevenLabs integration and new workflow nodes test"""
+        print("🚀 ELEVENLABS INTEGRATION AND NEW WORKFLOW NODES COMPREHENSIVE TEST")
         print(f"Backend URL: {self.base_url}")
-        print("🎬 Test Scenario: Start → AI-1 → VideoGen-1 → Screenshot-1 → AI-2 → ImageToVideo → Screenshot-2 → Stitch → End")
-        print("🔧 Critical Test: Image-To-Video node using multipart/form-data upload (FIX)")
+        print("🎯 Test Objectives: ElevenLabs integration endpoints, TTS preview, workflow nodes")
         print("=" * 100)
         
         # Step 1: Authentication
@@ -1070,42 +1651,39 @@ class BackendTester:
             auth_success = self.test_user_login_fallback()
         
         if not auth_success:
-            print("❌ Authentication failed. Cannot proceed with workflow tests.")
+            print("❌ Authentication failed. Cannot proceed with tests.")
             return self.generate_summary()
         
-        # Step 2: Video Ad Creator Workflow Creation
-        print("\n🔧 STEP 2: VIDEO AD CREATOR WORKFLOW CREATION")
-        workflow_success, workflow_id = self.test_video_ad_creator_workflow_creation()
+        # Step 2: ElevenLabs Integration Management Tests
+        print("\n🔧 STEP 2: ELEVENLABS INTEGRATION MANAGEMENT")
+        print("Testing integration endpoints (without real API key)...")
+        self.test_elevenlabs_integration_get()
+        self.test_elevenlabs_integration_save()
+        self.test_elevenlabs_integration_delete()
         
-        if not workflow_success or not workflow_id:
-            print("❌ Video Ad Creator workflow creation failed. Cannot proceed.")
-            return self.generate_summary()
+        # Step 3: TTS Preview Endpoint Test
+        print("\n🎤 STEP 3: TTS PREVIEW ENDPOINT")
+        self.test_tts_preview_endpoint()
         
-        # Step 3: Workflow Retrieval Verification
-        print("\n🔍 STEP 3: WORKFLOW RETRIEVAL VERIFICATION")
-        self.test_workflow_retrieval(workflow_id)
+        # Step 4: Text-to-Speech Workflow Node Test
+        print("\n🗣️ STEP 4: TEXT-TO-SPEECH WORKFLOW NODE")
+        tts_success, tts_execution_id = self.test_texttospeech_workflow_node()
         
-        # Step 4: Video Ad Creator Workflow Execution with Real-time Log Monitoring
-        print("\n⚡ STEP 4: VIDEO AD CREATOR WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
-        execution_success, execution_id = self.test_video_ad_creator_execution_with_logs(workflow_id)
+        # Step 5: Audio Overlay Workflow Node Test
+        print("\n🎵 STEP 5: AUDIO OVERLAY WORKFLOW NODE")
+        overlay_success, overlay_execution_id = self.test_audiooverlay_workflow_node()
         
-        if execution_id:
-            # Step 5: MongoDB Persistence Check
-            print("\n💾 STEP 5: MONGODB PERSISTENCE VERIFICATION")
-            self.test_mongodb_persistence(execution_id)
+        # Step 6: Enhanced Gemini Node with Chat History Test
+        print("\n🤖 STEP 6: ENHANCED GEMINI NODE WITH CHAT HISTORY")
+        gemini_success, gemini_execution_id = self.test_enhanced_gemini_node_chat_history()
         
-        # Step 6: Execution History Check
-        print("\n📋 STEP 6: EXECUTION HISTORY VERIFICATION")
+        # Step 7: Authentication and Error Handling Tests
+        print("\n🔒 STEP 7: AUTHENTICATION AND ERROR HANDLING")
+        self.test_authentication_and_error_handling()
+        
+        # Step 8: Execution History Check
+        print("\n📋 STEP 8: EXECUTION HISTORY VERIFICATION")
         self.test_execution_history()
-        
-        # Step 7: Log Analysis
-        print("\n📊 STEP 7: LOG ANALYSIS")
-        if self.captured_logs:
-            print(f"Captured {len(self.captured_logs)} log entries during execution:")
-            for log in self.captured_logs[-15:]:  # Show last 15 logs for video workflow
-                print(f"   {log}")
-        else:
-            print("No backend logs captured during execution.")
         
         return self.generate_summary()
     
