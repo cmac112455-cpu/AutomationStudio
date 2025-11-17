@@ -2487,6 +2487,42 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
+@api_router.post("/conversational-ai/agents/{agent_id}/start-call")
+async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Initialize a call session with the agent"""
+    try:
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Starting call with agent {agent_id}")
+        
+        # Create call session
+        call_session = {
+            "id": str(uuid.uuid4()),
+            "agent_id": agent_id,
+            "user_id": user_id,
+            "status": "active",
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "conversation": []
+        }
+        
+        await db.call_sessions.insert_one(call_session.copy())
+        
+        return {
+            "session_id": call_session["id"],
+            "agent_name": agent.get("name"),
+            "first_message": agent.get("firstMessage", "")
+        }
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error starting call: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to start call")
+
 @api_router.post("/conversational-ai/agents/{agent_id}/chat")
 async def chat_with_agent(agent_id: str, chat_data: dict, user_id: str = Depends(get_current_user)):
     """Chat with a conversational AI agent"""
