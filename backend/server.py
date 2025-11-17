@@ -252,14 +252,19 @@ def create_access_token(user_id: str) -> str:
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     token = credentials.credentials
     try:
+        logging.info(f"[AUTH] Validating token: {token[:20]}...")
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = payload.get('user_id')
         if not user_id:
+            logging.error("[AUTH] Token missing user_id")
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        logging.info(f"[AUTH] Token valid for user: {user_id}")
         return user_id
     except jwt.ExpiredSignatureError:
+        logging.error("[AUTH] Token expired")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        logging.error(f"[AUTH] Invalid token: {str(e)}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 # ============ AUTH ENDPOINTS ============
