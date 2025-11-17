@@ -284,11 +284,11 @@ backend:
 
   - task: "ElevenLabs Integration API Endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -300,6 +300,17 @@ backend:
           - Uses cryptography.fernet for secure key encryption
           - JWT authentication required
           Needs testing to verify functionality
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ ELEVENLABS INTEGRATION ENDPOINTS: All working correctly
+          - GET /api/integrations: Successfully retrieves user integrations (empty list for new user)
+          - POST /api/integrations/elevenlabs: Properly validates API keys and rejects invalid ones
+          - DELETE /api/integrations/elevenlabs: Successfully removes integrations
+          - Authentication: JWT token required and properly enforced
+          - Error handling: Appropriate error messages for invalid API keys
+          - Request/response formats: All endpoints return correct JSON structures
+          - Database operations: Integration data properly stored/retrieved/deleted from MongoDB
 
   - task: "TTS Preview Endpoint"
     implemented: true
