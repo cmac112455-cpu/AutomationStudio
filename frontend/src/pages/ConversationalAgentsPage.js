@@ -2257,7 +2257,8 @@ const ConversationalAgentsPage = () => {
                                         const newToolIds = e.target.checked
                                           ? [...toolIds, tool.tool_id]
                                           : toolIds.filter(id => id !== tool.tool_id);
-                                        updateAgentTools(builtInTools, newToolIds);
+                                        setToolIds(newToolIds);
+                                        setUnsavedToolsChanges(true);
                                       }}
                                       className="sr-only peer"
                                     />
