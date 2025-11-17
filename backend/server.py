@@ -2501,6 +2501,209 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     logging.error(f"[STITCH] Exception: {str(e)}")
                     logging.error(f"[STITCH] Traceback: {traceback.format_exc()}")
                     result = {"status": "error", "error": f"Video stitching failed: {str(e)}"}
+
+            elif node_type == 'texttospeech':
+                # Execute Text-to-Speech using ElevenLabs
+                try:
+                    logging.info(f"[TTS] Node {node_id} executing")
+                    
+                    # Get text from node config or from previous AI node's response
+                    text = node_data.get('text', '')
+                    
+                    if not text and isinstance(input_data, dict):
+                        text = input_data.get('response', input_data.get('text', ''))
+                    
+                    if not text and isinstance(input_data, str):
+                        text = input_data
+                    
+                    # If still no text, collect from all AI responses in the workflow
+                    if not text:
+                        logging.info(f"[TTS] No direct text, collecting from AI nodes")
+                        text_parts = []
+                        for prev_node_id, prev_result in results.items():
+                            if isinstance(prev_result, dict) and 'response' in prev_result:
+                                # Extract voiceover text if formatted
+                                response_text = prev_result['response']
+                                if 'VOICEOVER' in response_text.upper():
+                                    # Extract voiceover lines
+                                    lines = response_text.split('\n')
+                                    for line in lines:
+                                        if 'VOICEOVER' in line.upper() and ':' in line:
+                                            voiceover = line.split(':', 1)[1].strip().strip('"')
+                                            text_parts.append(voiceover)
+                                else:
+                                    text_parts.append(response_text)
+                        
+                        text = ' '.join(text_parts)
+                        logging.info(f"[TTS] Collected text from {len(text_parts)} AI nodes")
+                    
+                    voice = node_data.get('voice', 'Rachel')  # Default ElevenLabs voice
+                    
+                    if not text:
+                        result = {"status": "error", "error": "No text provided for text-to-speech"}
+                    else:
+                        logging.info(f"[TTS] Generating speech for {len(text)} characters with voice: {voice}")
+                        
+                        # Get ElevenLabs API key from user's integrations
+                        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+                        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+                        
+                        if not elevenlabs_key:
+                            result = {"status": "error", "error": "ElevenLabs API key not configured. Please add it in Integrations page."}
+                        else:
+                            # Call ElevenLabs API
+                            import requests
+                            
+                            # Get voice ID (map common names to IDs or use directly)
+                            voice_map = {
+                                'rachel': '21m00Tcm4TlvDq8ikWAM',
+                                'adam': 'pNInz6obpgDQGcFmaJgB',
+                                'bella': 'EXAVITQu4vr4xnSDxMaL',
+                                'antoni': 'ErXwobaYiN019PkySvjV',
+                                'josh': 'TxGEqnHWrfWFTfGW9XjX',
+                                'arnold': 'VR6AewLTigWG4xSOukaG',
+                                'sam': 'yoZ06aMxZJJ28mfd3POQ',
+                            }
+                            voice_id = voice_map.get(voice.lower(), voice)
+                            
+                            url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+                            headers = {
+                                "Accept": "audio/mpeg",
+                                "Content-Type": "application/json",
+                                "xi-api-key": elevenlabs_key
+                            }
+                            
+                            payload = {
+                                "text": text,
+                                "model_id": "eleven_monolingual_v1",
+                                "voice_settings": {
+                                    "stability": 0.5,
+                                    "similarity_boost": 0.75
+                                }
+                            }
+                            
+                            response = requests.post(url, json=payload, headers=headers, timeout=60)
+                            
+                            if response.status_code == 200:
+                                audio_bytes = response.content
+                                audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                                
+                                logging.info(f"[TTS] Generated {len(audio_bytes)} bytes of audio")
+                                
+                                result = {
+                                    "status": "success",
+                                    "audio_base64": audio_base64,
+                                    "text": text,
+                                    "voice": voice,
+                                    "format": "mp3"
+                                }
+                            else:
+                                logging.error(f"[TTS] ElevenLabs API error: {response.status_code} - {response.text}")
+                                result = {"status": "error", "error": f"ElevenLabs API error: {response.text}"}
+                
+                except Exception as e:
+                    import traceback
+                    logging.error(f"[TTS] Exception: {str(e)}")
+                    logging.error(f"[TTS] Traceback: {traceback.format_exc()}")
+                    result = {"status": "error", "error": f"Text-to-speech failed: {str(e)}"}
+            
+            elif node_type == 'audiooverlay':
+                # Execute Audio Overlay - combine video with voiceover
+                try:
+                    logging.info(f"[AUDIO_OVERLAY] Node {node_id} executing")
+                    
+                    # Find video from previous nodes
+                    video_base64 = None
+                    for prev_node_id, prev_result in results.items():
+                        if isinstance(prev_result, dict) and prev_result.get('video_base64'):
+                            video_base64 = prev_result['video_base64']
+                            logging.info(f"[AUDIO_OVERLAY] Found video from node: {prev_node_id}")
+                            break
+                    
+                    # Find audio from previous TTS node
+                    audio_base64 = None
+                    for prev_node_id, prev_result in results.items():
+                        if isinstance(prev_result, dict) and prev_result.get('audio_base64'):
+                            audio_base64 = prev_result['audio_base64']
+                            logging.info(f"[AUDIO_OVERLAY] Found audio from node: {prev_node_id}")
+                            break
+                    
+                    if not video_base64:
+                        result = {"status": "error", "error": "No video found from previous nodes"}
+                    elif not audio_base64:
+                        result = {"status": "error", "error": "No audio found from previous TTS node"}
+                    else:
+                        import tempfile
+                        import subprocess
+                        
+                        # Create temp directory
+                        temp_dir = tempfile.mkdtemp()
+                        
+                        # Save video
+                        video_bytes = base64.b64decode(video_base64)
+                        video_path = f"{temp_dir}/input_video.mp4"
+                        with open(video_path, 'wb') as f:
+                            f.write(video_bytes)
+                        
+                        # Save audio
+                        audio_bytes = base64.b64decode(audio_base64)
+                        audio_path = f"{temp_dir}/voiceover.mp3"
+                        with open(audio_path, 'wb') as f:
+                            f.write(audio_bytes)
+                        
+                        # Output path
+                        output_path = f"{temp_dir}/final_video.mp4"
+                        
+                        logging.info(f"[AUDIO_OVERLAY] Overlaying audio onto video with ffmpeg")
+                        
+                        # Use ffmpeg to overlay audio on video
+                        # Replace original audio with voiceover, or mix if desired
+                        cmd = [
+                            'ffmpeg',
+                            '-i', video_path,
+                            '-i', audio_path,
+                            '-c:v', 'copy',  # Copy video stream (no re-encode for speed)
+                            '-map', '0:v:0',  # Use video from first input
+                            '-map', '1:a:0',  # Use audio from second input (voiceover)
+                            '-c:a', 'aac',
+                            '-b:a', '192k',
+                            '-shortest',  # End when shortest stream ends
+                            '-y',
+                            output_path
+                        ]
+                        
+                        result_proc = subprocess.run(cmd, capture_output=True, text=True)
+                        
+                        if result_proc.returncode != 0:
+                            logging.error(f"[AUDIO_OVERLAY] ffmpeg failed: {result_proc.stderr}")
+                            raise Exception(f"ffmpeg failed: {result_proc.stderr}")
+                        
+                        # Read final video
+                        with open(output_path, 'rb') as f:
+                            final_video_bytes = f.read()
+                        
+                        logging.info(f"[AUDIO_OVERLAY] Created final video: {len(final_video_bytes)} bytes")
+                        
+                        # Encode to base64
+                        final_video_base64 = base64.b64encode(final_video_bytes).decode('utf-8')
+                        
+                        # Cleanup
+                        import shutil
+                        shutil.rmtree(temp_dir)
+                        
+                        result = {
+                            "status": "success",
+                            "video_base64": final_video_base64,
+                            "prompt": "Video with voiceover overlay"
+                        }
+                        logging.info(f"[AUDIO_OVERLAY] Successfully added voiceover to video")
+                
+                except Exception as e:
+                    import traceback
+                    logging.error(f"[AUDIO_OVERLAY] Exception: {str(e)}")
+                    logging.error(f"[AUDIO_OVERLAY] Traceback: {traceback.format_exc()}")
+                    result = {"status": "error", "error": f"Audio overlay failed: {str(e)}"}
+
             
             elif node_type == 'taskplanner':
                 # Execute Task Planner action
