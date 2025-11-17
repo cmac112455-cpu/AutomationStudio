@@ -1900,6 +1900,7 @@ async def get_elevenlabs_voices(user_id: str = Depends(get_current_user)):
         url = "https://api.elevenlabs.io/v1/voices"
         headers = {"xi-api-key": elevenlabs_key}
         
+        logging.info(f"[TTS_VOICES] Fetching voices from ElevenLabs...")
         response = requests.get(url, headers=headers, timeout=10)
         
         if response.status_code != 200:
@@ -1910,7 +1911,12 @@ async def get_elevenlabs_voices(user_id: str = Depends(get_current_user)):
             )
         
         voices_data = response.json()
-        logging.info(f"[TTS_VOICES] Fetched {len(voices_data.get('voices', []))} voices")
+        voices = voices_data.get('voices', [])
+        logging.info(f"[TTS_VOICES] Fetched {len(voices)} voices")
+        
+        # Log voice names and IDs for debugging
+        voice_names = [f"{v.get('name')} ({v.get('voice_id')})" for v in voices[:5]]
+        logging.info(f"[TTS_VOICES] Sample voices: {', '.join(voice_names)}")
         
         return voices_data
         
