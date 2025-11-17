@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Phone, AlertCircle, CheckCircle, XCircle, Clock, Bot, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Phone, AlertCircle, CheckCircle, XCircle, Clock, Bot, RefreshCw, ChevronDown, ChevronUp, Download, Play, Pause, Volume2 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -10,6 +10,8 @@ const ConversationalAICompletionsPage = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedLog, setExpandedLog] = useState(null);
+  const [playingAudio, setPlayingAudio] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     loadLogs();
