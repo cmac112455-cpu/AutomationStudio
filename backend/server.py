@@ -3038,17 +3038,25 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         logging.info(f"[TOOLS] ================================================")
         
         # Extract tools from the correct nested structure
-        # built_in_tools is an OBJECT/DICT where keys are tool names
+        # ElevenLabs stores tools in BOTH built_in_tools object AND tools array
+        # The tools array is the source of truth
         built_in_tools_obj = prompt_config.get("built_in_tools", {})
+        tools_array = prompt_config.get("tools", [])
         tool_ids = prompt_config.get("tool_ids", [])
         
-        # Convert built_in_tools object to list of enabled tool names
-        # Tool is enabled if it has a config object (not None)
+        logging.info(f"[TOOLS] Reading from ElevenLabs:")
+        logging.info(f"[TOOLS]   - built_in_tools object has {len(built_in_tools_obj)} keys")
+        logging.info(f"[TOOLS]   - tools array has {len(tools_array)} items")
+        
+        # Use the tools array as source of truth (it's what ElevenLabs actually uses)
+        # Build a set of enabled tool names from the array
         enabled_tools = []
-        if isinstance(built_in_tools_obj, dict):
-            for tool_name, tool_config in built_in_tools_obj.items():
-                if tool_config is not None:
-                    enabled_tools.append(tool_name)
+        for tool_config in tools_array:
+            if isinstance(tool_config, dict) and tool_config.get('name'):
+                tool_name = tool_config['name']
+                enabled_tools.append(tool_name)
+        
+        logging.info(f"[TOOLS] Enabled tools from tools array: {enabled_tools}")
         
         logging.info(f"[TOOLS] ✅ Loaded tools for agent {agent_id}")
         logging.info(f"[TOOLS] Built-in tools object: {built_in_tools_obj}")
