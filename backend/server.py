@@ -2827,8 +2827,11 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         }
         
     except Exception as e:
-        # Log failed call
+        # Log failed call with detailed error info
         try:
+            import traceback
+            error_traceback = traceback.format_exc()
+            
             call_log = {
                 "id": str(uuid.uuid4()),
                 "user_id": user_id,
@@ -2836,6 +2839,14 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
                 "agent_name": agent.get("name", "Unknown") if 'agent' in locals() else "Unknown",
                 "status": "failed",
                 "error": str(e),
+                "error_traceback": error_traceback,
+                "backend_logs": {
+                    "whisper_success": 'user_message' in locals(),
+                    "llm_success": 'response_text' in locals(),
+                    "tts_success": 'audio_url' in locals() and bool(locals().get('audio_url')),
+                    "voice_configured": agent.get("voice") if 'agent' in locals() else False,
+                    "error_stage": "transcription" if 'user_message' not in locals() else "llm" if 'response_text' not in locals() else "tts"
+                },
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             await db.conversational_call_logs.insert_one(call_log)
