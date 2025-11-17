@@ -436,7 +436,19 @@ const ConversationalAgentsPage = () => {
 
   const processVoiceInput = async (audioBlob) => {
     setIsSending(true);
-    console.log('🎤 Processing voice input, blob size:', audioBlob.size);
+    console.log('🎤 Processing voice input, blob size:', audioBlob.size, 'bytes');
+
+    if (!audioBlob || audioBlob.size === 0) {
+      console.error('❌ Invalid audio blob!');
+      toast.error('No audio recorded');
+      setIsSending(false);
+      setTimeout(() => {
+        if (callActive) {
+          startRecording();
+        }
+      }, 1000);
+      return;
+    }
 
     try {
       // Convert audio to base64
