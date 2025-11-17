@@ -394,6 +394,7 @@ const ConversationalAgentsPage = () => {
 
                 <div className="flex gap-2">
                   <Button
+                    onClick={() => startTest(agent)}
                     className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-sm"
                     size="sm"
                   >
@@ -401,6 +402,7 @@ const ConversationalAgentsPage = () => {
                     Test
                   </Button>
                   <Button
+                    onClick={() => openEditModal(agent)}
                     className="flex-1 bg-gray-700 hover:bg-gray-600 text-sm"
                     size="sm"
                   >
