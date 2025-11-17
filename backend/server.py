@@ -2727,6 +2727,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                         
                         # Call OpenAI Sora 2 API directly with correct input_reference parameter
                         import requests
+                        import time
                         from emergentintegrations.llm.utils import get_integration_proxy_url, get_app_identifier
                         
                         api_key = os.environ.get('EMERGENT_LLM_KEY')
