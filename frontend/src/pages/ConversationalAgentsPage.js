@@ -161,6 +161,19 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  const loadKnowledgeBase = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/knowledge-base/list`);
+      setKnowledgeBase(response.data.knowledge_base || []);
+    } catch (error) {
+      console.error('Error loading knowledge base:', error);
+      // Don't show error toast if API key not configured yet
+      if (error.response?.status !== 400) {
+        toast.error('Failed to load knowledge base');
+      }
+    }
+  };
+
   const loadVoices = async () => {
     try {
       const response = await axios.get(`${BACKEND_URL}/api/tts/voices`);
