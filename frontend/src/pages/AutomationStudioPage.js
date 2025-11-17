@@ -1176,6 +1176,159 @@ export default function AutomationStudioPage() {
                 </>
               )}
 
+
+              {/* Text-to-Speech Node Config */}
+              {selectedNode.type === 'texttospeech' && (
+                <>
+                  <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Mic className="w-4 h-4 text-cyan-400" />
+                      <span className="text-sm font-semibold text-cyan-400">ElevenLabs Voice Settings</span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Configure voice characteristics for natural-sounding speech
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Voice</Label>
+                    <Select
+                      value={nodeConfig.voice || 'Rachel'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, voice: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="Rachel">Rachel (Female, Calm)</SelectItem>
+                        <SelectItem value="Bella">Bella (Female, Soft)</SelectItem>
+                        <SelectItem value="Antoni">Antoni (Male, Well-rounded)</SelectItem>
+                        <SelectItem value="Josh">Josh (Male, Deep)</SelectItem>
+                        <SelectItem value="Arnold">Arnold (Male, Crisp)</SelectItem>
+                        <SelectItem value="Adam">Adam (Male, Deep)</SelectItem>
+                        <SelectItem value="Sam">Sam (Male, Raspy)</SelectItem>
+                        <SelectItem value="Domi">Domi (Female, Strong)</SelectItem>
+                        <SelectItem value="Elli">Elli (Female, Emotional)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">Select from pre-made ElevenLabs voices</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Model</Label>
+                    <Select
+                      value={nodeConfig.model_id || 'eleven_monolingual_v1'}
+                      onValueChange={(value) => setNodeConfig({ ...nodeConfig, model_id: value })}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        <SelectItem value="eleven_monolingual_v1">Eleven Monolingual v1 (Best quality)</SelectItem>
+                        <SelectItem value="eleven_multilingual_v2">Eleven Multilingual v2 (Multiple languages)</SelectItem>
+                        <SelectItem value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">Choose quality vs speed</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white flex items-center justify-between">
+                      <span>Stability</span>
+                      <span className="text-xs text-gray-400">{nodeConfig.stability || 0.5}</span>
+                    </Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={nodeConfig.stability || 0.5}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, stability: parseFloat(e.target.value) })}
+                      className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Higher = more consistent, Lower = more expressive
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white flex items-center justify-between">
+                      <span>Similarity Boost</span>
+                      <span className="text-xs text-gray-400">{nodeConfig.similarity_boost || 0.75}</span>
+                    </Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={nodeConfig.similarity_boost || 0.75}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, similarity_boost: parseFloat(e.target.value) })}
+                      className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Higher = closer to original voice, Lower = more creative
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white flex items-center justify-between">
+                      <span>Style Exaggeration</span>
+                      <span className="text-xs text-gray-400">{nodeConfig.style || 0}</span>
+                    </Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={nodeConfig.style || 0}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, style: parseFloat(e.target.value) })}
+                      className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Amplify the style of the voice (experimental)
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#0f1218] border border-gray-700 rounded-lg p-3">
+                    <input
+                      type="checkbox"
+                      checked={nodeConfig.speaker_boost || false}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, speaker_boost: e.target.checked })}
+                      className="w-4 h-4 accent-cyan-500"
+                    />
+                    <div>
+                      <Label className="text-white text-sm">Speaker Boost</Label>
+                      <p className="text-xs text-gray-500">Enhance clarity for better understanding</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Custom Text (Optional)</Label>
+                    <Textarea
+                      value={nodeConfig.text || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, text: e.target.value })}
+                      placeholder="Leave empty to auto-collect from AI nodes..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      If empty, will automatically collect voiceover text from previous AI responses
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-xs text-gray-300">
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-400">ℹ️</span>
+                      <div>
+                        <strong className="text-white">Pro Tip:</strong> For best results, use stability 0.5-0.7 and similarity boost 0.7-0.8. 
+                        The TTS node will automatically collect and combine voiceover text from all previous AI nodes.
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+
               {/* Database Node Config */}
               {selectedNode.type === 'database' && (
                 <>
