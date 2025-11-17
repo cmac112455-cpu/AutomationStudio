@@ -238,78 +238,44 @@ const ConversationalAgentsPage = () => {
   const initiateCall = async () => {
     if (!testingAgent) return;
     
-    setIsConnecting(true);
-    console.log('📞 Initiating call with agent:', testingAgent.name);
-    
-    // Check microphone permissions first
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      console.log('✅ Microphone access granted');
-    } catch (permError) {
-      console.error('❌ Microphone permission denied:', permError);
-      toast.error('Please allow microphone access to make calls');
-      setIsConnecting(false);
+    if (!testingAgent.elevenlabs_agent_id) {
+      toast.error('Please add an ElevenLabs Agent ID to this agent first');
       return;
     }
     
+    setIsConnecting(true);
+    console.log('📞 Starting ElevenLabs conversation...');
+    console.log('Agent ID:', testingAgent.elevenlabs_agent_id);
+    
     try {
-      // Start call session
-      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/start-call`);
+      // Start ElevenLabs conversation
+      const conversationId = await elevenlabsConversation.startSession({
+        agentId: testingAgent.elevenlabs_agent_id,
+      });
       
-      const callLogId = response.data.call_log_id;
-      setCurrentCallLogId(callLogId);
-      console.log('📝 Call log created:', callLogId);
-      
+      console.log('✅ ElevenLabs session started:', conversationId);
       setCallActive(true);
       setIsConnecting(false);
-      toast.success('Connected!');
+      toast.success('🎤 Connected! Speak now!');
       
-      // Agent greets immediately if first message exists
-      if (testingAgent.firstMessage) {
-        setIsSending(true);
-        
-        // Generate audio for first message
-        const greetingResponse = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/greeting`, {
-          call_log_id: callLogId
+      // Log the call start
+      try {
+        await axios.post(`${BACKEND_URL}/api/conversational-ai/call-logs`, {
+          agent_id: testingAgent.id,
+          agent_name: testingAgent.name,
+          status: 'started',
+          backend_logs: {
+            using_elevenlabs_sdk: true,
+            session_id: conversationId
+          }
         });
-        
-        const agentMessage = {
-          role: 'agent',
-          content: testingAgent.firstMessage,
-          audio_url: greetingResponse.data.audio_url,
-          timestamp: new Date().toISOString()
-        };
-        
-        setConversation([agentMessage]);
-        setIsSending(false);
-        
-        // Auto-play greeting
-        if (greetingResponse.data.audio_url) {
-          const audio = new Audio(greetingResponse.data.audio_url);
-          audio.onplay = () => setAudioPlaying(true);
-          audio.onended = () => {
-            setAudioPlaying(false);
-            // Auto-start listening after agent finishes speaking
-            setTimeout(() => {
-              if (callActive) {
-                startRecording();
-              }
-            }, 500);
-          };
-          audio.play();
-        } else {
-          // No audio, just start listening
-          setTimeout(() => startRecording(), 500);
-        }
-      } else {
-        // No greeting, start listening immediately
-        setTimeout(() => startRecording(), 500);
+      } catch (logError) {
+        console.error('Failed to log call:', logError);
       }
       
     } catch (error) {
-      console.error('Error starting call:', error);
-      toast.error('Failed to connect');
+      console.error('❌ Failed to start ElevenLabs session:', error);
+      toast.error('Failed to start call: ' + error.message);
       setIsConnecting(false);
     }
   };
