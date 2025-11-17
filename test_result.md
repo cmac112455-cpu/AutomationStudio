@@ -282,6 +282,100 @@ backend:
           - Metadata includes: workflow name, status, start/completion times
           - Execution ID: da30e852-bbaf-47ad-a19d-b5c06ab799db properly tracked
 
+  - task: "ElevenLabs Integration API Endpoints"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: ElevenLabs integration management endpoints
+          - POST /api/integrations: Save encrypted API keys for third-party services
+          - GET /api/integrations: List user's configured integrations
+          - DELETE /api/integrations/{service}: Remove integration
+          - Uses cryptography.fernet for secure key encryption
+          - JWT authentication required
+          Needs testing to verify functionality
+
+  - task: "TTS Preview Endpoint"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Voice preview endpoint
+          - POST /api/tts/preview: Generate sample audio with selected voice
+          - Uses ElevenLabs API with user's stored API key
+          - Returns base64-encoded audio data
+          - Allows users to preview voices before workflow execution
+          Needs testing to verify functionality
+
+  - task: "Text-to-Speech Workflow Node"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Text-to-Speech node for workflows
+          - Node type: 'texttospeech'
+          - Converts input text to speech using ElevenLabs API
+          - Configurable voice, stability, and similarity_boost parameters
+          - Returns base64-encoded MP3 audio data
+          - Requires ElevenLabs API key in user's integrations
+          Needs testing within workflow execution
+
+  - task: "Audio Overlay Workflow Node"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Audio Overlay node for workflows
+          - Node type: 'audiooverlay'
+          - Merges audio track with video using FFmpeg
+          - Supports replace or mix modes
+          - Input: video (base64) + audio (base64)
+          - Output: video with overlaid audio (base64)
+          - Requires FFmpeg installed on system
+          Needs testing within workflow execution
+
+  - task: "Enhanced Gemini Node with Chat History"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ENHANCEMENT: Gemini AI node now supports contextual continuity
+          - Searches for previous 'gemini' node outputs in workflow execution
+          - Prepends chat history to current prompt
+          - Enables multi-turn AI conversations within workflows
+          - Maintains narrative flow across multiple AI nodes
+          Needs testing in multi-AI-node workflows
+
   - task: "Video Ad Creator Workflow Complete End-to-End Test"
     implemented: true
     working: false
