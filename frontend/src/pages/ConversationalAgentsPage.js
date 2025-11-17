@@ -223,7 +223,8 @@ const ConversationalAgentsPage = () => {
       temperature: 0.7,
       responseDelay: 100,
       enableInterruption: true,
-      enableFallback: true
+      enableFallback: true,
+      elevenlabs_agent_id: ''
     });
   };
 
