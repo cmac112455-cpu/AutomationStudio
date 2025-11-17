@@ -64,7 +64,14 @@ const MusicPage = () => {
       
       // Create new audio player
       const audio = new Audio(url);
+      audio.volume = volume;
       setAudioPlayer(audio);
+      
+      // Set up event listeners
+      audio.addEventListener('ended', () => setIsPlaying(false));
+      audio.addEventListener('play', () => setIsPlaying(true));
+      audio.addEventListener('pause', () => setIsPlaying(false));
+      
       await audio.play();
       
       toast.success('Music generated successfully!');
