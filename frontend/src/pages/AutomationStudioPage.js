@@ -886,11 +886,18 @@ export default function AutomationStudioPage() {
               Stitch
             </button>
             <button
-              onClick={() => addNode('elevenlabs')}
-              className="w-full p-2 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-xs flex items-center gap-2"
+              onClick={() => addNode('texttospeech')}
+              className="w-full p-2 rounded bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-xs flex items-center gap-2"
             >
               <Mic className="w-3.5 h-3.5" />
-              ElevenLabs
+              Text-to-Speech
+            </button>
+            <button
+              onClick={() => addNode('audiooverlay')}
+              className="w-full p-2 rounded bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/50 text-xs flex items-center gap-2"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              Audio Overlay
             </button>
           </div>
           
