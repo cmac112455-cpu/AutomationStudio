@@ -2768,14 +2768,31 @@ async def delete_knowledge_base_item(agent_id: str, kb_id: str, user_id: str = D
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        # Remove from agent
-        remove_response = requests.post(
-            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}/remove-from-knowledge-base",
+        # Get current agent knowledge base IDs
+        agent_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if agent_response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] Error fetching agent: {agent_response.text}")
+            raise HTTPException(status_code=agent_response.status_code, detail="Failed to fetch agent")
+        
+        agent_data = agent_response.json()
+        current_kb_ids = agent_data.get("knowledge_base", [])
+        
+        # Remove the document ID from the list
+        if kb_id in current_kb_ids:
+            current_kb_ids.remove(kb_id)
+        
+        # Update agent with new knowledge base IDs
+        remove_response = requests.patch(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
             headers={
                 "xi-api-key": elevenlabs_key,
                 "Content-Type": "application/json"
             },
-            json={"document_id": kb_id}
+            json={"knowledge_base": current_kb_ids}
         )
         
         if remove_response.status_code not in [200, 201, 204]:
