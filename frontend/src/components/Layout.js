@@ -29,6 +29,9 @@ export default function Layout({ children }) {
   const [voiceStudioExpanded, setVoiceStudioExpanded] = React.useState(
     location.pathname.startsWith('/voice-studio')
   );
+  const [conversationalAIExpanded, setConversationalAIExpanded] = React.useState(
+    location.pathname.startsWith('/conversational-ai')
+  );
 
   const handleLogout = () => {
     logout();
