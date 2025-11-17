@@ -214,10 +214,50 @@ const ConversationalAICompletionsPage = () => {
 
                 {/* Expanded Details */}
                 {expandedLog === log.id && (
-                  <div className="border-t border-gray-800 bg-[#0a0b0d] p-6 space-y-4">
+                  <div className="border-t border-gray-800 bg-[#0a0b0d] p-6 space-y-6">
+                    
+                    {/* Audio Preview Section */}
+                    {log.audio_url && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-4 bg-purple-500 rounded-full"></div>
+                          <h4 className="text-sm font-semibold text-gray-300">Audio Response</h4>
+                        </div>
+                        <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <Button
+                                onClick={() => playAudio(log.audio_url, log.id)}
+                                className="bg-purple-600 hover:bg-purple-700 w-12 h-12 rounded-full p-0 flex items-center justify-center"
+                              >
+                                {playingAudio === log.id ? (
+                                  <Pause className="w-5 h-5" />
+                                ) : (
+                                  <Play className="w-5 h-5 ml-0.5" />
+                                )}
+                              </Button>
+                              <div>
+                                <p className="text-sm text-gray-300 font-medium">Agent Audio Response</p>
+                                <p className="text-xs text-gray-500">Click to play</p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => downloadAudio(log.audio_url, log.agent_name, log.created_at)}
+                              className="bg-gray-700 hover:bg-gray-600"
+                              size="sm"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Conversation */}
                     {log.transcription && (
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-3">
                           <div className="w-1 h-4 bg-cyan-500 rounded-full"></div>
                           <h4 className="text-sm font-semibold text-gray-300">User Said</h4>
                         </div>
@@ -229,7 +269,7 @@ const ConversationalAICompletionsPage = () => {
 
                     {log.response && (
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-3">
                           <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
                           <h4 className="text-sm font-semibold text-gray-300">Agent Responded</h4>
                         </div>
@@ -239,21 +279,95 @@ const ConversationalAICompletionsPage = () => {
                       </div>
                     )}
 
+                    {/* Backend Status Logs */}
+                    {log.backend_logs && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-4 bg-green-500 rounded-full"></div>
+                          <h4 className="text-sm font-semibold text-gray-300">Backend Status</h4>
+                        </div>
+                        <div className="bg-[#13141a] border border-gray-800 rounded-lg p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-sm">Speech-to-Text (Whisper)</span>
+                              {log.backend_logs.whisper_success ? (
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-400" />
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-sm">LLM Response</span>
+                              {log.backend_logs.llm_success ? (
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-400" />
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-sm">Text-to-Speech (ElevenLabs)</span>
+                              {log.backend_logs.tts_success ? (
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-400" />
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-sm">Voice Configured</span>
+                              {log.backend_logs.voice_configured ? (
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-400" />
+                              )}
+                            </div>
+                            {log.backend_logs.api_key_found !== undefined && (
+                              <div className="flex items-center justify-between col-span-2">
+                                <span className="text-gray-400 text-sm">ElevenLabs API Key Found</span>
+                                {log.backend_logs.api_key_found ? (
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-400" />
+                                )}
+                              </div>
+                            )}
+                            {log.backend_logs.error_stage && (
+                              <div className="col-span-2">
+                                <span className="text-gray-400 text-sm">Error at stage: </span>
+                                <span className="text-red-400 font-semibold">{log.backend_logs.error_stage}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Error Details */}
                     {log.error && (
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-3">
                           <div className="w-1 h-4 bg-red-500 rounded-full"></div>
                           <h4 className="text-sm font-semibold text-red-400">Error Details</h4>
                         </div>
-                        <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4">
-                          <p className="text-red-300 font-mono text-sm">{log.error}</p>
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 space-y-3">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Error Message:</p>
+                            <p className="text-red-300 font-mono text-sm">{log.error}</p>
+                          </div>
+                          {log.error_traceback && (
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">Stack Trace:</p>
+                              <pre className="text-red-300/70 font-mono text-xs overflow-x-auto bg-black/20 p-2 rounded">
+                                {log.error_traceback}
+                              </pre>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
 
                     {/* Technical Details */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <div className="w-1 h-4 bg-gray-500 rounded-full"></div>
                         <h4 className="text-sm font-semibold text-gray-300">Technical Details</h4>
                       </div>
@@ -261,11 +375,11 @@ const ConversationalAICompletionsPage = () => {
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <span className="text-gray-500">Agent ID:</span>
-                            <p className="text-gray-300 font-mono text-xs mt-1">{log.agent_id}</p>
+                            <p className="text-gray-300 font-mono text-xs mt-1 break-all">{log.agent_id}</p>
                           </div>
                           <div>
                             <span className="text-gray-500">Call ID:</span>
-                            <p className="text-gray-300 font-mono text-xs mt-1">{log.id}</p>
+                            <p className="text-gray-300 font-mono text-xs mt-1 break-all">{log.id}</p>
                           </div>
                           <div>
                             <span className="text-gray-500">Timestamp:</span>
