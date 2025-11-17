@@ -3437,7 +3437,9 @@ async def update_agent_tools(
                     new_built_in_tools[tool_key] = None
             
             prompt_config["built_in_tools"] = new_built_in_tools
-            logging.info(f"[TOOLS] Built ElevenLabs object structure with {len([t for t in new_built_in_tools.values() if t])} enabled tools")
+            enabled_count = len([t for t in new_built_in_tools.values() if t])
+            logging.info(f"[TOOLS] Built ElevenLabs object structure with {enabled_count} enabled tools")
+            logging.info(f"[TOOLS] Enabled tools keys: {[k for k, v in new_built_in_tools.items() if v is not None]}")
         
         if "tool_ids" in tools_update:
             prompt_config["tool_ids"] = tools_update["tool_ids"]
@@ -3454,9 +3456,13 @@ async def update_agent_tools(
         
         logging.info(f"[TOOLS] ============ UPDATE PAYLOAD DEBUG ============")
         logging.info(f"[TOOLS] Sending tools update to ElevenLabs for agent {elevenlabs_agent_id}")
-        logging.info(f"[TOOLS] Updated built_in_tools: {prompt_config.get('built_in_tools', [])}")
-        logging.info(f"[TOOLS] Updated tool_ids: {prompt_config.get('tool_ids', [])}")
-        logging.info(f"[TOOLS] Payload structure: conversation_config.agent.prompt.built_in_tools")
+        logging.info(f"[TOOLS] Full built_in_tools object being sent:")
+        for tool_key, tool_config in prompt_config.get('built_in_tools', {}).items():
+            if tool_config is not None:
+                logging.info(f"[TOOLS]   ✅ {tool_key}: ENABLED")
+            else:
+                logging.info(f"[TOOLS]   ❌ {tool_key}: DISABLED")
+        logging.info(f"[TOOLS] Tool IDs: {prompt_config.get('tool_ids', [])}")
         logging.info(f"[TOOLS] ================================================")
         
         patch_response = requests.patch(
