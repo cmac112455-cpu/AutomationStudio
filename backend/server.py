@@ -2977,7 +2977,16 @@ async def update_agent_analysis_config(
         
         logging.info(f"[ANALYSIS_CONFIG] ✅ Successfully updated analysis config for agent {agent_id}")
         logging.info(f"[ANALYSIS_CONFIG] ElevenLabs response status: {patch_response.status_code}")
-        logging.info(f"[ANALYSIS_CONFIG] ElevenLabs response: {patch_response.text[:500] if patch_response.text else 'No response body'}")
+        
+        # Parse response to see what ElevenLabs returned
+        try:
+            response_data = patch_response.json()
+            logging.info(f"[ANALYSIS_CONFIG] Response has evaluation_criteria: {response_data.get('evaluation_criteria', 'NOT FOUND')}")
+            logging.info(f"[ANALYSIS_CONFIG] Response has data_collection: {response_data.get('data_collection', 'NOT FOUND')}")
+            logging.info(f"[ANALYSIS_CONFIG] Response metadata: {response_data.get('metadata', {})}")
+            logging.info(f"[ANALYSIS_CONFIG] Response platform_settings: {response_data.get('platform_settings', {})}")
+        except:
+            logging.info(f"[ANALYSIS_CONFIG] Could not parse response JSON")
         
         return {
             "message": "Analysis configuration updated successfully",
