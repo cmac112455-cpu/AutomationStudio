@@ -1811,8 +1811,11 @@ class IntegrationConfig(BaseModel):
 @api_router.get("/integrations")
 async def get_integrations(user_id: str = Depends(get_current_user)):
     """Get user's integration configurations"""
+    logging.info(f"[INTEGRATIONS] Getting integrations for user: {user_id}")
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
-    return user.get("integrations", {}) if user else {}
+    integrations = user.get("integrations", {}) if user else {}
+    logging.info(f"[INTEGRATIONS] Found integrations: {list(integrations.keys())}")
+    return integrations
 
 @api_router.post("/integrations/{service}")
 async def save_integration(service: str, config: IntegrationConfig, user_id: str = Depends(get_current_user)):
