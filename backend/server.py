@@ -2861,29 +2861,29 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         agent_data = response.json()
         
-        # Log the full agent structure to debug
-        logging.info(f"[ANALYSIS_CONFIG] Full agent data keys: {agent_data.keys()}")
-        logging.info(f"[ANALYSIS_CONFIG] conversation_config keys: {agent_data.get('conversation_config', {}).keys()}")
+        # Extract from platform_settings where ElevenLabs actually stores this data
+        platform_settings = agent_data.get("platform_settings", {})
         
-        # Try multiple locations where ElevenLabs might store this
-        evaluation_criteria = agent_data.get("evaluation_criteria", [])
-        data_collection = agent_data.get("data_collection", [])
+        # Get evaluation criteria from platform_settings.evaluation.criteria
+        evaluation = platform_settings.get("evaluation", {})
+        evaluation_criteria = evaluation.get("criteria", [])
         
-        # Also check in metadata
-        if not evaluation_criteria and not data_collection:
-            metadata = agent_data.get("metadata", {})
-            logging.info(f"[ANALYSIS_CONFIG] Checking metadata: {metadata}")
-            evaluation_criteria = metadata.get("evaluation_criteria", [])
-            data_collection = metadata.get("data_collection", [])
+        # Get data_collection from platform_settings.data_collection
+        # Note: ElevenLabs stores this as an object/dict, convert to list of items
+        data_collection_dict = platform_settings.get("data_collection", {})
         
-        # Also check in platform_settings
-        if not evaluation_criteria and not data_collection:
-            platform_settings = agent_data.get("platform_settings", {})
-            logging.info(f"[ANALYSIS_CONFIG] Checking platform_settings: {platform_settings}")
-            evaluation_criteria = platform_settings.get("evaluation_criteria", [])
-            data_collection = platform_settings.get("data_collection", [])
+        # Convert dict to list format expected by frontend
+        data_collection = []
+        for identifier, config in data_collection_dict.items():
+            data_collection.append({
+                "identifier": identifier,
+                "data_type": config.get("type", "string"),
+                "description": config.get("description", "")
+            })
         
-        logging.info(f"[ANALYSIS_CONFIG] Loaded config for agent {agent_id}: {len(evaluation_criteria)} criteria, {len(data_collection)} data items")
+        logging.info(f"[ANALYSIS_CONFIG] ✅ Loaded config for agent {agent_id}: {len(evaluation_criteria)} criteria, {len(data_collection)} data items")
+        logging.info(f"[ANALYSIS_CONFIG] Criteria: {evaluation_criteria}")
+        logging.info(f"[ANALYSIS_CONFIG] Data items: {data_collection}")
         
         return {
             "evaluation_criteria": evaluation_criteria,
