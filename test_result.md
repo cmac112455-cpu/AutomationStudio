@@ -105,6 +105,36 @@
 user_problem_statement: "Fix the Music Generation feature in Voice Studio. When users try to generate music, the process fails after loading with error 'Invalid API response: Expecting value: line 1 column 1 (char 0)'. Issue: The ElevenLabs polling endpoint returns raw binary MP3 data when ready, not JSON, but the code was trying to parse it as JSON."
 
 backend:
+  - task: "Music Generation Polling Fix (Voice Studio & Workflow Node)"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: |
+          ❌ CRITICAL BUG: Music generation failing with JSON parse error
+          - User tries to generate music on Music page
+          - Process fails after loading period
+          - Error: "Invalid API response: Expecting value: line 1 column 1 (char 0)"
+          - Backend logs showed polling endpoint returning binary data, not JSON
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ FIX APPLIED: Updated polling logic to handle binary MP3 data
+          - Research confirmed: ElevenLabs Music API returns raw binary MP3 when ready
+          - Fixed Voice Studio endpoint (/api/voice-studio/generate-music) at line 2289
+          - Fixed workflow texttomusic node at line 3339
+          - Changed logic: Check content length (>1000 bytes = audio, <1000 = status JSON)
+          - Added better logging for Content-Type and Content-Length
+          - When content is large, treat as binary MP3 regardless of Content-Type header
+          - When content is small (<1KB), parse as JSON status update
+          - Backend restarted successfully
+          Needs testing to verify music generation now works end-to-end
+
   - task: "Image-To-Video Node (imagetovideo) in Workflow Engine"
     implemented: true
     working: false
