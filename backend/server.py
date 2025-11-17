@@ -2487,10 +2487,85 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
-@api_router.post("/conversational-ai/agents/{agent_id}/start-call")
-async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_user)):
-    """Initialize a call session with the agent"""
+@api_router.get("/conversational-ai/agents/{agent_id}/signed-url")
+async def get_elevenlabs_signed_url(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Get ElevenLabs signed URL for WebSocket connection"""
     try:
+        # Get the agent
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Get ElevenLabs agent ID from agent config
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent not configured with ElevenLabs agent ID")
+        
+        # Get ElevenLabs API key from user integrations
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Getting signed URL for ElevenLabs agent {elevenlabs_agent_id}")
+        
+        # Request signed URL from ElevenLabs
+        import requests
+        response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
+            params={"agent_id": elevenlabs_agent_id},
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[CONVERSATIONAL_AI] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        signed_url = response.json().get("signed_url")
+        
+        # Create call log entry
+        call_log = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "agent_id": agent_id,
+            "agent_name": agent.get("name", "Unknown"),
+            "status": "started",
+            "exchanges_count": 0,
+            "backend_logs": {
+                "call_initiated": True,
+                "using_elevenlabs_websocket": True
+            },
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.conversational_call_logs.insert_one(call_log)
+        logging.info(f"[CONVERSATIONAL_AI] Call log created: {call_log['id']}")
+        
+        return {
+            "signed_url": signed_url,
+            "call_log_id": call_log["id"],
+            "agent_name": agent.get("name")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error getting signed URL: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/conversational-ai/agents/{agent_id}/start-call")
+async def start_call_with_agent(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Start a call session with an agent"""
+    try:
+        # Get the agent
         agent = await db.conversational_agents.find_one(
             {"id": agent_id, "user_id": user_id},
             {"_id": 0}
@@ -2542,7 +2617,7 @@ async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_use
         
     except Exception as e:
         logging.error(f"[CONVERSATIONAL_AI] Error starting call: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to start call")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/conversational-ai/agents/{agent_id}/greeting")
 async def generate_greeting(agent_id: str, greeting_data: dict, user_id: str = Depends(get_current_user)):
