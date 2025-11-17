@@ -3405,7 +3405,9 @@ async def update_agent_tools(
             # ElevenLabs needs object: { "end_call": {...}, "detect_language": {...} }
             tool_names_to_enable = tools_update["built_in_tools"]
             
-            logging.info(f"[TOOLS] Received tools to enable from frontend: {tool_names_to_enable}")
+            logging.info(f"[TOOLS] ============ SAVE OPERATION ============")
+            logging.info(f"[TOOLS] Received from frontend: {tool_names_to_enable}")
+            logging.info(f"[TOOLS] These are FRONTEND names that need backend mapping")
             
             # Build the built_in_tools object
             # For each tool in ALL_TOOLS, set to None (disabled) or keep existing config (enabled)
