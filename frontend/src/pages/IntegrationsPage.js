@@ -46,7 +46,7 @@ const IntegrationsPage = () => {
     }));
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('apoe_token');
       
       if (!token) {
         throw new Error('Not authenticated. Please log in again.');
