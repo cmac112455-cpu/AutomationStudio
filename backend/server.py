@@ -2702,7 +2702,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             voice_id = voice_map.get(voice.lower(), voice)
                             
                             # Get customization settings from node config
-                            model_id = node_data.get('model_id', 'eleven_monolingual_v1')
+                            model_id = node_data.get('model_id', 'eleven_turbo_v2_5')
                             stability = node_data.get('stability', 0.5)
                             similarity_boost = node_data.get('similarity_boost', 0.75)
                             style = node_data.get('style', 0)
