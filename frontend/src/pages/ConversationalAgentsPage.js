@@ -374,6 +374,7 @@ const ConversationalAgentsPage = () => {
 
   const processVoiceInput = async (audioBlob) => {
     setIsSending(true);
+    console.log('🎤 Processing voice input, blob size:', audioBlob.size);
 
     try {
       // Convert audio to base64
@@ -383,12 +384,15 @@ const ConversationalAgentsPage = () => {
       reader.onloadend = async () => {
         try {
           const base64Audio = reader.result.split(',')[1];
+          console.log('📤 Sending audio to backend, size:', base64Audio.length);
 
           // Send to backend for speech-to-text and processing
           const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/agents/${testingAgent.id}/voice-chat`, {
             audio: base64Audio,
             conversation_history: conversation
           });
+          
+          console.log('✅ Backend response received:', response.data);
 
           // Add user message (transcribed)
           const userMessage = {
