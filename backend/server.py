@@ -2639,10 +2639,23 @@ async def add_knowledge_base_text(agent_id: str, text_data: dict, user_id: str =
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to add text: {str(e)}")
 
-@api_router.get("/conversational-ai/knowledge-base/list")
-async def list_knowledge_base(user_id: str = Depends(get_current_user)):
-    """List all knowledge base items from ElevenLabs"""
+@api_router.get("/conversational-ai/agents/{agent_id}/knowledge-base/list")
+async def list_knowledge_base(agent_id: str, user_id: str = Depends(get_current_user)):
+    """List knowledge base items for a specific agent from ElevenLabs"""
     try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            return {"knowledge_base": []}  # Return empty if not linked
+        
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
         elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
@@ -2650,26 +2663,51 @@ async def list_knowledge_base(user_id: str = Depends(get_current_user)):
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        # Fetch knowledge base items from ElevenLabs
-        import requests
-        response = requests.get(
-            "https://api.elevenlabs.io/v1/convai/knowledge-base",
+        # Fetch agent details to get knowledge base IDs
+        agent_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
             headers={"xi-api-key": elevenlabs_key}
         )
         
-        if response.status_code != 200:
-            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
-            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        if agent_response.status_code != 200:
+            logging.error(f"[KNOWLEDGE_BASE] Error fetching agent: {agent_response.text}")
+            raise HTTPException(status_code=agent_response.status_code, detail="Failed to fetch agent")
         
-        kb_items = response.json()
-        logging.info(f"[KNOWLEDGE_BASE] Found {len(kb_items.get('knowledge_base', []))} items")
+        agent_data = agent_response.json()
         
-        return kb_items
+        # Get knowledge base document IDs from agent
+        kb_doc_ids = agent_data.get("knowledge_base", [])
+        
+        if not kb_doc_ids:
+            logging.info(f"[KNOWLEDGE_BASE] No KB items for agent {agent_id}")
+            return {"knowledge_base": []}
+        
+        # Fetch details for each KB item
+        kb_items = []
+        for doc_id in kb_doc_ids:
+            try:
+                doc_response = requests.get(
+                    f"https://api.elevenlabs.io/v1/convai/knowledge-base/{doc_id}",
+                    headers={"xi-api-key": elevenlabs_key}
+                )
+                
+                if doc_response.status_code == 200:
+                    kb_items.append(doc_response.json())
+                else:
+                    logging.warning(f"[KNOWLEDGE_BASE] Failed to fetch doc {doc_id}: {doc_response.text}")
+            except Exception as e:
+                logging.warning(f"[KNOWLEDGE_BASE] Error fetching doc {doc_id}: {str(e)}")
+        
+        logging.info(f"[KNOWLEDGE_BASE] Found {len(kb_items)} KB items for agent {agent_id}")
+        
+        return {"knowledge_base": kb_items}
         
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"[KNOWLEDGE_BASE] Error fetching knowledge base: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to fetch knowledge base: {str(e)}")
 
 @api_router.delete("/conversational-ai/knowledge-base/{kb_id}")
