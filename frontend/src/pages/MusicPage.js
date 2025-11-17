@@ -139,132 +139,197 @@ const MusicPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-            Music Generator
-          </h1>
-          <p className="text-gray-400">Create studio-quality music from text prompts with ElevenLabs</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
+      {/* Header */}
+      <div className="border-b border-gray-800/50 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">Music Generator</h1>
+              <p className="text-sm text-gray-400">Create studio-quality music with AI</p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          {/* Prompt Input */}
-          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-            <Label className="text-white text-lg mb-4 block">Music Prompt</Label>
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the music you want to create... (e.g., 'Epic orchestral music with strings and horns')" 
-              className="bg-[#0a0b0d] border-gray-700 text-white min-h-[120px]"
-            />
-            <div className="text-xs text-gray-400 mt-2">
-              {prompt.length} / 2000 characters
-            </div>
-          </div>
-
-          {/* Duration Slider */}
-          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-            <Label className="text-white flex justify-between mb-4">
-              <span>Duration</span>
-              <span className="text-gray-400">{duration} seconds ({Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')})</span>
-            </Label>
-            <input
-              type="range"
-              min="10"
-              max="300"
-              step="10"
-              value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>10s</span>
-              <span>5 minutes</span>
-            </div>
-          </div>
-
-          {/* Example Prompts */}
-          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-            <Label className="text-white mb-3 block">Example Prompts</Label>
-            <div className="space-y-2">
-              {examplePrompts.map((example, index) => (
-                <button
-                  key={index}
-                  onClick={() => setPrompt(example)}
-                  className="w-full text-left p-3 rounded-lg bg-[#0a0b0d] border border-gray-700 hover:border-purple-500 transition-colors text-sm text-gray-300 hover:text-white"
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
-            <Button
-              onClick={generateMusic}
-              disabled={generating || !prompt.trim()}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-6 text-lg"
-            >
-              {generating ? (
-                <>
-                  <Loader className="w-5 h-5 mr-2 animate-spin" />
-                  Generating Music...
-                </>
-              ) : (
-                <>
-                  <Mic className="w-5 h-5 mr-2" />
-                  Generate Music
-                </>
-              )}
-            </Button>
-
-            {progress && (
-              <div className="mt-4 text-center text-sm text-gray-400">
-                {progress}
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Prompt Input - ChatGPT Style */}
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+              <div className="relative bg-gray-900 rounded-2xl border border-gray-800/50 shadow-2xl overflow-hidden">
+                <Textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe the music you want to create... Try: 'Epic cinematic orchestral music with dramatic strings'"
+                  className="bg-transparent border-0 text-white text-base min-h-[200px] resize-none focus:ring-0 p-6 placeholder:text-gray-500"
+                />
+                <div className="px-6 pb-4 flex items-center justify-between">
+                  <span className="text-xs text-gray-500">{prompt.length} / 2000</span>
+                  <Button
+                    onClick={generateMusic}
+                    disabled={generating || !prompt.trim()}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-6 py-2 rounded-xl shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            )}
+            </div>
 
+            {/* Progress Indicator */}
             {generating && (
-              <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-sm text-gray-300">
-                <div className="flex items-start gap-2">
-                  <span className="text-yellow-400">⏱️</span>
+              <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-spin">
+                    <Loader className="w-6 h-6 text-white" />
+                  </div>
                   <div>
-                    Music generation typically takes 30 seconds to 5 minutes depending on duration. Please wait...
+                    <p className="text-white font-medium">Creating your music...</p>
+                    <p className="text-sm text-gray-400">{progress || 'This may take 30 seconds to 5 minutes'}</p>
                   </div>
                 </div>
               </div>
             )}
 
+            {/* Audio Player */}
             {audioUrl && (
-              <div className="mt-4 space-y-3">
-                <div className="bg-[#0a0b0d] rounded-lg p-4 border border-gray-700">
-                  <audio controls src={audioUrl} className="w-full" />
+              <div className="bg-gray-900 rounded-2xl border border-gray-800/50 shadow-2xl overflow-hidden">
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">Generated Music</h3>
+                    <Button
+                      onClick={downloadAudio}
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+
+                  {/* Custom Audio Controls */}
+                  <div className="bg-gray-800/50 rounded-xl p-4 space-y-4">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={togglePlayPause}
+                        className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-purple-500/20"
+                      >
+                        {isPlaying ? (
+                          <Pause className="w-5 h-5 text-white" />
+                        ) : (
+                          <Play className="w-5 h-5 text-white ml-0.5" />
+                        )}
+                      </button>
+
+                      {/* Volume Control */}
+                      <div className="flex-1 flex items-center gap-3">
+                        <button
+                          onClick={toggleMute}
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          {isMuted || volume === 0 ? (
+                            <VolumeX className="w-5 h-5" />
+                          ) : (
+                            <Volume2 className="w-5 h-5" />
+                          )}
+                        </button>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value={volume}
+                          onChange={(e) => setVolume(parseFloat(e.target.value))}
+                          className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-500 [&::-webkit-slider-thumb]:to-pink-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-purple-500/50"
+                        />
+                        <span className="text-sm text-gray-400 w-10 text-right">
+                          {Math.round(volume * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Hidden native audio for compatibility */}
+                    <audio src={audioUrl} className="hidden" />
+                  </div>
                 </div>
-                <Button
-                  onClick={downloadAudio}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Music
-                </Button>
               </div>
             )}
           </div>
 
-          {/* Info Box */}
-          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 text-sm text-gray-300">
-            <div className="flex items-start gap-2">
-              <span className="text-purple-400">💡</span>
-              <div>
-                <strong className="text-white">Tips for better results:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Be specific about genre, mood, and instruments</li>
-                  <li>Mention tempo (BPM) for better rhythm control</li>
-                  <li>Specify if you want vocals or instrumental only</li>
-                  <li>Include language preference for vocal tracks</li>
-                </ul>
+          {/* Sidebar - Right Side */}
+          <div className="space-y-6">
+            {/* Duration Control */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 shadow-xl">
+              <div className="flex justify-between items-center mb-4">
+                <Label className="text-white font-medium">Duration</Label>
+                <span className="text-purple-400 font-mono text-sm">
+                  {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="300"
+                step="10"
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-purple-500 [&::-webkit-slider-thumb]:to-pink-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-purple-500/50"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>10s</span>
+                <span>5 min</span>
+              </div>
+            </div>
+
+            {/* Example Prompts */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 shadow-xl">
+              <Label className="text-white font-medium mb-4 block">Examples</Label>
+              <div className="space-y-2">
+                {examplePrompts.map((example, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setPrompt(example)}
+                    className="w-full text-left p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-200 text-sm text-gray-300 hover:text-white group"
+                  >
+                    <span className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity mr-2">→</span>
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tips */}
+            <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl border border-purple-500/20 p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                </div>
+                <div className="text-sm text-gray-300 space-y-2">
+                  <p className="font-medium text-white">Pro Tips</p>
+                  <ul className="space-y-1.5 text-xs">
+                    <li>• Be specific about genre & mood</li>
+                    <li>• Mention instruments clearly</li>
+                    <li>• Include tempo (BPM) if needed</li>
+                    <li>• Specify vocal/instrumental</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
