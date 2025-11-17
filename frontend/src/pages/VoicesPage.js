@@ -278,12 +278,28 @@ const VoicesPage = () => {
     }
   };
 
-  const filteredAllVoices = allVoices.filter(voice => 
-    !searchQuery || 
-    voice.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (voice.labels?.accent && voice.labels.accent.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredAllVoices = allVoices.filter(voice => {
+    // Search query filter
+    const matchesSearch = !searchQuery || 
+      voice.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (voice.labels?.gender && voice.labels.gender.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (voice.labels?.accent && voice.labels.accent.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (voice.labels?.description && voice.labels.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Language filter
+    const matchesLanguage = languageFilter === 'all' || 
+      (voice.labels?.language && voice.labels.language.toLowerCase().includes(languageFilter.toLowerCase())) ||
+      (voice.labels?.accent && languageFilter === 'english' && 
+        (voice.labels.accent.toLowerCase().includes('american') || 
+         voice.labels.accent.toLowerCase().includes('british') ||
+         voice.labels.accent.toLowerCase().includes('australian') ||
+         voice.labels.accent.toLowerCase().includes('english'))) ||
+      // If no language info but has English accent markers, assume English
+      (!voice.labels?.language && languageFilter === 'english' && 
+        voice.labels?.use_case && !voice.labels.use_case.includes('multilingual'));
+    
+    return matchesSearch && matchesLanguage;
+  });
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white">
