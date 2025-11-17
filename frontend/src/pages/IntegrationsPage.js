@@ -5,6 +5,9 @@ import { Key, Check, X, ExternalLink, Loader } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
+// Configure axios defaults
+axios.defaults.baseURL = BACKEND_URL;
+
 const IntegrationsPage = () => {
   const [integrations, setIntegrations] = useState({
     elevenlabs: { apiKey: '', connected: false, loading: false, errorMessage: '' }
