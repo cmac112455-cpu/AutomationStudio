@@ -824,6 +824,92 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
+      ANALYSIS TAB IMPLEMENTATION COMPLETED
+      
+      ✅ NEW FEATURE: Complete Analytics Tab for Conversational AI Studio
+      
+      🎯 BACKEND IMPLEMENTATION:
+      Added 5 new analytics proxy endpoints in server.py (after line 3508):
+      1. GET /api/conversational-ai/agents/{agent_id}/analytics/usage
+         - Proxies to ElevenLabs usage/character-stats endpoint
+         - Returns: minutes_used, request_count, ttfb_avg, ttfb_p95
+         - Supports aggregation_interval parameter (day/week/month)
+      
+      2. GET /api/conversational-ai/agents/{agent_id}/analytics/conversations
+         - Proxies to ElevenLabs convai/conversations endpoint
+         - Returns: List of conversations with metadata
+         - Supports filtering: page_size, cursor, call_duration, date ranges
+      
+      3. GET /api/conversational-ai/agents/{agent_id}/analytics/conversations/{conversation_id}
+         - Proxies to ElevenLabs conversation details endpoint
+         - Returns: Full conversation data, transcript, evaluation results
+      
+      4. GET /api/conversational-ai/agents/{agent_id}/analytics/dashboard
+         - Proxies to ElevenLabs dashboard configuration endpoint
+         - Returns: Custom dashboard settings
+      
+      5. PATCH /api/conversational-ai/agents/{agent_id}/analytics/dashboard
+         - Proxies to update dashboard configuration
+         - Updates custom charts and metrics
+      
+      🎨 FRONTEND IMPLEMENTATION:
+      Replaced Analysis tab placeholder in ConversationalAgentsPage.js:
+      
+      ✅ Key Features Implemented:
+      - Time range selector (Day/Week/Month)
+      - 4 Key metric cards:
+        * Total Conversations (with Users icon)
+        * Minutes Used (with Clock icon)
+        * Total Requests (with TrendingUp icon)
+        * Avg Response Time (with Activity icon)
+      
+      - Usage Trend Chart (using recharts LineChart):
+        * Shows minutes_used and request_count over time
+        * Interactive tooltip with dark theme
+        * Responsive design
+      
+      - Recent Conversations List:
+        * Displays conversation ID, status, duration, timestamp
+        * Click to view full conversation details
+        * Color-coded status badges (green/red/yellow)
+        * Refresh button to reload data
+      
+      - Performance Insights Cards:
+        * Response Time metrics (Avg TTFB, P95)
+        * Success Rate breakdown (completed/failed/percentage)
+      
+      - Conversation Details Modal:
+        * Full conversation overview
+        * Transcript with user/agent messages
+        * Evaluation results (if available)
+        * Metadata display
+        * Scrollable content with dark theme
+      
+      - Smart Handling:
+        * Shows warning if agent not linked to ElevenLabs
+        * Loading state with spinner
+        * Empty state for no conversations
+        * Auto-loads when Analysis tab opened
+        * Re-fetches when time range changed
+      
+      📦 DEPENDENCIES:
+      - recharts already installed (^3.4.1)
+      - New lucide-react icons: TrendingUp, Users, Clock, Activity, Filter, Calendar, ChevronDown, ChevronUp
+      
+      🔐 SECURITY:
+      - All endpoints require JWT authentication
+      - ElevenLabs API key retrieved from user's encrypted integrations
+      - Agent ownership verified before fetching data
+      
+      🧪 TESTING NEEDED:
+      - Backend: Test all 5 analytics endpoints with valid ElevenLabs agent
+      - Frontend: Test Analysis tab UI, charts, filters, modals
+      - Integration: Verify data flows correctly from ElevenLabs API
+      - Edge cases: No API key, agent not linked, no conversations
+      
+      Priority: HIGH - This completes the Analytics feature
+  - agent: "main"
+    message: |
       MUSIC GENERATION BUG FIX COMPLETED
       
       🐛 ISSUE IDENTIFIED:
