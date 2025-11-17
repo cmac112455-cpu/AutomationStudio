@@ -141,7 +141,7 @@ const MusicPage = () => {
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white">
       {/* Header */}
-      <div className="border-b border-gray-800 bg-[#13141a] sticky top-0 z-10">
+      <div className="border-b border-gray-800 bg-[#0a0b0d] sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
