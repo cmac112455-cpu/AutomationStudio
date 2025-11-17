@@ -216,6 +216,8 @@ const VoicesPage = () => {
           similarity_boost: similarityBoost,
           style,
           speaker_boost: speakerBoost,
+          use_speaker_boost: speakerBoost,
+          style_exaggeration: exaggeration,
           speed
         },
         {
