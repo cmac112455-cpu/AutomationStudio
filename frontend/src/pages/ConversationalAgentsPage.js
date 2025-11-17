@@ -405,7 +405,7 @@ const ConversationalAgentsPage = () => {
         throw new Error('Microphone track is not active!');
       }
       
-      // Test if audio is actually flowing
+      // Test if audio is actually flowing with visual feedback
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
@@ -413,17 +413,33 @@ const ConversationalAgentsPage = () => {
       analyser.fftSize = 256;
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
       
-      // Check audio level
+      // Continuously monitor audio level for visual feedback
+      const levelCheckInterval = setInterval(() => {
+        if (recorder.state === 'recording') {
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          setAudioLevel(Math.min(100, average));
+          
+          if (average > 5) {
+            setMicWorking(true);
+          }
+        } else {
+          clearInterval(levelCheckInterval);
+          setAudioLevel(0);
+        }
+      }, 100);
+      
+      // Store interval for cleanup
+      recorder._levelInterval = levelCheckInterval;
+      
+      // Initial check after 1 second
       setTimeout(() => {
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
         console.log('🔊 Audio level test:', average.toFixed(2), '(should be > 0 when speaking)');
         if (average === 0) {
-          console.warn('⚠️ WARNING: Microphone not picking up any sound! Check:');
-          console.warn('   1. Microphone is not muted');
-          console.warn('   2. Correct microphone is selected in browser');
-          console.warn('   3. System volume/mic volume is up');
-          toast.error('⚠️ Microphone not picking up sound! Check mic settings.', { duration: 5000 });
+          console.warn('⚠️ WARNING: Microphone not picking up any sound!');
+          toast.error('⚠️ MIC NOT WORKING! Check mic settings in system!', { duration: 5000 });
         }
       }, 1000);
       
