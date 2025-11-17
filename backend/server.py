@@ -2100,22 +2100,30 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                         if app_url:
                             headers['X-App-ID'] = app_url
                         
-                        # Prepare the payload with input_reference (correct parameter name)
-                        payload = {
+                        # Decode the base64 image data
+                        image_bytes = base64.b64decode(image_base64)
+                        
+                        # Prepare multipart form data (Sora 2 expects file upload, not JSON)
+                        files = {
+                            'input_reference': ('image.png', image_bytes, 'image/png')
+                        }
+                        
+                        data = {
                             "model": "sora-2",
                             "prompt": prompt,
                             "size": size,
-                            "seconds": str(duration),
-                            "input_reference": {
-                                "data": f"data:image/png;base64,{image_base64}"
-                            }
+                            "seconds": str(duration)
                         }
                         
-                        logging.info(f"[IMAGETOVIDEO] Sending request to {base_url}/videos")
-                        logging.info(f"[IMAGETOVIDEO] Payload: {payload.keys()}")
+                        logging.info(f"[IMAGETOVIDEO] Sending multipart request to {base_url}/videos")
+                        logging.info(f"[IMAGETOVIDEO] Data fields: {data.keys()}")
+                        logging.info(f"[IMAGETOVIDEO] Image size: {len(image_bytes)} bytes")
                         
-                        # Initiate video generation
-                        response = requests.post(f"{base_url}/videos", headers=headers, json=payload, timeout=30)
+                        # Update headers for multipart/form-data (remove Content-Type, requests will set it)
+                        upload_headers = {k: v for k, v in headers.items() if k.lower() != 'content-type'}
+                        
+                        # Initiate video generation with multipart form data
+                        response = requests.post(f"{base_url}/videos", headers=upload_headers, data=data, files=files, timeout=30)
                         
                         if response.status_code != 200:
                             logging.error(f"[IMAGETOVIDEO] API error {response.status_code}: {response.text}")
