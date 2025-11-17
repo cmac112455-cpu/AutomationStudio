@@ -262,6 +262,7 @@ const VoicesPage = () => {
         setSimilarityBoost(0.75);
         setStyle(0);
         setSpeakerBoost(false);
+        setExaggeration(0);
         setSpeed(1.0);
         break;
       case 'expressive':
@@ -269,6 +270,7 @@ const VoicesPage = () => {
         setSimilarityBoost(0.8);
         setStyle(0);
         setSpeakerBoost(false);
+        setExaggeration(0.5);
         setSpeed(1.0);
         break;
       case 'professional':
@@ -276,6 +278,7 @@ const VoicesPage = () => {
         setSimilarityBoost(0.75);
         setStyle(0);
         setSpeakerBoost(true);
+        setExaggeration(0);
         setSpeed(0.9);
         break;
     }
