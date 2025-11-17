@@ -306,8 +306,18 @@ const ConversationalAgentsPage = () => {
   };
 
   const startRecording = async () => {
-    if (!callActive || isRecording || isSending) {
-      console.log('Cannot start recording:', { callActive, isRecording, isSending });
+    if (!callActive) {
+      console.log('Cannot start recording: call not active');
+      return;
+    }
+    
+    if (isRecording) {
+      console.log('Cannot start recording: already recording');
+      return;
+    }
+    
+    if (isSending) {
+      console.log('Cannot start recording: still sending/processing');
       return;
     }
     
@@ -326,8 +336,10 @@ const ConversationalAgentsPage = () => {
       recorder.onstop = async () => {
         console.log('Recording stopped, processing audio...');
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        await processVoiceInput(audioBlob);
         stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        setMediaRecorder(null);
+        await processVoiceInput(audioBlob);
       };
 
       // Auto-stop after 10 seconds
@@ -342,10 +354,13 @@ const ConversationalAgentsPage = () => {
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
+      console.log('✅ Recording started successfully');
       toast.success('🎤 Listening...', { duration: 2000 });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast.error('Could not access microphone');
+      setIsRecording(false);
+      setMediaRecorder(null);
     }
   };
 
