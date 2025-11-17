@@ -89,6 +89,8 @@ const ConversationalAgentsPage = () => {
   const [toolIds, setToolIds] = useState([]);
   const [workspaceTools, setWorkspaceTools] = useState({ server_tools: [], client_tools: [] });
   const [loadingTools, setLoadingTools] = useState(false);
+  const [unsavedToolsChanges, setUnsavedToolsChanges] = useState(false);
+  const [savingTools, setSavingTools] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
