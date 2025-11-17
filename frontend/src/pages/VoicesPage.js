@@ -16,6 +16,7 @@ const VoicesPage = () => {
   const [personalVoices, setPersonalVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [languageFilter, setLanguageFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
