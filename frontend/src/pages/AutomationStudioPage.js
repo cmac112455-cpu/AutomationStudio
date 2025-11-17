@@ -1058,6 +1058,13 @@ export default function AutomationStudioPage() {
               <Mic className="w-3.5 h-3.5" />
               Text-to-Music
             </button>
+            <button
+              onClick={() => addNode('audiostitch')}
+              className="w-full p-2 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs flex items-center gap-2"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              Audio Stitch
+            </button>
           </div>
           
           <h3 className="text-sm font-semibold mb-3 text-gray-400">INTEGRATIONS</h3>
