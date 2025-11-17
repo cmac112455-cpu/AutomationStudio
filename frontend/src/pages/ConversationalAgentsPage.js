@@ -2039,7 +2039,8 @@ const ConversationalAgentsPage = () => {
                                   const newTools = e.target.checked
                                     ? [...builtInTools, 'detect_language']
                                     : builtInTools.filter(t => t !== 'detect_language');
-                                  updateAgentTools(newTools, toolIds);
+                                  setBuiltInTools(newTools);
+                                  setUnsavedToolsChanges(true);
                                 }}
                                 className="sr-only peer"
                               />
