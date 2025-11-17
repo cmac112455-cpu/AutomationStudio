@@ -3348,22 +3348,47 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             logging.info(f"[TEXT_TO_MUSIC] Submitting generation request...")
                             gen_response = requests.post(generate_url, json=payload, headers=headers, timeout=30)
                             
+                            logging.info(f"[TEXT_TO_MUSIC] Response status: {gen_response.status_code}, Content-Type: {gen_response.headers.get('Content-Type', 'unknown')}, Length: {len(gen_response.content)}")
+                            
                             if gen_response.status_code != 200:
                                 logging.error(f"[TEXT_TO_MUSIC] Generation request failed: {gen_response.status_code} - {gen_response.text}")
                                 result = {"status": "error", "error": f"Music generation request failed: {gen_response.text}"}
                             else:
-                                gen_data = gen_response.json()
-                                generation_id = gen_data.get("generation_id")
-                                status = gen_data.get("status", "processing")
+                                # Check if ElevenLabs returned audio directly (new API behavior)
+                                content_type = gen_response.headers.get('Content-Type', '')
+                                content_length = len(gen_response.content)
                                 
-                                logging.info(f"[TEXT_TO_MUSIC] Generation ID: {generation_id}, Status: {status}")
-                                
-                                # Step 2: Poll for completion and retrieve the music
-                                retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
-                                max_attempts = 60  # 5 minutes max wait (5s intervals)
-                                attempt = 0
-                                
-                                while attempt < max_attempts:
+                                if 'audio' in content_type or 'mpeg' in content_type or content_length > 10000:
+                                    # API returned audio directly (new behavior)
+                                    logging.info(f"[TEXT_TO_MUSIC] Received audio directly: {content_length} bytes")
+                                    audio_bytes = gen_response.content
+                                    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                                    
+                                    result = {
+                                        "status": "success",
+                                        "audio_base64": audio_base64,
+                                        "music_base64": audio_base64,
+                                        "prompt": prompt,
+                                        "duration": duration_seconds,
+                                        "format": "mp3"
+                                    }
+                                else:
+                                    # Parse JSON for generation_id (old API behavior)
+                                    try:
+                                        gen_data = gen_response.json()
+                                        generation_id = gen_data.get("generation_id") or gen_data.get("id")
+                                        
+                                        if not generation_id:
+                                            result = {"status": "error", "error": "No generation ID in response"}
+                                        else:
+                                            logging.info(f"[TEXT_TO_MUSIC] Generation ID: {generation_id}, polling...")
+                                            
+                                            # Poll for completion and retrieve the music
+                                            retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
+                                            max_attempts = 60  # 5 minutes max wait (5s intervals)
+                                            attempt = 0
+                                            
+                                            while attempt < max_attempts:
                                     time.sleep(5)  # Wait 5 seconds between polls
                                     attempt += 1
                                     
