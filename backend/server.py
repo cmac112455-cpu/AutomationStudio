@@ -3344,10 +3344,15 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                     retrieve_response = requests.get(retrieve_url, headers=headers, timeout=30)
                                     
                                     if retrieve_response.status_code == 200:
-                                        # Check if response is audio (content-type) or JSON (status update)
+                                        # Check if response is audio (content-type or size)
                                         content_type = retrieve_response.headers.get('Content-Type', '')
+                                        content_length = len(retrieve_response.content)
                                         
-                                        if 'audio' in content_type or 'mpeg' in content_type:
+                                        logging.info(f"[TEXT_TO_MUSIC] Content-Type: {content_type}, Content-Length: {content_length}")
+                                        
+                                        # ElevenLabs returns binary MP3 directly when ready (typically >100KB)
+                                        # Status updates are small JSON responses (<1KB)
+                                        if 'audio' in content_type or 'mpeg' in content_type or content_length > 1000:
                                             # Got the audio file
                                             audio_bytes = retrieve_response.content
                                             audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
@@ -3364,7 +3369,7 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                             }
                                             break
                                         else:
-                                            # Still processing
+                                            # Small response - try to parse as status JSON
                                             try:
                                                 status_data = retrieve_response.json()
                                                 current_status = status_data.get("status", "unknown")
@@ -3373,8 +3378,8 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                                 if current_status == "failed":
                                                     result = {"status": "error", "error": "Music generation failed on server"}
                                                     break
-                                            except:
-                                                pass
+                                            except Exception as json_error:
+                                                logging.warning(f"[TEXT_TO_MUSIC] Could not parse status JSON: {str(json_error)}")
                                     else:
                                         logging.warning(f"[TEXT_TO_MUSIC] Retrieve failed: {retrieve_response.status_code}")
                                 
