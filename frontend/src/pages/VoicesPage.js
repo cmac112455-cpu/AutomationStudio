@@ -285,12 +285,12 @@ const VoicesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0b0d] text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-[#0a0b0d] text-white">
       <div className="max-w-6xl mx-auto p-6 md:p-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-semibold mb-2">Voice Studio</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Generate natural-sounding speech with AI voices</p>
+          <p className="text-sm text-gray-400">Generate natural-sounding speech with AI voices</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
