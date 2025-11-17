@@ -23,6 +23,9 @@ const ConversationalAgentsPage = () => {
   const [userInput, setUserInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
   
   // Form state
   const [formData, setFormData] = useState({
