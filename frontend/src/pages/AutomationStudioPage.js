@@ -897,7 +897,19 @@ export default function AutomationStudioPage() {
 
   useEffect(() => {
     loadWorkflows();
+    fetchVoices();
   }, []);
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (openMenuId && !e.target.closest('.relative')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openMenuId]);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-[#0f1218] to-[#1a1d2e] text-white">
