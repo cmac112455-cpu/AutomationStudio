@@ -3347,6 +3347,166 @@ async def update_agent_analysis_config(
         raise HTTPException(status_code=500, detail=f"Failed to update analysis config: {str(e)}")
 
 
+
+# ============ AGENT TOOLS ENDPOINTS ============
+
+@api_router.get("/conversational-ai/agents/{agent_id}/tools")
+async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Get agent's tools configuration from ElevenLabs"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            return {"client_tools": [], "server_tools": [], "system_tools": []}
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch agent details from ElevenLabs
+        response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[TOOLS] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        agent_data = response.json()
+        
+        # Extract tools from conversation_config
+        conversation_config = agent_data.get("conversation_config", {})
+        agent_config = conversation_config.get("agent", {})
+        
+        client_tools = agent_config.get("client_tools", [])
+        server_tools = agent_config.get("server_tools", [])
+        system_tools = agent_config.get("system_tools", [])
+        
+        logging.info(f"[TOOLS] Loaded tools for agent {agent_id}: {len(client_tools)} client, {len(server_tools)} server, {len(system_tools)} system")
+        
+        return {
+            "client_tools": client_tools,
+            "server_tools": server_tools,
+            "system_tools": system_tools
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[TOOLS] Error fetching tools: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch tools: {str(e)}")
+
+
+@api_router.patch("/conversational-ai/agents/{agent_id}/tools")
+async def update_agent_tools(
+    agent_id: str,
+    tools_update: dict,
+    user_id: str = Depends(get_current_user)
+):
+    """Update agent's tools configuration in ElevenLabs"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Get current agent configuration
+        get_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if get_response.status_code != 200:
+            logging.error(f"[TOOLS] Error getting agent: {get_response.text}")
+            raise HTTPException(status_code=get_response.status_code, detail="Failed to get agent configuration")
+        
+        current_agent = get_response.json()
+        conversation_config = current_agent.get("conversation_config", {})
+        agent_config = conversation_config.get("agent", {})
+        
+        # Update tools in agent config
+        if "system_tools" in tools_update:
+            agent_config["system_tools"] = tools_update["system_tools"]
+            logging.info(f"[TOOLS] Updating system tools: {len(tools_update['system_tools'])} items")
+        
+        if "server_tools" in tools_update:
+            agent_config["server_tools"] = tools_update["server_tools"]
+            logging.info(f"[TOOLS] Updating server tools: {len(tools_update['server_tools'])} items")
+        
+        if "client_tools" in tools_update:
+            agent_config["client_tools"] = tools_update["client_tools"]
+            logging.info(f"[TOOLS] Updating client tools: {len(tools_update['client_tools'])} items")
+        
+        # Update conversation config with modified agent config
+        conversation_config["agent"] = agent_config
+        
+        # Send update to ElevenLabs
+        update_payload = {
+            "conversation_config": conversation_config
+        }
+        
+        logging.info(f"[TOOLS] Sending tools update to ElevenLabs for agent {elevenlabs_agent_id}")
+        
+        patch_response = requests.patch(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json=update_payload
+        )
+        
+        if patch_response.status_code not in [200, 201]:
+            logging.error(f"[TOOLS] ElevenLabs API error: {patch_response.text}")
+            raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
+        
+        logging.info(f"[TOOLS] ✅ Successfully updated tools for agent {agent_id}")
+        
+        return {
+            "message": "Tools updated successfully",
+            "system_tools": agent_config.get("system_tools", []),
+            "server_tools": agent_config.get("server_tools", []),
+            "client_tools": agent_config.get("client_tools", [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[TOOLS] Error updating tools: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update tools: {str(e)}")
+
+
 @api_router.post("/conversational-ai/agents/{agent_id}/start-call")
 async def start_call_with_agent(agent_id: str, user_id: str = Depends(get_current_user)):
     """Start a call session with an agent"""
