@@ -823,6 +823,13 @@ const ConversationalAgentsPage = () => {
                 )}
               </Button>
               <Button
+                onClick={() => setShowTemplatesModal(true)}
+                className="bg-gray-700 hover:bg-gray-600"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Templates
+              </Button>
+              <Button
                 onClick={() => {
                   resetForm();
                   setShowCreateModal(true);
