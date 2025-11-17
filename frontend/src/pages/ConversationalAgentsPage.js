@@ -414,7 +414,24 @@ const ConversationalAgentsPage = () => {
 
       recorder.onstop = async () => {
         console.log('🛑 Recording stopped');
+        
+        // Clear the data request interval
+        if (recorder._dataInterval) {
+          clearInterval(recorder._dataInterval);
+          console.log('✅ Cleared data request interval');
+        }
+        
+        // Request final data
+        if (recorder.state !== 'inactive') {
+          recorder.requestData();
+          console.log('📊 Requested final data');
+        }
+        
+        // Wait a moment for final data to arrive
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         console.log('📦 Total chunks collected:', chunks.length);
+        console.log('📦 Chunk sizes:', chunks.map(c => c.size));
         
         if (chunks.length === 0) {
           console.error('❌ No audio chunks recorded!');
@@ -439,6 +456,7 @@ const ConversationalAgentsPage = () => {
         console.log('   - Size:', audioBlob.size, 'bytes');
         console.log('   - Type:', audioBlob.type);
         console.log('   - Chunks:', chunks.length);
+        console.log('   - Total chunk data:', chunks.reduce((sum, c) => sum + c.size, 0), 'bytes');
         
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
