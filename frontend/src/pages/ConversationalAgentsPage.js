@@ -1393,7 +1393,9 @@ const ConversationalAgentsPage = () => {
                 <button
                   onClick={() => {
                     setActiveTab('knowledge');
-                    loadKnowledgeBase();
+                    if (editingAgent?.id) {
+                      loadKnowledgeBase(editingAgent.id);
+                    }
                   }}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     activeTab === 'knowledge'
