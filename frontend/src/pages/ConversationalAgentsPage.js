@@ -432,8 +432,9 @@ const ConversationalAgentsPage = () => {
           return;
         }
         
-        // Create blob with proper audio/webm MIME type
-        const audioBlob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
+        // Create blob with the recorder's MIME type
+        const mimeType = recorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(chunks, { type: mimeType });
         console.log('🎵 Audio blob created');
         console.log('   - Size:', audioBlob.size, 'bytes');
         console.log('   - Type:', audioBlob.type);
