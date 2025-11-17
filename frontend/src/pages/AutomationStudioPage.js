@@ -1292,16 +1292,16 @@ export default function AutomationStudioPage() {
                   <div>
                     <Label className="text-white">Model</Label>
                     <Select
-                      value={nodeConfig.model_id || 'eleven_monolingual_v1'}
+                      value={nodeConfig.model_id || 'eleven_turbo_v2_5'}
                       onValueChange={(value) => setNodeConfig({ ...nodeConfig, model_id: value })}
                     >
                       <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-[#1a1d2e] border-gray-700">
-                        <SelectItem value="eleven_monolingual_v1">Eleven Monolingual v1 (Best quality)</SelectItem>
+                        <SelectItem value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Free tier, fast)</SelectItem>
+                        <SelectItem value="eleven_turbo_v2">Eleven Turbo v2 (Fast)</SelectItem>
                         <SelectItem value="eleven_multilingual_v2">Eleven Multilingual v2 (Multiple languages)</SelectItem>
-                        <SelectItem value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500 mt-1">Choose quality vs speed</p>
