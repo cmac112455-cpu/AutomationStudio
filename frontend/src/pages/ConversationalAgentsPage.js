@@ -1818,7 +1818,7 @@ const ConversationalAgentsPage = () => {
                             </Button>
                           </div>
 
-                          {dataCollectionItems.length === 0 ? (
+                          {!Array.isArray(dataCollectionItems) || dataCollectionItems.length === 0 ? (
                             <div className="text-center py-12 bg-black/20 border border-gray-700 rounded-xl">
                               <Activity className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                               <p className="text-gray-400">No data collection items yet</p>
