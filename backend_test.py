@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Workflow Execution with Image Generation
-Tests workflow creation, execution, and monitoring functionality with REAL-TIME log monitoring
+Backend API Testing for ElevenLabs Integration and New Workflow Nodes
+Tests ElevenLabs integration endpoints, TTS preview, Text-to-Speech nodes, Audio Overlay nodes, and Enhanced Gemini nodes
 """
 
 import requests
