@@ -2901,24 +2901,48 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
             import traceback
             error_traceback = traceback.format_exc()
             
-            call_log = {
-                "id": str(uuid.uuid4()),
-                "user_id": user_id,
-                "agent_id": agent_id,
-                "agent_name": agent.get("name", "Unknown") if 'agent' in locals() else "Unknown",
-                "status": "failed",
-                "error": str(e),
-                "error_traceback": error_traceback,
-                "backend_logs": {
-                    "whisper_success": 'user_message' in locals(),
-                    "llm_success": 'response_text' in locals(),
-                    "tts_success": 'audio_url' in locals() and bool(locals().get('audio_url')),
-                    "voice_configured": agent.get("voice") if 'agent' in locals() else False,
-                    "error_stage": "transcription" if 'user_message' not in locals() else "llm" if 'response_text' not in locals() else "tts"
-                },
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.conversational_call_logs.insert_one(call_log)
+            call_log_id = voice_data.get("call_log_id") if 'voice_data' in locals() else None
+            
+            if call_log_id:
+                # Update existing log
+                await db.conversational_call_logs.update_one(
+                    {"id": call_log_id, "user_id": user_id},
+                    {
+                        "$set": {
+                            "status": "failed",
+                            "error": str(e),
+                            "error_traceback": error_traceback,
+                            "backend_logs.whisper_success": 'user_message' in locals(),
+                            "backend_logs.llm_success": 'response_text' in locals(),
+                            "backend_logs.tts_success": 'audio_url' in locals() and bool(locals().get('audio_url')),
+                            "backend_logs.voice_configured": agent.get("voice") if 'agent' in locals() else False,
+                            "backend_logs.error_stage": "transcription" if 'user_message' not in locals() else "llm" if 'response_text' not in locals() else "tts",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    }
+                )
+                logging.error(f"[CONVERSATIONAL_AI] Updated call log {call_log_id} with error")
+            else:
+                # Create new error log
+                call_log = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    "agent_id": agent_id,
+                    "agent_name": agent.get("name", "Unknown") if 'agent' in locals() else "Unknown",
+                    "status": "failed",
+                    "error": str(e),
+                    "error_traceback": error_traceback,
+                    "backend_logs": {
+                        "whisper_success": 'user_message' in locals(),
+                        "llm_success": 'response_text' in locals(),
+                        "tts_success": 'audio_url' in locals() and bool(locals().get('audio_url')),
+                        "voice_configured": agent.get("voice") if 'agent' in locals() else False,
+                        "error_stage": "transcription" if 'user_message' not in locals() else "llm" if 'response_text' not in locals() else "tts"
+                    },
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.conversational_call_logs.insert_one(call_log)
+                logging.error(f"[CONVERSATIONAL_AI] Created error call log")
         except Exception as log_error:
             logging.error(f"[CONVERSATIONAL_AI] Failed to save error log: {str(log_error)}")
         
