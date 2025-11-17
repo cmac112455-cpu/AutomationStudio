@@ -410,6 +410,8 @@ const ConversationalAgentsPage = () => {
       return;
     }
     
+    console.log('🎙️ Using Web Audio API for recording (MediaRecorder compatibility issue)...');
+    
     try {
       console.log('🎙️ Starting recording...');
       console.log('🔍 Checking microphone devices...');
