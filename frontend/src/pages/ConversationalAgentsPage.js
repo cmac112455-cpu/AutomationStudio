@@ -137,6 +137,26 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  const syncElevenLabsAgents = async () => {
+    setSyncing(true);
+    try {
+      console.log('🔄 Syncing agents from ElevenLabs...');
+      const response = await axios.post(`${BACKEND_URL}/api/conversational-ai/sync-elevenlabs-agents`);
+      
+      console.log('✅ Sync complete:', response.data);
+      toast.success(`Synced ${response.data.synced} new agents, updated ${response.data.updated} existing agents!`);
+      
+      // Reload agents
+      await loadAgents();
+    } catch (error) {
+      console.error('❌ Error syncing agents:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to sync agents';
+      toast.error(errorMsg);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const loadVoices = async () => {
     try {
       const response = await axios.get(`${BACKEND_URL}/api/tts/voices`);
