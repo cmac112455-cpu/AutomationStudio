@@ -2837,29 +2837,54 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         else:
             logging.warning(f"[CONVERSATIONAL_AI] No voice configured for agent")
         
-        # Log successful call with audio
+        # Update or create call log
         try:
-            call_log = {
-                "id": str(uuid.uuid4()),
-                "user_id": user_id,
-                "agent_id": agent_id,
-                "agent_name": agent.get("name", "Unknown"),
-                "status": "completed",
-                "transcription": user_message,
-                "response": response_text,
-                "audio_url": audio_url,  # Save the full data URL for playback
-                "audio_generated": bool(audio_url),
-                "exchanges_count": len(conversation_history) // 2 + 1,
-                "backend_logs": {
-                    "whisper_success": True,
-                    "llm_success": True,
-                    "tts_success": bool(audio_url),
-                    "voice_configured": bool(agent.get("voice")),
-                    "api_key_found": bool(voice_id and elevenlabs_key) if 'elevenlabs_key' in locals() else False
-                },
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.conversational_call_logs.insert_one(call_log)
+            if call_log_id:
+                # Update existing log
+                await db.conversational_call_logs.update_one(
+                    {"id": call_log_id, "user_id": user_id},
+                    {
+                        "$set": {
+                            "status": "completed",
+                            "transcription": user_message,
+                            "response": response_text,
+                            "audio_url": audio_url,
+                            "audio_generated": bool(audio_url),
+                            "exchanges_count": len(conversation_history) // 2 + 1,
+                            "backend_logs.whisper_success": True,
+                            "backend_logs.llm_success": True,
+                            "backend_logs.tts_success": bool(audio_url),
+                            "backend_logs.voice_configured": bool(agent.get("voice")),
+                            "backend_logs.api_key_found": bool(voice_id and elevenlabs_key) if 'elevenlabs_key' in locals() else False,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    }
+                )
+                logging.info(f"[CONVERSATIONAL_AI] Updated call log {call_log_id}")
+            else:
+                # Create new log if no ID provided (fallback)
+                call_log = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    "agent_id": agent_id,
+                    "agent_name": agent.get("name", "Unknown"),
+                    "status": "completed",
+                    "transcription": user_message,
+                    "response": response_text,
+                    "audio_url": audio_url,
+                    "audio_generated": bool(audio_url),
+                    "exchanges_count": len(conversation_history) // 2 + 1,
+                    "backend_logs": {
+                        "whisper_success": True,
+                        "llm_success": True,
+                        "tts_success": bool(audio_url),
+                        "voice_configured": bool(agent.get("voice")),
+                        "api_key_found": bool(voice_id and elevenlabs_key) if 'elevenlabs_key' in locals() else False
+                    },
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.conversational_call_logs.insert_one(call_log)
+                logging.info(f"[CONVERSATIONAL_AI] Created new call log {call_log['id']}")
         except Exception as log_error:
             logging.error(f"[CONVERSATIONAL_AI] Failed to save call log: {str(log_error)}")
         
