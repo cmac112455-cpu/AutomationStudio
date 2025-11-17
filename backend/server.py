@@ -2057,6 +2057,10 @@ async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_cur
             "voice_settings": voice_settings
         }
         
+        # Add speed parameter if not default (1.0)
+        if request.speed != 1.0:
+            payload["speed"] = float(request.speed)
+        
         logging.info(f"[TTS_PREVIEW] Generating preview with voice: {request.voice}")
         
         response = requests.post(url, json=payload, headers=headers, timeout=60)
