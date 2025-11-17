@@ -3038,11 +3038,21 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         logging.info(f"[TOOLS] ================================================")
         
         # Extract tools from the correct nested structure
-        built_in_tools = prompt_config.get("built_in_tools", [])
+        # built_in_tools is an OBJECT/DICT where keys are tool names
+        built_in_tools_obj = prompt_config.get("built_in_tools", {})
         tool_ids = prompt_config.get("tool_ids", [])
         
+        # Convert built_in_tools object to list of enabled tool names
+        # Tool is enabled if it has a config object (not None)
+        enabled_tools = []
+        if isinstance(built_in_tools_obj, dict):
+            for tool_name, tool_config in built_in_tools_obj.items():
+                if tool_config is not None:
+                    enabled_tools.append(tool_name)
+        
         logging.info(f"[TOOLS] ✅ Loaded tools for agent {agent_id}")
-        logging.info(f"[TOOLS] Built-in tools: {built_in_tools}")
+        logging.info(f"[TOOLS] Built-in tools object: {built_in_tools_obj}")
+        logging.info(f"[TOOLS] Enabled tools (frontend format): {enabled_tools}")
         logging.info(f"[TOOLS] Tool IDs: {tool_ids}")
         
         return {
