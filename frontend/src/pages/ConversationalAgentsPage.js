@@ -379,7 +379,24 @@ const ConversationalAgentsPage = () => {
       console.log('🔊 Stream active:', stream.active);
       console.log('🎵 Audio tracks:', stream.getAudioTracks().length);
       
-      const recorder = new MediaRecorder(stream);
+      // Try to use audio/wav if supported, otherwise fallback to webm
+      let mimeType = 'audio/webm;codecs=opus';
+      const supportedTypes = [
+        'audio/wav',
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus'
+      ];
+      
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          console.log('✅ Using MIME type:', type);
+          break;
+        }
+      }
+      
+      const recorder = new MediaRecorder(stream, { mimeType });
       console.log('✅ MediaRecorder created');
       console.log('📝 Recorder state:', recorder.state);
       console.log('🎚️ Recorder mimeType:', recorder.mimeType);
