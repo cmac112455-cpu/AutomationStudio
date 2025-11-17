@@ -1364,25 +1364,25 @@ const ConversationalAgentsPage = () => {
                   </p>
 
                   {/* Microphone Level Indicator */}
-                  {isRecording && (
-                    <div className="w-full mb-4 p-4 bg-gray-800/50 rounded-lg">
+                  {(isRecording || audioLevel > 0) && (
+                    <div className="w-full mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-300">Microphone Level</span>
+                        <span className="text-sm text-gray-300 font-medium">Microphone Level</span>
                         {micWorking ? (
-                          <span className="text-xs text-green-400">✓ Working</span>
+                          <span className="text-xs text-green-400 font-semibold">✓ Working</span>
                         ) : (
-                          <span className="text-xs text-red-400">✗ Not Detecting Audio</span>
+                          <span className="text-xs text-red-400 font-semibold">✗ Not Detecting Audio</span>
                         )}
                       </div>
-                      <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
                         <div
-                          className={`h-full transition-all duration-100 ${
+                          className={`h-full transition-all duration-75 ${
                             audioLevel > 30 ? 'bg-green-500' : audioLevel > 10 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
                           style={{ width: `${audioLevel}%` }}
                         />
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 mt-2 font-medium">
                         {audioLevel === 0 && '❌ No sound detected - Check your microphone!'}
                         {audioLevel > 0 && audioLevel < 10 && '🔇 Very quiet - Speak louder!'}
                         {audioLevel >= 10 && audioLevel < 30 && '🔉 Quiet - Speak louder!'}
@@ -1390,6 +1390,14 @@ const ConversationalAgentsPage = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Test Microphone Button */}
+                  <button
+                    onClick={testMicrophone}
+                    className="w-full py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 mb-2"
+                  >
+                    🎤 Test Microphone
+                  </button>
 
                   {/* Test Backend Button */}
                   <button
