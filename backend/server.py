@@ -1908,20 +1908,43 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                 result = {"status": "started", "data": input_data}
             
             elif node_type == 'gemini':
-                # Execute AI chat node with conversation history
+                # Execute AI chat node with conversation history and context from previous AI nodes
                 prompt = node_data.get('prompt', 'Hello')
                 model = node_data.get('model', 'gemini-2.5-pro')
+                
+                # Build context from all previous AI responses in this workflow
+                context_history = []
+                for prev_node_id, prev_result in results.items():
+                    if isinstance(prev_result, dict) and 'response' in prev_result and 'model' in prev_result:
+                        # This was an AI node - include its response in context
+                        context_history.append({
+                            'node_id': prev_node_id,
+                            'response': prev_result['response']
+                        })
+                
+                # Build enriched prompt with context
+                if context_history:
+                    context_text = "\n\n=== PREVIOUS AI RESPONSES (for context) ===\n"
+                    for idx, ctx in enumerate(context_history, 1):
+                        context_text += f"\nPrevious AI Node {idx} ({ctx['node_id']}):\n{ctx['response']}\n"
+                    context_text += "\n=== YOUR CURRENT TASK ===\n"
+                    
+                    enriched_prompt = context_text + prompt + "\n\n[Remember: Use the previous AI responses above as context to maintain continuity and coherence in your response.]"
+                else:
+                    enriched_prompt = prompt
+                
+                logging.info(f"[GEMINI] Node {node_id} executing with {len(context_history)} previous AI context(s)")
                 
                 # Use execution-specific session to maintain conversation history within workflow
                 chat = LlmChat(
                     api_key=os.environ.get('EMERGENT_LLM_KEY'),
                     session_id=f"{workflow_id}_{execution_id}",  # Unique per workflow execution
-                    system_message="You are a helpful AI assistant in an automation workflow."
+                    system_message="You are a helpful AI assistant in an automation workflow. When provided with previous AI responses, use them as context to maintain continuity, consistency, and logical flow in your responses."
                 ).with_model('gemini', model)
                 
-                user_message = UserMessage(text=prompt)
+                user_message = UserMessage(text=enriched_prompt)
                 response = await chat.send_message(user_message)
-                result = {"response": response, "model": model}
+                result = {"response": response, "model": model, "original_prompt": prompt}
             
             elif node_type == 'http':
                 # Execute HTTP request
