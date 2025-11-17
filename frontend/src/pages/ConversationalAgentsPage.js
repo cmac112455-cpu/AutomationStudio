@@ -344,25 +344,47 @@ const ConversationalAgentsPage = () => {
 
   const startRecording = async () => {
     if (!callActive) {
-      console.log('Cannot start recording: call not active');
+      console.log('❌ Cannot start recording: call not active');
       return;
     }
     
     if (isRecording) {
-      console.log('Cannot start recording: already recording');
+      console.log('❌ Cannot start recording: already recording');
       return;
     }
     
     if (isSending) {
-      console.log('Cannot start recording: still sending/processing');
+      console.log('❌ Cannot start recording: still sending/processing');
       return;
     }
     
     try {
-      console.log('Starting recording...');
+      console.log('🎙️ Starting recording...');
+      console.log('🔍 Checking MediaRecorder support...');
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MediaDevices API not supported');
+      }
+      
+      if (typeof MediaRecorder === 'undefined') {
+        throw new Error('MediaRecorder not supported');
+      }
+      
+      console.log('✅ MediaRecorder supported');
+      console.log('🎤 Requesting microphone access...');
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microphone access granted');
+      console.log('🔊 Stream active:', stream.active);
+      console.log('🎵 Audio tracks:', stream.getAudioTracks().length);
+      
       const recorder = new MediaRecorder(stream);
+      console.log('✅ MediaRecorder created');
+      console.log('📝 Recorder state:', recorder.state);
+      console.log('🎚️ Recorder mimeType:', recorder.mimeType);
+      
       const chunks = [];
+      console.log('📦 Chunks array initialized');
 
       recorder.ondataavailable = (e) => {
         console.log('📊 Data available, size:', e.data.size);
