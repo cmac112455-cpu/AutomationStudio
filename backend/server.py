@@ -3478,11 +3478,31 @@ async def update_agent_tools(
         updated_agent_config = updated_conversation_config.get("agent", {})
         updated_prompt_config = updated_agent_config.get("prompt", {})
         
+        # Convert built_in_tools object back to array for frontend
+        updated_built_in_tools_obj = updated_prompt_config.get("built_in_tools", {})
+        updated_enabled_tools = []
+        if isinstance(updated_built_in_tools_obj, dict):
+            # Map backend names to frontend names
+            backend_to_frontend = {
+                "end_call": "end_call",
+                "language_detection": "detect_language",
+                "transfer_to_agent": "transfer_to_agent",
+                "transfer_to_number": "transfer_to_number",
+                "skip_turn": "skip_turn",
+                "play_keypad_touch_tone": "keypad",
+                "voicemail_detection": "voicemail"
+            }
+            for tool_name, tool_config in updated_built_in_tools_obj.items():
+                if tool_config is not None:
+                    frontend_name = backend_to_frontend.get(tool_name, tool_name)
+                    updated_enabled_tools.append(frontend_name)
+        
         logging.info(f"[TOOLS] ✅ Successfully updated tools for agent {agent_id}")
+        logging.info(f"[TOOLS] Returning enabled tools to frontend: {updated_enabled_tools}")
         
         return {
             "message": "Tools updated successfully",
-            "built_in_tools": updated_prompt_config.get("built_in_tools", []),
+            "built_in_tools": updated_enabled_tools,
             "tool_ids": updated_prompt_config.get("tool_ids", [])
         }
         
