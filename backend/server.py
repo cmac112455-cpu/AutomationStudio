@@ -2768,37 +2768,45 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         audio_bytes = base64.b64decode(audio_base64)
         logging.info(f"[CONVERSATIONAL_AI] Audio decoded: {len(audio_bytes)} bytes")
         
-        # Check the audio format by looking at magic bytes
-        audio_format = "unknown"
-        if audio_bytes[:4] == b'RIFF':
-            audio_format = "wav"
-        elif audio_bytes[:4] == b'ID3\x03' or audio_bytes[:2] == b'\xff\xfb':
-            audio_format = "mp3"
-        elif audio_bytes[:4] == b'\x1aE\xdf\xa3':
-            audio_format = "webm"
-        elif audio_bytes[:4] == b'OggS':
-            audio_format = "ogg"
-        
-        logging.info(f"[CONVERSATIONAL_AI] Detected audio format: {audio_format}")
-        
-        # Save with appropriate extension
-        suffix_map = {
-            "wav": ".wav",
-            "mp3": ".mp3",
-            "webm": ".webm",
-            "ogg": ".ogg",
-            "unknown": ".webm"  # default fallback
-        }
-        
-        suffix = suffix_map.get(audio_format, ".webm")
-        
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_audio:
+        # Save original audio to temp file
+        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
             temp_audio.write(audio_bytes)
-            temp_audio_path = temp_audio.name
+            temp_input_path = temp_audio.name
         
-        logging.info(f"[CONVERSATIONAL_AI] Audio saved to: {temp_audio_path}")
-        logging.info(f"[CONVERSATIONAL_AI] File size: {len(audio_bytes)} bytes")
-        logging.info(f"[CONVERSATIONAL_AI] Extension: {suffix}")
+        logging.info(f"[CONVERSATIONAL_AI] Audio saved to: {temp_input_path}")
+        
+        # Convert to WAV using FFmpeg (Whisper works best with WAV)
+        temp_output_path = temp_input_path.replace('.webm', '.wav')
+        
+        logging.info(f"[CONVERSATIONAL_AI] Converting audio to WAV using FFmpeg...")
+        
+        import subprocess
+        try:
+            # Convert using ffmpeg
+            result = subprocess.run([
+                'ffmpeg', '-i', temp_input_path,
+                '-ar', '16000',  # 16kHz sample rate (good for speech)
+                '-ac', '1',       # Mono
+                '-y',             # Overwrite output
+                temp_output_path
+            ], capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                logging.info(f"[CONVERSATIONAL_AI] ✅ Audio converted successfully to WAV")
+                temp_audio_path = temp_output_path
+                
+                # Check converted file size
+                import os as os_module
+                wav_size = os_module.path.getsize(temp_audio_path)
+                logging.info(f"[CONVERSATIONAL_AI] WAV file size: {wav_size} bytes")
+            else:
+                logging.error(f"[CONVERSATIONAL_AI] FFmpeg conversion failed: {result.stderr}")
+                # Fallback to original file
+                temp_audio_path = temp_input_path
+        except Exception as ffmpeg_error:
+            logging.error(f"[CONVERSATIONAL_AI] FFmpeg error: {str(ffmpeg_error)}")
+            # Fallback to original file
+            temp_audio_path = temp_input_path
         
         try:
             # Transcribe audio
