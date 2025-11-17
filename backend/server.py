@@ -2251,7 +2251,6 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
         logging.info(f"[MUSIC_STUDIO] Generation response status: {gen_response.status_code}")
         logging.info(f"[MUSIC_STUDIO] Generation response Content-Type: {gen_response.headers.get('Content-Type', 'unknown')}")
         logging.info(f"[MUSIC_STUDIO] Generation response Content-Length: {len(gen_response.content)}")
-        logging.info(f"[MUSIC_STUDIO] Generation response (first 500 chars): {gen_response.text[:500]}")
         
         if gen_response.status_code != 200:
             await db.voice_completions.update_one(
@@ -2260,22 +2259,50 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             )
             raise HTTPException(status_code=400, detail=f"Music generation request failed: {gen_response.text}")
         
+        # Check if ElevenLabs returned audio directly (new API behavior)
+        # or JSON with generation_id (old API behavior requiring polling)
+        content_type = gen_response.headers.get('Content-Type', '')
+        content_length = len(gen_response.content)
+        
+        if 'audio' in content_type or 'mpeg' in content_type or content_length > 10000:
+            # API returned audio directly (new behavior)
+            logging.info(f"[MUSIC_STUDIO] Received audio directly: {content_length} bytes")
+            audio_bytes = gen_response.content
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+            
+            # Update completion
+            await db.voice_completions.update_one(
+                {"id": completion_id},
+                {"$set": {
+                    "status": "completed",
+                    "audio_base64": audio_base64,
+                    "log": ["Music generated successfully (direct response)"]
+                }}
+            )
+            
+            # Return audio
+            from fastapi.responses import Response
+            return Response(
+                content=audio_bytes,
+                media_type="audio/mpeg",
+                headers={"Content-Disposition": f"inline; filename=music_{completion_id}.mp3"}
+            )
+        
+        # Otherwise, parse as JSON with generation_id (old behavior)
         try:
             gen_data = gen_response.json()
         except Exception as e:
-            logging.error(f"[MUSIC_STUDIO] Failed to parse initial generation response as JSON!")
-            logging.error(f"[MUSIC_STUDIO] Response content type: {gen_response.headers.get('Content-Type')}")
-            logging.error(f"[MUSIC_STUDIO] Response length: {len(gen_response.content)} bytes")
+            logging.error(f"[MUSIC_STUDIO] Failed to parse response as JSON and it's not audio!")
             logging.error(f"[MUSIC_STUDIO] Response (first 1000 bytes): {gen_response.content[:1000]}")
-            raise HTTPException(status_code=500, detail=f"Invalid API response from music generation: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Invalid API response: {str(e)}")
         
-        generation_id = gen_data.get("generation_id")
+        generation_id = gen_data.get("generation_id") or gen_data.get("id")
         
         if not generation_id:
             logging.error(f"[MUSIC_STUDIO] No generation_id in response: {gen_data}")
             raise HTTPException(status_code=500, detail="No generation ID returned from API")
         
-        logging.info(f"[MUSIC_STUDIO] Generation ID: {generation_id}")
+        logging.info(f"[MUSIC_STUDIO] Generation ID: {generation_id}, polling for completion...")
         
         # Poll for completion
         retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
@@ -2289,21 +2316,17 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
             logging.info(f"[MUSIC_STUDIO] Polling attempt {attempt}/{max_attempts}")
             retrieve_response = requests.get(retrieve_url, headers=headers, timeout=30)
             
-            logging.info(f"[MUSIC_STUDIO] Poll status: {retrieve_response.status_code}, Content-Type: {retrieve_response.headers.get('Content-Type', 'unknown')}")
-            
             if retrieve_response.status_code == 200:
                 content_type = retrieve_response.headers.get('Content-Type', '')
                 content_length = len(retrieve_response.content)
                 
-                logging.info(f"[MUSIC_STUDIO] Content-Type: {content_type}, Content-Length: {content_length}")
+                logging.info(f"[MUSIC_STUDIO] Poll Content-Type: {content_type}, Length: {content_length}")
                 
                 # Check if this is audio data (either by content-type or size)
-                # ElevenLabs returns binary MP3 directly when ready (typically >100KB)
-                # Status updates are small JSON responses (<1KB)
                 if 'audio' in content_type or 'mpeg' in content_type or content_length > 1000:
                     # Got the audio
                     audio_bytes = retrieve_response.content
-                    logging.info(f"[MUSIC_STUDIO] Received audio: {len(audio_bytes)} bytes")
+                    logging.info(f"[MUSIC_STUDIO] Received audio from polling: {len(audio_bytes)} bytes")
                     audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
                     
                     # Update completion
@@ -2312,7 +2335,7 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
                         {"$set": {
                             "status": "completed",
                             "audio_base64": audio_base64,
-                            "log": ["Music generated successfully"]
+                            "log": ["Music generated successfully (via polling)"]
                         }}
                     )
                     
