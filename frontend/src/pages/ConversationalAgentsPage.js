@@ -806,11 +806,21 @@ const ConversationalAgentsPage = () => {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => setShowTemplatesModal(true)}
-                className="bg-gray-700 hover:bg-gray-600"
+                onClick={syncElevenLabsAgents}
+                disabled={syncing}
+                className="bg-purple-600 hover:bg-purple-700"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Templates
+                {syncing ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Sync from ElevenLabs
+                  </>
+                )}
               </Button>
               <Button
                 onClick={() => {
