@@ -691,12 +691,352 @@ class BackendTester:
             self.log_result("Workflow Retrieval", False, f"Workflow retrieval error: {str(e)}")
             return False
 
+    def test_video_ad_creator_workflow_creation(self):
+        """Test creating the Video Ad Creator workflow with imagetovideo node"""
+        if not self.auth_token:
+            self.log_result("Video Ad Creator Workflow Creation", False, "No authentication token available")
+            return False, None
+            
+        try:
+            # Create the complete Video Ad Creator workflow:
+            # Start → AI (Gemini prompt 1) → Video Gen 1 → Screenshot 1 → AI (Gemini prompt 2) → Image-To-Video → Screenshot 2 → Stitch → End
+            workflow_data = {
+                "name": "Video Ad Creator Workflow",
+                "nodes": [
+                    {
+                        "id": "start-1",
+                        "type": "start",
+                        "position": {"x": 100, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "ai-1", 
+                        "type": "gemini",
+                        "position": {"x": 250, "y": 100},
+                        "data": {
+                            "prompt": "A modern smartphone sitting on a minimalist white desk with soft natural window lighting. The camera smoothly pans around the device showing its sleek aluminum design and curved edges.",
+                            "model": "gemini-2.5-pro"
+                        }
+                    },
+                    {
+                        "id": "videogen-1",
+                        "type": "videogen", 
+                        "position": {"x": 400, "y": 100},
+                        "data": {
+                            "duration": 4,
+                            "size": "1280x720"
+                        }
+                    },
+                    {
+                        "id": "screenshot-1",
+                        "type": "screenshot",
+                        "position": {"x": 550, "y": 100}, 
+                        "data": {}
+                    },
+                    {
+                        "id": "ai-2",
+                        "type": "gemini",
+                        "position": {"x": 700, "y": 100},
+                        "data": {
+                            "prompt": "The smartphone screen lights up with a vibrant colorful app interface. The camera slowly zooms in to focus on the bright OLED display showing icons and animations.",
+                            "model": "gemini-2.5-pro"
+                        }
+                    },
+                    {
+                        "id": "imagetovideo-1",
+                        "type": "imagetovideo",
+                        "position": {"x": 850, "y": 100},
+                        "data": {
+                            "duration": 4,
+                            "size": "1280x720"
+                        }
+                    },
+                    {
+                        "id": "screenshot-2", 
+                        "type": "screenshot",
+                        "position": {"x": 1000, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "stitch-1",
+                        "type": "stitch",
+                        "position": {"x": 1150, "y": 100},
+                        "data": {}
+                    },
+                    {
+                        "id": "end-1",
+                        "type": "end",
+                        "position": {"x": 1300, "y": 100},
+                        "data": {}
+                    }
+                ],
+                "edges": [
+                    {"id": "edge-1", "source": "start-1", "target": "ai-1"},
+                    {"id": "edge-2", "source": "ai-1", "target": "videogen-1"},
+                    {"id": "edge-3", "source": "videogen-1", "target": "screenshot-1"},
+                    {"id": "edge-4", "source": "screenshot-1", "target": "ai-2"},
+                    {"id": "edge-5", "source": "ai-2", "target": "imagetovideo-1"},
+                    {"id": "edge-6", "source": "imagetovideo-1", "target": "screenshot-2"},
+                    {"id": "edge-7", "source": "screenshot-2", "target": "stitch-1"},
+                    {"id": "edge-8", "source": "stitch-1", "target": "end-1"}
+                ]
+            }
+            
+            response = self.session.post(f"{self.base_url}/workflows", json=workflow_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                workflow_id = data.get("id")
+                workflow_name = data.get("name")
+                
+                if workflow_id and workflow_name:
+                    self.log_result("Video Ad Creator Workflow Creation", True, 
+                                  f"Video Ad Creator workflow created successfully: {workflow_name}", 
+                                  f"Workflow ID: {workflow_id}, Nodes: 9, Edges: 8")
+                    return True, workflow_id
+                else:
+                    self.log_result("Video Ad Creator Workflow Creation", False, "Invalid workflow response format")
+                    return False, None
+            else:
+                self.log_result("Video Ad Creator Workflow Creation", False, 
+                              f"Video Ad Creator workflow creation failed with status {response.status_code}", response.text)
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Video Ad Creator Workflow Creation", False, f"Video Ad Creator workflow creation error: {str(e)}")
+            return False, None
+
+    def test_video_ad_creator_execution_with_logs(self, workflow_id):
+        """Test executing the Video Ad Creator workflow with REAL-TIME log monitoring"""
+        if not self.auth_token or not workflow_id:
+            self.log_result("Video Ad Creator Execution with Logs", False, "No auth token or workflow ID available")
+            return False, None
+            
+        try:
+            print("\n🚀 STARTING VIDEO AD CREATOR WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
+            print("=" * 90)
+            print("🎬 WORKFLOW: Start → AI-1 → VideoGen-1 → Screenshot-1 → AI-2 → ImageToVideo → Screenshot-2 → Stitch → End")
+            print("⚠️  EXPECTED DURATION: 3-4 minutes (video generation is slow)")
+            print("🔧 TESTING: Image-To-Video node fix (multipart/form-data upload)")
+            
+            # Start log monitoring BEFORE execution
+            self.start_log_monitoring()
+            
+            # Execute workflow
+            print("📤 Sending Video Ad Creator workflow execution request...")
+            response = self.session.post(f"{self.base_url}/workflows/{workflow_id}/execute")
+            
+            if response.status_code == 200:
+                data = response.json()
+                execution_id = data.get("execution_id")
+                status = data.get("status")
+                
+                if execution_id:
+                    print(f"✅ Video Ad Creator workflow execution started! Execution ID: {execution_id}")
+                    print(f"📊 Initial Status: {status}")
+                    print("\n🔄 MONITORING EXECUTION PROGRESS...")
+                    print("-" * 80)
+                    
+                    # Monitor execution with extended timeout for video generation
+                    success = self.monitor_video_ad_creator_execution(execution_id)
+                    
+                    # Stop log monitoring
+                    captured_logs = self.stop_log_monitoring()
+                    
+                    if success:
+                        self.log_result("Video Ad Creator Execution with Logs", True, 
+                                      f"Video Ad Creator workflow execution completed successfully with real-time log monitoring", 
+                                      f"Execution ID: {execution_id}, Logs captured: {len(captured_logs)}")
+                        return True, execution_id
+                    else:
+                        self.log_result("Video Ad Creator Execution with Logs", False, 
+                                      f"Video Ad Creator workflow execution failed during monitoring", 
+                                      f"Execution ID: {execution_id}, Logs captured: {len(captured_logs)}")
+                        return False, execution_id
+                else:
+                    self.stop_log_monitoring()
+                    self.log_result("Video Ad Creator Execution with Logs", False, "No execution ID returned")
+                    return False, None
+            else:
+                self.stop_log_monitoring()
+                self.log_result("Video Ad Creator Execution with Logs", False, 
+                              f"Video Ad Creator workflow execution failed with status {response.status_code}", response.text)
+                return False, None
+                
+        except Exception as e:
+            self.stop_log_monitoring()
+            self.log_result("Video Ad Creator Execution with Logs", False, f"Video Ad Creator workflow execution error: {str(e)}")
+            return False, None
+
+    def monitor_video_ad_creator_execution(self, execution_id):
+        """Monitor Video Ad Creator execution progress with detailed validation"""
+        try:
+            # Extended timeout for video generation (3-4 minutes expected)
+            max_wait_time = 300  # 5 minutes timeout
+            start_time = time.time()
+            final_status = None
+            final_progress = 0
+            last_progress = -1
+            
+            # Track critical nodes
+            critical_nodes = {
+                'ai-1': False,
+                'videogen-1': False, 
+                'screenshot-1': False,
+                'ai-2': False,
+                'imagetovideo-1': False,
+                'screenshot-2': False,
+                'stitch-1': False
+            }
+            
+            print(f"⏱️  Starting Video Ad Creator execution monitoring (timeout: {max_wait_time}s)")
+            print("🎯 CRITICAL VALIDATIONS:")
+            print("   ✅ Video-1 node: Generate first video successfully")
+            print("   ✅ Screenshot-1 node: Extract last frame as image_base64")
+            print("   ✅ Image-To-Video node: Receive screenshot + AI prompt, generate second video")
+            print("   ✅ Screenshot-2 node: Extract frame from second video")
+            print("   ✅ Stitch node: Combine both videos into one")
+            print("   ✅ Full workflow completes with status='completed'")
+            print()
+            
+            while time.time() - start_time < max_wait_time:
+                response = self.session.get(f"{self.base_url}/workflows/executions/{execution_id}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    status = data.get("status", "unknown")
+                    progress = data.get("progress", 0)
+                    current_node = data.get("current_node", "")
+                    results = data.get("results", {})
+                    execution_log = data.get("execution_log", [])
+                    
+                    # Only print progress updates when they change
+                    if progress != last_progress:
+                        elapsed = int(time.time() - start_time)
+                        print(f"📊 [{elapsed:3d}s] Progress: {progress:3d}% | Status: {status:10s} | Node: {current_node}")
+                        last_progress = progress
+                    
+                    # Check critical node completions
+                    for node_id in critical_nodes:
+                        if node_id in results and not critical_nodes[node_id]:
+                            node_result = results[node_id]
+                            node_status = node_result.get("status", "unknown")
+                            if node_status == "success":
+                                critical_nodes[node_id] = True
+                                print(f"   ✅ {node_id}: SUCCESS")
+                            elif node_status in ["error", "failed"]:
+                                error = node_result.get("error", "Unknown error")
+                                print(f"   ❌ {node_id}: FAILED - {error}")
+                    
+                    if status == "completed":
+                        final_status = status
+                        final_progress = progress
+                        elapsed = int(time.time() - start_time)
+                        
+                        print(f"\n🎉 VIDEO AD CREATOR WORKFLOW COMPLETED in {elapsed}s!")
+                        print("=" * 60)
+                        
+                        # Detailed validation of results
+                        print("📋 EXECUTION RESULTS VALIDATION:")
+                        
+                        # Validate Video-1 node
+                        videogen1_result = results.get("videogen-1", {})
+                        if videogen1_result.get("status") == "success":
+                            video1_data = videogen1_result.get("video_base64", "")
+                            print(f"   ✅ Video-1 Generation: SUCCESS ({len(video1_data)} chars)")
+                        else:
+                            print(f"   ❌ Video-1 Generation: FAILED - {videogen1_result.get('error', 'Unknown')}")
+                        
+                        # Validate Screenshot-1 node
+                        screenshot1_result = results.get("screenshot-1", {})
+                        if screenshot1_result.get("status") == "success":
+                            image1_data = screenshot1_result.get("image_base64", "")
+                            print(f"   ✅ Screenshot-1 Extraction: SUCCESS ({len(image1_data)} chars)")
+                        else:
+                            print(f"   ❌ Screenshot-1 Extraction: FAILED - {screenshot1_result.get('error', 'Unknown')}")
+                        
+                        # Validate Image-To-Video node (CRITICAL TEST)
+                        imagetovideo_result = results.get("imagetovideo-1", {})
+                        if imagetovideo_result.get("status") == "success":
+                            video2_data = imagetovideo_result.get("video_base64", "")
+                            duration = imagetovideo_result.get("duration", 0)
+                            size = imagetovideo_result.get("size", "")
+                            print(f"   ✅ Image-To-Video: SUCCESS ({len(video2_data)} chars, {duration}s, {size})")
+                            print(f"       🔧 FIX VERIFIED: Multipart/form-data upload working correctly")
+                        else:
+                            error = imagetovideo_result.get("error", "Unknown")
+                            print(f"   ❌ Image-To-Video: FAILED - {error}")
+                            print(f"       🚨 FIX ISSUE: Multipart/form-data upload may still have problems")
+                        
+                        # Validate Screenshot-2 node
+                        screenshot2_result = results.get("screenshot-2", {})
+                        if screenshot2_result.get("status") == "success":
+                            image2_data = screenshot2_result.get("image_base64", "")
+                            print(f"   ✅ Screenshot-2 Extraction: SUCCESS ({len(image2_data)} chars)")
+                        else:
+                            print(f"   ❌ Screenshot-2 Extraction: FAILED - {screenshot2_result.get('error', 'Unknown')}")
+                        
+                        # Validate Stitch node
+                        stitch_result = results.get("stitch-1", {})
+                        if stitch_result.get("status") == "success":
+                            final_video_data = stitch_result.get("video_base64", "")
+                            videos_stitched = stitch_result.get("videos_stitched", 0)
+                            print(f"   ✅ Video Stitching: SUCCESS ({len(final_video_data)} chars, {videos_stitched} videos)")
+                        else:
+                            print(f"   ❌ Video Stitching: FAILED - {stitch_result.get('error', 'Unknown')}")
+                        
+                        # Check execution log
+                        print(f"\n📝 EXECUTION LOG ({len(execution_log)} entries):")
+                        for log_entry in execution_log[-10:]:  # Show last 10 entries
+                            print(f"   • {log_entry}")
+                        
+                        # Overall success validation
+                        all_critical_success = all(critical_nodes.values())
+                        imagetovideo_success = imagetovideo_result.get("status") == "success"
+                        
+                        if all_critical_success and imagetovideo_success:
+                            print("\n✅ VIDEO AD CREATOR WORKFLOW: COMPLETE SUCCESS")
+                            print("🔧 IMAGE-TO-VIDEO FIX: VERIFIED WORKING")
+                            return True
+                        else:
+                            failed_nodes = [node for node, success in critical_nodes.items() if not success]
+                            print(f"\n❌ VIDEO AD CREATOR WORKFLOW: PARTIAL FAILURE")
+                            print(f"   Failed nodes: {failed_nodes}")
+                            if not imagetovideo_success:
+                                print("🚨 IMAGE-TO-VIDEO FIX: STILL HAS ISSUES")
+                            return False
+                    
+                    elif status == "failed":
+                        error = data.get("error", "Unknown error")
+                        elapsed = int(time.time() - start_time)
+                        print(f"\n💥 VIDEO AD CREATOR WORKFLOW FAILED after {elapsed}s: {error}")
+                        return False
+                    
+                    # Continue monitoring if still running
+                    time.sleep(5)  # Check every 5 seconds for video generation
+                else:
+                    print(f"❌ Failed to get execution status: {response.status_code}")
+                    return False
+            
+            # Timeout reached
+            elapsed = int(time.time() - start_time)
+            print(f"\n⏰ VIDEO AD CREATOR EXECUTION TIMEOUT after {elapsed}s")
+            print(f"   Final status: {final_status}, Progress: {final_progress}%")
+            completed_nodes = [node for node, success in critical_nodes.items() if success]
+            print(f"   Completed nodes: {completed_nodes}")
+            return False
+                
+        except Exception as e:
+            print(f"💥 Video Ad Creator execution monitoring error: {str(e)}")
+            return False
+
     def run_comprehensive_workflow_test(self):
-        """Run comprehensive workflow test with real-time log monitoring"""
-        print("🚀 COMPREHENSIVE WORKFLOW EXECUTION TEST WITH REAL-TIME LOG MONITORING")
+        """Run comprehensive Video Ad Creator workflow test with imagetovideo node fix validation"""
+        print("🚀 VIDEO AD CREATOR WORKFLOW TEST WITH IMAGE-TO-VIDEO NODE FIX VALIDATION")
         print(f"Backend URL: {self.base_url}")
-        print("Test Scenario: Start -> Image Gen (prompt: 'a cute cow on a beach') -> End")
-        print("=" * 80)
+        print("🎬 Test Scenario: Start → AI-1 → VideoGen-1 → Screenshot-1 → AI-2 → ImageToVideo → Screenshot-2 → Stitch → End")
+        print("🔧 Critical Test: Image-To-Video node using multipart/form-data upload (FIX)")
+        print("=" * 100)
         
         # Step 1: Authentication
         print("\n📝 STEP 1: USER AUTHENTICATION")
@@ -709,21 +1049,21 @@ class BackendTester:
             print("❌ Authentication failed. Cannot proceed with workflow tests.")
             return self.generate_summary()
         
-        # Step 2: Workflow Creation
-        print("\n🔧 STEP 2: WORKFLOW CREATION")
-        workflow_success, workflow_id = self.test_workflow_creation()
+        # Step 2: Video Ad Creator Workflow Creation
+        print("\n🔧 STEP 2: VIDEO AD CREATOR WORKFLOW CREATION")
+        workflow_success, workflow_id = self.test_video_ad_creator_workflow_creation()
         
         if not workflow_success or not workflow_id:
-            print("❌ Workflow creation failed. Cannot proceed.")
+            print("❌ Video Ad Creator workflow creation failed. Cannot proceed.")
             return self.generate_summary()
         
         # Step 3: Workflow Retrieval Verification
         print("\n🔍 STEP 3: WORKFLOW RETRIEVAL VERIFICATION")
         self.test_workflow_retrieval(workflow_id)
         
-        # Step 4: Workflow Execution with Real-time Log Monitoring
-        print("\n⚡ STEP 4: WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
-        execution_success, execution_id = self.test_workflow_execution_with_logs(workflow_id)
+        # Step 4: Video Ad Creator Workflow Execution with Real-time Log Monitoring
+        print("\n⚡ STEP 4: VIDEO AD CREATOR WORKFLOW EXECUTION WITH REAL-TIME LOG MONITORING")
+        execution_success, execution_id = self.test_video_ad_creator_execution_with_logs(workflow_id)
         
         if execution_id:
             # Step 5: MongoDB Persistence Check
@@ -738,7 +1078,7 @@ class BackendTester:
         print("\n📊 STEP 7: LOG ANALYSIS")
         if self.captured_logs:
             print(f"Captured {len(self.captured_logs)} log entries during execution:")
-            for log in self.captured_logs[-10:]:  # Show last 10 logs
+            for log in self.captured_logs[-15:]:  # Show last 15 logs for video workflow
                 print(f"   {log}")
         else:
             print("No backend logs captured during execution.")
