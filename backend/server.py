@@ -2987,19 +2987,10 @@ async def get_elevenlabs_signed_url(agent_id: str, user_id: str = Depends(get_cu
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api_router.get("/conversational-ai/agents/{agent_id}/analysis-config")
-async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_current_user)):
-    """Get agent's analysis configuration (evaluation criteria & data collection)"""
+@api_router.get("/conversational-ai/agents/{agent_id}/tools")
+async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Get agent's tools configuration from ElevenLabs"""
     try:
-        # Get agent to verify ownership and get elevenlabs_agent_id
-        agent = await db.conversational_agents.find_one(
-            {"id": agent_id, "user_id": user_id},
-            {"_id": 0, "elevenlabs_agent_id": 1}
-        )
-        
-        if not agent:
-            raise HTTPException(status_code=404, detail="Agent not found")
-        
         # Get agent to verify ownership and get elevenlabs_agent_id
         agent = await db.conversational_agents.find_one(
             {"id": agent_id, "user_id": user_id},
@@ -3011,7 +3002,7 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
         if not elevenlabs_agent_id:
-            return {"client_tools": [], "server_tools": [], "system_tools": []}
+            return {"built_in_tools": [], "tool_ids": [], "workspace_tools": []}
         
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
@@ -3032,38 +3023,22 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         
         agent_data = response.json()
         
-        # Log full agent structure to find where tools actually are
-        logging.info(f"[TOOLS] Agent data keys: {agent_data.keys()}")
-        
-        # Check multiple possible locations for tools
+        # Navigate to the correct location: conversation_config.agent.prompt
         conversation_config = agent_data.get("conversation_config", {})
-        logging.info(f"[TOOLS] conversation_config keys: {conversation_config.keys()}")
-        
         agent_config = conversation_config.get("agent", {})
-        logging.info(f"[TOOLS] agent config keys: {agent_config.keys()}")
+        prompt_config = agent_config.get("prompt", {})
         
-        # Try reading from agent config first
-        client_tools = agent_config.get("client_tools", [])
-        server_tools = agent_config.get("server_tools", [])
-        system_tools = agent_config.get("system_tools", [])
+        # Extract tools from the correct nested structure
+        built_in_tools = prompt_config.get("built_in_tools", [])
+        tool_ids = prompt_config.get("tool_ids", [])
         
-        # Also check top level
-        if not client_tools:
-            client_tools = agent_data.get("client_tools", [])
-        if not server_tools:
-            server_tools = agent_data.get("server_tools", [])
-        if not system_tools:
-            system_tools = agent_data.get("system_tools", [])
-        
-        logging.info(f"[TOOLS] Loaded tools for agent {agent_id}: {len(client_tools)} client, {len(server_tools)} server, {len(system_tools)} system")
-        logging.info(f"[TOOLS] Client tools: {client_tools}")
-        logging.info(f"[TOOLS] Server tools: {server_tools}")
-        logging.info(f"[TOOLS] System tools: {system_tools}")
+        logging.info(f"[TOOLS] ✅ Loaded tools for agent {agent_id}")
+        logging.info(f"[TOOLS] Built-in tools: {built_in_tools}")
+        logging.info(f"[TOOLS] Tool IDs: {tool_ids}")
         
         return {
-            "client_tools": client_tools,
-            "server_tools": server_tools,
-            "system_tools": system_tools
+            "built_in_tools": built_in_tools,
+            "tool_ids": tool_ids
         }
         
     except HTTPException:
@@ -3073,6 +3048,20 @@ async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_cu
         import traceback
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to fetch tools: {str(e)}")
+
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analysis-config")
+async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Get agent's analysis configuration (evaluation criteria & data collection)"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
 
 
 @api_router.patch("/conversational-ai/agents/{agent_id}/tools")
