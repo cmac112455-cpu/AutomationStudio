@@ -2735,28 +2735,21 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
             # Clean up temp file
             os_module.unlink(temp_audio_path)
         
-        # Step 2: Get LLM response (same as text chat)
-        messages = [{"role": "system", "content": agent.get("systemPrompt", "You are a helpful assistant.")}]
+        # Step 2: Get LLM response using LlmChat
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        for msg in conversation_history:
-            if msg.get("role") == "user":
-                messages.append({"role": "user", "content": msg.get("content")})
-            elif msg.get("role") == "agent":
-                messages.append({"role": "assistant", "content": msg.get("content")})
+        # Initialize chat with system message
+        chat_client = LlmChat(
+            api_key=os.getenv("EMERGENT_LLM_KEY"),
+            session_id=f"agent_{agent_id}_{user_id}",
+            system_message=agent.get("systemPrompt", "You are a helpful assistant.")
+        ).with_model("openai", agent.get("model", "gpt-4o"))
         
-        messages.append({"role": "user", "content": user_message})
+        # Create user message
+        user_msg = UserMessage(text=user_message)
         
-        from emergentintegrations.llm.openai import chat
-        
-        llm_response = chat(
-            messages=messages,
-            model=agent.get("model", "gpt-4o"),
-            temperature=agent.get("temperature", 0.7),
-            base_url=proxy_url,
-            app_identifier=app_identifier
-        )
-        
-        response_text = llm_response.choices[0].message.content
+        # Send and get response
+        response_text = await chat_client.send_message(user_msg)
         logging.info(f"[CONVERSATIONAL_AI] LLM Response: {response_text[:100]}")
         
         # Step 3: Generate audio response
