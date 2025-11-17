@@ -96,6 +96,10 @@ function App() {
                         <Route path="/automation/integrations" element={<IntegrationsPage />} />
                         <Route path="/automation/completions" element={<CompletionsPage />} />
                         <Route path="/automation" element={<Navigate to="/automation/studio" />} />
+                        <Route path="/voice-studio/voices" element={<VoicesPage />} />
+                        <Route path="/voice-studio/music" element={<MusicPage />} />
+                        <Route path="/voice-studio/completions" element={<VoiceCompletionsPage />} />
+                        <Route path="/voice-studio" element={<Navigate to="/voice-studio/voices" />} />
                         <Route path="/" element={<Navigate to="/dashboard" />} />
                       </Routes>
                     </Layout>
