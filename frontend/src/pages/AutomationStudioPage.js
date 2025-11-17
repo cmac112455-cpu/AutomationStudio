@@ -402,6 +402,8 @@ const nodeTypes = {
   imagegen: ImageGenNode,
   screenshot: ScreenshotNode,
   stitch: StitchNode,
+  texttospeech: TextToSpeechNode,
+  audiooverlay: AudioOverlayNode,
   taskplanner: TaskPlannerNode,
   condition: ConditionNode,
   switch: SwitchNode,
