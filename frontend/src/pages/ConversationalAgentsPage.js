@@ -263,12 +263,20 @@ const ConversationalAgentsPage = () => {
       const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analysis-config`);
       const config = response.data;
       
-      setEvaluationCriteria(config.evaluation_criteria || []);
-      setDataCollectionItems(config.data_collection || []);
-      
       console.log('📋 Analysis config loaded:', config);
+      
+      // Ensure arrays
+      const criteria = Array.isArray(config.evaluation_criteria) ? config.evaluation_criteria : [];
+      const dataItems = Array.isArray(config.data_collection) ? config.data_collection : [];
+      
+      setEvaluationCriteria(criteria);
+      setDataCollectionItems(dataItems);
+      
+      console.log('📋 Set evaluation criteria:', criteria);
+      console.log('📋 Set data collection items:', dataItems);
     } catch (error) {
       console.error('Error loading analysis config:', error);
+      console.error('Error details:', error.response);
       // Set empty arrays if error
       setEvaluationCriteria([]);
       setDataCollectionItems([]);
