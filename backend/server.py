@@ -2359,11 +2359,21 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             output_path
                         ]
                         
-                        subprocess.run(cmd, check=True, capture_output=True)
+                        logging.info(f"[STITCH] Running ffmpeg command: {' '.join(cmd)}")
+                        result_proc = subprocess.run(cmd, capture_output=True, text=True)
+                        
+                        if result_proc.returncode != 0:
+                            logging.error(f"[STITCH] ffmpeg failed with code {result_proc.returncode}")
+                            logging.error(f"[STITCH] ffmpeg stderr: {result_proc.stderr}")
+                            raise Exception(f"ffmpeg failed: {result_proc.stderr}")
+                        
+                        logging.info(f"[STITCH] ffmpeg completed successfully")
                         
                         # Read stitched video
                         with open(output_path, 'rb') as f:
                             stitched_video_bytes = f.read()
+                        
+                        logging.info(f"[STITCH] Stitched video size: {len(stitched_video_bytes)} bytes")
                         
                         # Encode to base64
                         stitched_video_base64 = base64.b64encode(stitched_video_bytes).decode('utf-8')
@@ -2378,8 +2388,12 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                             "videos_stitched": len(video_list),
                             "prompt": f"Stitched {len(video_list)} videos together"
                         }
+                        logging.info(f"[STITCH] Successfully stitched {len(video_list)} videos")
                         
                 except Exception as e:
+                    import traceback
+                    logging.error(f"[STITCH] Exception: {str(e)}")
+                    logging.error(f"[STITCH] Traceback: {traceback.format_exc()}")
                     result = {"status": "error", "error": f"Video stitching failed: {str(e)}"}
             
             elif node_type == 'taskplanner':
