@@ -1987,8 +1987,9 @@ const ConversationalAgentsPage = () => {
                           </div>
                         </div>
 
-                        {/* End Call Toggle */}
+                        {/* System Tools List */}
                         <div className="space-y-3">
+                          {/* End Call Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
@@ -2002,13 +2003,12 @@ const ConversationalAgentsPage = () => {
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={systemTools.includes('end_call')}
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('end_call')}
                                 onChange={(e) => {
                                   const newTools = e.target.checked
-                                    ? [...systemTools, 'end_call']
-                                    : systemTools.filter(t => t !== 'end_call');
-                                  setSystemTools(newTools);
-                                  updateAgentTools({ built_in_tools: newTools, tool_ids: [] });
+                                    ? [...builtInTools, 'end_call']
+                                    : builtInTools.filter(t => t !== 'end_call');
+                                  updateAgentTools(newTools, toolIds);
                                 }}
                                 className="sr-only peer"
                               />
@@ -2024,30 +2024,78 @@ const ConversationalAgentsPage = () => {
                           <div>
                             <h3 className="text-lg font-semibold flex items-center gap-2">
                               <Sparkles className="w-5 h-5 text-purple-400" />
-                              Server Tools (Webhooks)
+                              Server Tools ({workspaceTools.server_tools.length})
                             </h3>
                             <p className="text-sm text-gray-400 mt-1">
-                              Connect external APIs and services to your agent
+                              Custom webhooks that connect to external APIs
                             </p>
                           </div>
-                        </div>
-
-                        <div className="text-center py-8 border-2 border-dashed border-gray-700 rounded-lg">
-                          <div className="w-16 h-16 mx-auto mb-3 bg-purple-500/10 rounded-full flex items-center justify-center">
-                            <Sparkles className="w-8 h-8 text-purple-400" />
-                          </div>
-                          <p className="text-gray-400 mb-3">No webhook tools configured yet</p>
-                          <p className="text-sm text-gray-500 mb-4">
-                            Create webhook tools in your ElevenLabs workspace, then refresh to see them here
-                          </p>
                           <Button
-                            onClick={() => window.open('https://elevenlabs.io/app/conversational-ai', '_blank')}
+                            onClick={() => {
+                              window.open('https://elevenlabs.io/app/conversational-ai', '_blank');
+                            }}
+                            size="sm"
                             variant="outline"
                             className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
                           >
-                            Open ElevenLabs Dashboard
+                            Create Webhook
                           </Button>
                         </div>
+
+                        {workspaceTools.server_tools.length === 0 ? (
+                          <div className="text-center py-8 border-2 border-dashed border-gray-700 rounded-lg">
+                            <div className="w-16 h-16 mx-auto mb-3 bg-purple-500/10 rounded-full flex items-center justify-center">
+                              <Sparkles className="w-8 h-8 text-purple-400" />
+                            </div>
+                            <p className="text-gray-400 mb-2">No webhook tools found</p>
+                            <p className="text-sm text-gray-500">
+                              Create webhook tools in your ElevenLabs workspace
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {workspaceTools.server_tools.map((tool) => {
+                              const isEnabled = Array.isArray(toolIds) && toolIds.includes(tool.tool_id);
+                              return (
+                                <div
+                                  key={tool.tool_id}
+                                  className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition-colors"
+                                >
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                      <Sparkles className="w-5 h-5 text-purple-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="font-medium">{tool.name || tool.tool_id}</h4>
+                                      <p className="text-sm text-gray-400">
+                                        {tool.description || 'Custom webhook tool'}
+                                      </p>
+                                      {tool.url && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {tool.url}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={isEnabled}
+                                      onChange={(e) => {
+                                        const newToolIds = e.target.checked
+                                          ? [...toolIds, tool.tool_id]
+                                          : toolIds.filter(id => id !== tool.tool_id);
+                                        updateAgentTools(builtInTools, newToolIds);
+                                      }}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                                  </label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       {/* Info Box */}
@@ -2057,9 +2105,9 @@ const ConversationalAgentsPage = () => {
                           <div className="text-sm text-gray-300">
                             <p className="font-medium mb-2">About Tools:</p>
                             <ul className="space-y-1 list-disc list-inside text-gray-400">
-                              <li><strong>System Tools:</strong> Built-in tools like "end_call" that control conversation flow</li>
-                              <li><strong>Server Tools:</strong> Custom webhooks that connect to external APIs - create these in your ElevenLabs dashboard</li>
-                              <li><strong>Client Tools:</strong> Browser-side functions (coming soon)</li>
+                              <li><strong>System Tools:</strong> Built-in controls (end_call) managed by ElevenLabs</li>
+                              <li><strong>Server Tools:</strong> Webhooks you create in ElevenLabs workspace - enable them here to let your agent use them</li>
+                              <li><strong>Tool IDs:</strong> {toolIds.length > 0 ? toolIds.join(', ') : 'None enabled'}</li>
                             </ul>
                           </div>
                         </div>
