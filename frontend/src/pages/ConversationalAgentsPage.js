@@ -456,8 +456,10 @@ const ConversationalAgentsPage = () => {
       }, 10000);
 
       // Start recording with timeslice to ensure data is captured
-      recorder.start(1000); // Request data every 1 second
-      console.log('🎙️ Recorder started with 1s timeslice');
+      // Using 100ms timeslice for more frequent data collection
+      recorder.start(100);
+      console.log('🎙️ Recorder started with 100ms timeslice');
+      console.log('🔴 Recording active - SPEAK NOW!');
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
