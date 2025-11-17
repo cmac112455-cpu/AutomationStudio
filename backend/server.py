@@ -2086,6 +2086,261 @@ async def preview_tts(request: TTSPreviewRequest, user_id: str = Depends(get_cur
         logging.error(f"[TTS_PREVIEW] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Preview generation failed: {str(e)}")
 
+# ============ VOICE STUDIO ENDPOINTS ============
+
+@api_router.post("/voice-studio/generate-speech")
+async def generate_speech_studio(request: TTSPreviewRequest, user_id: str = Depends(get_current_user)):
+    """Generate speech in Voice Studio and save completion"""
+    try:
+        logging.info(f"[VOICE_STUDIO] Generating speech for user: {user_id}")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        
+        if not user:
+            raise HTTPException(status_code=400, detail="User not found")
+        
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Map voice names to IDs
+        voice_map = {
+            'rachel': '21m00Tcm4TlvDq8ikWAM',
+            'adam': 'pNInz6obpgDQGcFmaJgB',
+            'bella': 'EXAVITQu4vr4xnSDxMaL',
+            'antoni': 'ErXwobaYiN019PkySvjV',
+            'josh': 'TxGEqnHWrfWFTfGW9XjX',
+            'arnold': 'VR6AewLTigWG4xSOukaG',
+            'sam': 'yoZ06aMxZJJ28mfd3POQ',
+            'domi': 'AZnzlk1XvdvUeBnXmlld',
+            'elli': 'MF3mGyEYCl7XYWbV9V6O',
+        }
+        
+        voice_id = voice_map.get(request.voice.lower(), request.voice)
+        
+        # Call ElevenLabs API
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": elevenlabs_key
+        }
+        
+        voice_settings = {
+            "stability": float(request.stability),
+            "similarity_boost": float(request.similarity_boost),
+        }
+        
+        if request.style > 0:
+            voice_settings["style"] = float(request.style)
+        if request.speaker_boost:
+            voice_settings["use_speaker_boost"] = True
+        
+        payload = {
+            "text": request.text,
+            "model_id": request.model_id,
+            "voice_settings": voice_settings
+        }
+        
+        if request.speed != 1.0:
+            payload["speed"] = float(request.speed)
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+        
+        if response.status_code != 200:
+            logging.error(f"[VOICE_STUDIO] ElevenLabs API error: {response.status_code} - {response.text}")
+            raise HTTPException(status_code=400, detail=f"ElevenLabs API error: {response.text}")
+        
+        # Save completion to database
+        completion_id = str(uuid.uuid4())
+        audio_base64 = base64.b64encode(response.content).decode('utf-8')
+        
+        completion = {
+            "id": completion_id,
+            "user_id": user_id,
+            "type": "voice",
+            "text": request.text,
+            "voice_name": request.voice,
+            "voice_id": voice_id,
+            "model_id": request.model_id,
+            "settings": {
+                "stability": request.stability,
+                "similarity_boost": request.similarity_boost,
+                "style": request.style,
+                "speaker_boost": request.speaker_boost,
+                "speed": request.speed
+            },
+            "status": "completed",
+            "audio_base64": audio_base64,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "saved": False,
+            "log": ["Speech generated successfully"]
+        }
+        
+        await db.voice_completions.insert_one(completion)
+        logging.info(f"[VOICE_STUDIO] Completion saved: {completion_id}")
+        
+        # Return audio
+        from fastapi.responses import Response
+        return Response(
+            content=response.content,
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": f"inline; filename=voice_{completion_id}.mp3"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[VOICE_STUDIO] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Speech generation failed: {str(e)}")
+
+@api_router.post("/voice-studio/generate-music")
+async def generate_music_studio(request: dict, user_id: str = Depends(get_current_user)):
+    """Generate music in Voice Studio and save completion"""
+    try:
+        prompt = request.get("prompt")
+        duration_seconds = request.get("duration_seconds", 120)
+        
+        logging.info(f"[MUSIC_STUDIO] Generating music for user: {user_id}")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        
+        if not user:
+            raise HTTPException(status_code=400, detail="User not found")
+        
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Create completion record
+        completion_id = str(uuid.uuid4())
+        completion = {
+            "id": completion_id,
+            "user_id": user_id,
+            "type": "music",
+            "prompt": prompt,
+            "duration": duration_seconds,
+            "status": "processing",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "saved": False,
+            "log": ["Music generation started"]
+        }
+        
+        await db.voice_completions.insert_one(completion)
+        
+        # Generate music
+        import time
+        generate_url = "https://api.elevenlabs.io/v1/music/generate"
+        headers = {
+            "xi-api-key": elevenlabs_key,
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "prompt": prompt,
+            "model_id": "eleven_music_v1",
+            "duration_seconds": int(duration_seconds)
+        }
+        
+        gen_response = requests.post(generate_url, json=payload, headers=headers, timeout=30)
+        
+        if gen_response.status_code != 200:
+            await db.voice_completions.update_one(
+                {"id": completion_id},
+                {"$set": {"status": "failed", "error": gen_response.text}}
+            )
+            raise HTTPException(status_code=400, detail=f"Music generation request failed: {gen_response.text}")
+        
+        gen_data = gen_response.json()
+        generation_id = gen_data.get("generation_id")
+        
+        # Poll for completion
+        retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
+        max_attempts = 60
+        attempt = 0
+        
+        while attempt < max_attempts:
+            time.sleep(5)
+            attempt += 1
+            
+            retrieve_response = requests.get(retrieve_url, headers=headers, timeout=30)
+            
+            if retrieve_response.status_code == 200:
+                content_type = retrieve_response.headers.get('Content-Type', '')
+                
+                if 'audio' in content_type or 'mpeg' in content_type:
+                    # Got the audio
+                    audio_bytes = retrieve_response.content
+                    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                    
+                    # Update completion
+                    await db.voice_completions.update_one(
+                        {"id": completion_id},
+                        {"$set": {
+                            "status": "completed",
+                            "audio_base64": audio_base64,
+                            "log": ["Music generated successfully"]
+                        }}
+                    )
+                    
+                    # Return audio
+                    from fastapi.responses import Response
+                    return Response(
+                        content=audio_bytes,
+                        media_type="audio/mpeg",
+                        headers={"Content-Disposition": f"inline; filename=music_{completion_id}.mp3"}
+                    )
+        
+        # Timeout
+        await db.voice_completions.update_one(
+            {"id": completion_id},
+            {"$set": {"status": "failed", "error": "Generation timed out"}}
+        )
+        raise HTTPException(status_code=408, detail="Music generation timed out")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[MUSIC_STUDIO] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Music generation failed: {str(e)}")
+
+@api_router.get("/voice-studio/completions")
+async def get_voice_completions(user_id: str = Depends(get_current_user)):
+    """Get all Voice Studio completions for user"""
+    try:
+        completions = await db.voice_completions.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(100).to_list(length=100)
+        
+        return {"completions": completions}
+    except Exception as e:
+        logging.error(f"[VOICE_STUDIO] Error fetching completions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch completions")
+
+@api_router.post("/voice-studio/completions/{completion_id}/save")
+async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
+    """Mark a completion as saved"""
+    try:
+        result = await db.voice_completions.update_one(
+            {"id": completion_id, "user_id": user_id},
+            {"$set": {"saved": True}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Completion not found")
+        
+        return {"message": "Completion saved"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[VOICE_STUDIO] Error saving completion: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save completion")
+
 @api_router.get("/workflows/{workflow_id}", response_model=Workflow)
 async def get_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
     workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
