@@ -1743,13 +1743,18 @@ const ConversationalAgentsPage = () => {
                             </div>
                             <Button
                               onClick={async () => {
-                                if (confirm('Delete this knowledge base item?')) {
+                                if (confirm('Remove this knowledge base item from agent?')) {
                                   try {
-                                    await axios.delete(`${BACKEND_URL}/api/conversational-ai/knowledge-base/${item.id}`);
-                                    toast.success('Knowledge base item deleted');
-                                    loadKnowledgeBase();
+                                    if (!editingAgent?.id) {
+                                      toast.error('No agent selected');
+                                      return;
+                                    }
+                                    
+                                    await axios.delete(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/knowledge-base/${item.id || item.document_id}`);
+                                    toast.success('Knowledge base item removed from agent');
+                                    loadKnowledgeBase(editingAgent.id);
                                   } catch (error) {
-                                    toast.error('Failed to delete item');
+                                    toast.error('Failed to remove item: ' + (error.response?.data?.detail || error.message));
                                   }
                                 }
                               }}
