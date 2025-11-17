@@ -2980,6 +2980,122 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     logging.error(f"[AUDIO_OVERLAY] Exception: {str(e)}")
                     logging.error(f"[AUDIO_OVERLAY] Traceback: {traceback.format_exc()}")
                     result = {"status": "error", "error": f"Audio overlay failed: {str(e)}"}
+            
+            elif node_type == 'texttomusic':
+                # Execute Text-to-Music using ElevenLabs Music API
+                try:
+                    logging.info(f"[TEXT_TO_MUSIC] Node {node_id} executing")
+                    
+                    # Get prompt from node config or from previous AI node's response
+                    prompt = node_data.get('prompt', '')
+                    
+                    if not prompt and isinstance(input_data, dict):
+                        prompt = input_data.get('response', input_data.get('text', input_data.get('prompt', '')))
+                    
+                    if not prompt and isinstance(input_data, str):
+                        prompt = input_data
+                    
+                    # Get additional settings
+                    duration_seconds = node_data.get('duration_seconds', 120)  # Default 2 minutes
+                    model_id = node_data.get('model_id', 'eleven_music_v1')
+                    
+                    if not prompt:
+                        result = {"status": "error", "error": "No prompt provided for music generation"}
+                    else:
+                        logging.info(f"[TEXT_TO_MUSIC] Generating music: {prompt[:100]}... (duration: {duration_seconds}s)")
+                        
+                        # Get ElevenLabs API key from user's integrations
+                        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+                        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey")
+                        
+                        if not elevenlabs_key:
+                            result = {"status": "error", "error": "ElevenLabs API key not configured. Please add it in Integrations page."}
+                        else:
+                            import requests
+                            import time
+                            
+                            # Step 1: Create music generation task
+                            generate_url = "https://api.elevenlabs.io/v1/music/generate"
+                            headers = {
+                                "xi-api-key": elevenlabs_key,
+                                "Content-Type": "application/json"
+                            }
+                            
+                            payload = {
+                                "prompt": prompt,
+                                "model_id": model_id,
+                                "duration_seconds": int(duration_seconds)
+                            }
+                            
+                            logging.info(f"[TEXT_TO_MUSIC] Submitting generation request...")
+                            gen_response = requests.post(generate_url, json=payload, headers=headers, timeout=30)
+                            
+                            if gen_response.status_code != 200:
+                                logging.error(f"[TEXT_TO_MUSIC] Generation request failed: {gen_response.status_code} - {gen_response.text}")
+                                result = {"status": "error", "error": f"Music generation request failed: {gen_response.text}"}
+                            else:
+                                gen_data = gen_response.json()
+                                generation_id = gen_data.get("generation_id")
+                                status = gen_data.get("status", "processing")
+                                
+                                logging.info(f"[TEXT_TO_MUSIC] Generation ID: {generation_id}, Status: {status}")
+                                
+                                # Step 2: Poll for completion and retrieve the music
+                                retrieve_url = f"https://api.elevenlabs.io/v1/music/generate/{generation_id}"
+                                max_attempts = 60  # 5 minutes max wait (5s intervals)
+                                attempt = 0
+                                
+                                while attempt < max_attempts:
+                                    time.sleep(5)  # Wait 5 seconds between polls
+                                    attempt += 1
+                                    
+                                    logging.info(f"[TEXT_TO_MUSIC] Polling attempt {attempt}/{max_attempts}...")
+                                    
+                                    retrieve_response = requests.get(retrieve_url, headers=headers, timeout=30)
+                                    
+                                    if retrieve_response.status_code == 200:
+                                        # Check if response is audio (content-type) or JSON (status update)
+                                        content_type = retrieve_response.headers.get('Content-Type', '')
+                                        
+                                        if 'audio' in content_type or 'mpeg' in content_type:
+                                            # Got the audio file
+                                            audio_bytes = retrieve_response.content
+                                            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                                            
+                                            logging.info(f"[TEXT_TO_MUSIC] Generated {len(audio_bytes)} bytes of music")
+                                            
+                                            result = {
+                                                "status": "success",
+                                                "audio_base64": audio_base64,
+                                                "music_base64": audio_base64,  # Alias for clarity
+                                                "prompt": prompt,
+                                                "duration": duration_seconds,
+                                                "format": "mp3"
+                                            }
+                                            break
+                                        else:
+                                            # Still processing
+                                            try:
+                                                status_data = retrieve_response.json()
+                                                current_status = status_data.get("status", "unknown")
+                                                logging.info(f"[TEXT_TO_MUSIC] Current status: {current_status}")
+                                                
+                                                if current_status == "failed":
+                                                    result = {"status": "error", "error": "Music generation failed on server"}
+                                                    break
+                                            except:
+                                                pass
+                                    else:
+                                        logging.warning(f"[TEXT_TO_MUSIC] Retrieve failed: {retrieve_response.status_code}")
+                                
+                                if attempt >= max_attempts and 'result' not in locals():
+                                    result = {"status": "error", "error": "Music generation timed out after 5 minutes"}
+                
+                except Exception as e:
+                    import traceback
+                    logging.error(f"[TEXT_TO_MUSIC] Exception: {str(e)}")
+                    logging.error(f"[TEXT_TO_MUSIC] Traceback: {traceback.format_exc()}")
+                    result = {"status": "error", "error": f"Text-to-music failed: {str(e)}"}
 
             
             elif node_type == 'taskplanner':
