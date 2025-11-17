@@ -519,6 +519,7 @@ const ConversationalAgentsPage = () => {
     if (!agentId) return;
     
     setLoadingTools(true);
+    setUnsavedToolsChanges(false);
     try {
       // Get agent's configured tools
       const agentToolsResponse = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/tools`);
