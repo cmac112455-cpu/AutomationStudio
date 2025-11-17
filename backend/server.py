@@ -2537,13 +2537,11 @@ async def generate_greeting(agent_id: str, user_id: str = Depends(get_current_us
         
         # Generate audio for first message
         if agent.get("voice"):
-            integration = await db.user_integrations.find_one(
-                {"user_id": user_id, "platform": "elevenlabs"},
-                {"_id": 0}
-            )
+            # Get ElevenLabs API key from user integrations
+            user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+            elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
             
-            if integration and integration.get("api_key"):
-                elevenlabs_key = integration["api_key"]
+            if elevenlabs_key:
                 
                 import requests
                 tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{agent['voice']}"
