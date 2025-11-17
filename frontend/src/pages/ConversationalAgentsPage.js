@@ -498,12 +498,19 @@ const ConversationalAgentsPage = () => {
           chunkSizes: chunks.map(c => c.size)
         });
         
+        // Clean up intervals
+        if (recorder._levelInterval) {
+          clearInterval(recorder._levelInterval);
+        }
+        
         // Clean up
         stream.getTracks().forEach(track => {
           console.log('🔇 Stopping track:', track.label);
           track.stop();
         });
         audioContext.close();
+        setAudioLevel(0);
+        setMicWorking(false);
         
         if (chunks.length === 0) {
           console.error('❌ NO CHUNKS RECORDED!');
