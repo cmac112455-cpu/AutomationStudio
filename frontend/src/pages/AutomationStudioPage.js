@@ -946,6 +946,7 @@ export default function AutomationStudioPage() {
             }}
             nodeTypes={nodeTypes}
             fitView
+            deleteKeyCode={null}
             className="bg-gradient-to-br from-[#0f1218] to-[#1a1d2e]"
           >
             <Controls />
