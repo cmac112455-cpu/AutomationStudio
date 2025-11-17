@@ -237,6 +237,19 @@ const ConversationalAgentsPage = () => {
     if (!testingAgent) return;
     
     setIsConnecting(true);
+    console.log('📞 Initiating call with agent:', testingAgent.name);
+    
+    // Check microphone permissions first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      console.log('✅ Microphone access granted');
+    } catch (permError) {
+      console.error('❌ Microphone permission denied:', permError);
+      toast.error('Please allow microphone access to make calls');
+      setIsConnecting(false);
+      return;
+    }
     
     try {
       // Start call session
