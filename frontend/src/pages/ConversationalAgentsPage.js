@@ -73,6 +73,12 @@ const ConversationalAgentsPage = () => {
     data_type: 'string', 
     description: '' 
   });
+  const [expandedSections, setExpandedSections] = useState({
+    overview: true,
+    transcript: false,
+    evaluation: false,
+    metadata: false
+  });
   
   // Form state
   const [formData, setFormData] = useState({
