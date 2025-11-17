@@ -1137,6 +1137,19 @@ const ConversationalAgentsPage = () => {
                 </Select>
               </div>
 
+              {/* ElevenLabs Agent ID */}
+              <div>
+                <Label className="text-white mb-2 block">ElevenLabs Agent ID</Label>
+                <input
+                  type="text"
+                  value={formData.elevenlabs_agent_id}
+                  onChange={(e) => setFormData({...formData, elevenlabs_agent_id: e.target.value})}
+                  placeholder="Enter ElevenLabs Agent ID (optional)"
+                  className="w-full px-4 py-2 bg-[#0a0b0d] border border-gray-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Link this agent to an ElevenLabs conversational AI agent</p>
+              </div>
+
               {/* Advanced Settings */}
               <div>
                 <Label className="text-white mb-2 block">Temperature: {formData.temperature}</Label>
