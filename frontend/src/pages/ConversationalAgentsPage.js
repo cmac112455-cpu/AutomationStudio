@@ -1287,13 +1287,7 @@ const ConversationalAgentsPage = () => {
 
                   {/* Test Microphone Button removed - using ElevenLabs SDK */}
 
-                  {/* Test Backend Button */}
-                  <button
-                    onClick={testBackendPipeline}
-                    className="w-full py-2 rounded-full bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 mb-2"
-                  >
-                    🧪 Test Backend
-                  </button>
+                  {/* Test Backend Button removed - using ElevenLabs SDK */}
 
                   {/* End Call Button */}
                   <button
