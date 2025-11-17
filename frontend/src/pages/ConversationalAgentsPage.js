@@ -2587,29 +2587,59 @@ const ConversationalAgentsPage = () => {
                 </div>
               )}
 
-              {/* Evaluation Results */}
+              {/* Evaluation Results - Collapsible */}
               {selectedConversation.evaluation_results && (
-                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                    Evaluation Results
-                  </h3>
-                  <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
-                    {JSON.stringify(selectedConversation.evaluation_results, null, 2)}
-                  </pre>
+                <div className="bg-black/40 border border-gray-700 rounded-xl">
+                  <button
+                    onClick={() => setExpandedSections(prev => ({ ...prev, evaluation: !prev.evaluation }))}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                  >
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-green-500" />
+                      Evaluation Results
+                    </h3>
+                    {expandedSections.evaluation ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </button>
+                  
+                  {expandedSections.evaluation && (
+                    <div className="p-4 pt-0">
+                      <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
+                        {JSON.stringify(selectedConversation.evaluation_results, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Metadata */}
+              {/* Metadata - Collapsible */}
               {selectedConversation.metadata && (
-                <div className="bg-black/40 border border-gray-700 rounded-xl p-4">
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-gray-400" />
-                    Metadata
-                  </h3>
-                  <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
-                    {JSON.stringify(selectedConversation.metadata, null, 2)}
-                  </pre>
+                <div className="bg-black/40 border border-gray-700 rounded-xl">
+                  <button
+                    onClick={() => setExpandedSections(prev => ({ ...prev, metadata: !prev.metadata }))}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                  >
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-gray-400" />
+                      Metadata
+                    </h3>
+                    {expandedSections.metadata ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </button>
+                  
+                  {expandedSections.metadata && (
+                    <div className="p-4 pt-0">
+                      <pre className="text-xs text-gray-300 bg-black/40 p-3 rounded-lg overflow-x-auto">
+                        {JSON.stringify(selectedConversation.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
