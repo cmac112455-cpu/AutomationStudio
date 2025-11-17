@@ -2513,8 +2513,29 @@ async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_use
         
         await db.call_sessions.insert_one(call_session.copy())
         
+        # Create initial call log entry
+        call_log = {
+            "id": str(uuid.uuid4()),
+            "session_id": call_session["id"],
+            "user_id": user_id,
+            "agent_id": agent_id,
+            "agent_name": agent.get("name", "Unknown"),
+            "status": "started",
+            "exchanges_count": 0,
+            "backend_logs": {
+                "call_initiated": True,
+                "greeting_sent": bool(agent.get("firstMessage")),
+                "voice_configured": bool(agent.get("voice"))
+            },
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.conversational_call_logs.insert_one(call_log)
+        logging.info(f"[CONVERSATIONAL_AI] Call log created: {call_log['id']}")
+        
         return {
             "session_id": call_session["id"],
+            "call_log_id": call_log["id"],
             "agent_name": agent.get("name"),
             "first_message": agent.get("firstMessage", "")
         }
