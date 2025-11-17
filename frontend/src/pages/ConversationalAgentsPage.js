@@ -1665,14 +1665,20 @@ const ConversationalAgentsPage = () => {
                           formData.append('file', file);
                           
                           try {
+                            if (!editingAgent?.id) {
+                              toast.error('Please select an agent first');
+                              setUploadingFile(false);
+                              return;
+                            }
+                            
                             const response = await axios.post(
-                              `${BACKEND_URL}/api/conversational-ai/knowledge-base/upload`,
+                              `${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/knowledge-base/upload`,
                               formData,
                               { headers: { 'Content-Type': 'multipart/form-data' } }
                             );
-                            toast.success(`✅ ${file.name} uploaded successfully!`);
+                            toast.success(`✅ ${file.name} uploaded and linked to agent!`);
                             // Reload knowledge base list
-                            loadKnowledgeBase();
+                            loadKnowledgeBase(editingAgent.id);
                           } catch (error) {
                             toast.error('Failed to upload file: ' + (error.response?.data?.detail || error.message));
                           } finally {
