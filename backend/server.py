@@ -2523,6 +2523,59 @@ async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_use
         logging.error(f"[CONVERSATIONAL_AI] Error starting call: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to start call")
 
+@api_router.post("/conversational-ai/agents/{agent_id}/greeting")
+async def generate_greeting(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Generate audio for agent's first message"""
+    try:
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not agent or not agent.get("firstMessage"):
+            return {"audio_url": None}
+        
+        # Generate audio for first message
+        if agent.get("voice"):
+            integration = await db.user_integrations.find_one(
+                {"user_id": user_id, "platform": "elevenlabs"},
+                {"_id": 0}
+            )
+            
+            if integration and integration.get("api_key"):
+                elevenlabs_key = integration["api_key"]
+                
+                import requests
+                tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{agent['voice']}"
+                
+                tts_response = requests.post(
+                    tts_url,
+                    headers={
+                        "xi-api-key": elevenlabs_key,
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "text": agent["firstMessage"],
+                        "model_id": "eleven_turbo_v2_5",
+                        "voice_settings": {
+                            "stability": 0.5,
+                            "similarity_boost": 0.75
+                        }
+                    },
+                    timeout=30
+                )
+                
+                if tts_response.status_code == 200:
+                    audio_bytes = tts_response.content
+                    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                    return {"audio_url": f"data:audio/mpeg;base64,{audio_base64}"}
+        
+        return {"audio_url": None}
+        
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error generating greeting: {str(e)}")
+        return {"audio_url": None}
+
 @api_router.post("/conversational-ai/agents/{agent_id}/chat")
 async def chat_with_agent(agent_id: str, chat_data: dict, user_id: str = Depends(get_current_user)):
     """Chat with a conversational AI agent"""
