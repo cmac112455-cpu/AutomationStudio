@@ -436,6 +436,9 @@ export default function AutomationStudioPage() {
   const [nodeConfig, setNodeConfig] = useState({});
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewAudio, setPreviewAudio] = useState(null);
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [voicesLoading, setVoicesLoading] = useState(false);
+  const [voiceSearchQuery, setVoiceSearchQuery] = useState('');
 
   const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [triggerConfig, setTriggerConfig] = useState({});
