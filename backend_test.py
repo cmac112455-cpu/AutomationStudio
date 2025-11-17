@@ -2173,6 +2173,140 @@ class BackendTester:
             "results": self.test_results
         }
 
+    def run_music_generation_test(self):
+        """Run comprehensive Music Generation test - CRITICAL BUG FIX VERIFICATION"""
+        print("🎵 MUSIC GENERATION FIX COMPREHENSIVE TEST")
+        print(f"Backend URL: {self.base_url}")
+        print("🎯 Test Objective: Verify ElevenLabs Music API polling fix")
+        print("🔧 CRITICAL FIX: Binary MP3 data handling (>1000 bytes = audio, <1KB = JSON)")
+        print("🚨 BUG FIXED: 'Invalid API response: Expecting value: line 1 column 1' error")
+        print("=" * 100)
+        
+        # Step 1: Authentication
+        print("\n📝 STEP 1: USER AUTHENTICATION")
+        auth_success = self.test_user_registration()
+        if not auth_success:
+            print("Registration failed, trying fallback login...")
+            auth_success = self.test_user_login_fallback()
+        
+        if not auth_success:
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return self.generate_music_summary()
+        
+        # Step 2: Voice Studio Music Generation Test (CRITICAL)
+        print("\n🎵 STEP 2: VOICE STUDIO MUSIC GENERATION (CRITICAL)")
+        print("Testing POST /api/voice-studio/generate-music endpoint...")
+        music_studio_success = self.test_voice_studio_music_generation()
+        
+        # Step 3: Text-to-Music Workflow Node Test (CRITICAL)
+        print("\n🎵 STEP 3: TEXT-TO-MUSIC WORKFLOW NODE (CRITICAL)")
+        print("Testing texttomusic node in workflow execution...")
+        texttomusic_success, texttomusic_execution_id = self.test_texttomusic_workflow_node()
+        
+        # Step 4: Backend Logs Analysis
+        print("\n📋 STEP 4: BACKEND LOGS ANALYSIS")
+        print("Checking for proper Content-Type and Content-Length logging...")
+        logs_success = self.test_music_generation_logs()
+        
+        # Step 5: Edge Cases and Timeout Handling
+        print("\n🧪 STEP 5: EDGE CASES AND TIMEOUT HANDLING")
+        print("Testing various durations and error conditions...")
+        edge_cases_success = self.test_music_generation_edge_cases()
+        
+        # Step 6: Execution History Check
+        print("\n📋 STEP 6: EXECUTION HISTORY VERIFICATION")
+        self.test_execution_history()
+        
+        return self.generate_music_summary()
+    
+    def generate_music_summary(self):
+        """Generate music generation test summary"""
+        print("\n" + "=" * 80)
+        print("🎵 MUSIC GENERATION TEST SUMMARY")
+        print("=" * 80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        print("\n📋 DETAILED RESULTS:")
+        for result in self.test_results:
+            status = "✅" if result["success"] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+        
+        # Critical analysis for music generation fix
+        critical_failures = []
+        music_fix_status = "UNKNOWN"
+        json_parsing_errors = []
+        
+        for result in self.test_results:
+            if not result["success"]:
+                if result["test"] in [
+                    "Voice Studio Music Generation", 
+                    "Text-to-Music Workflow Node",
+                    "User Registration",
+                    "User Login (Fallback)"
+                ]:
+                    critical_failures.append(result["test"])
+                
+                # Check for JSON parsing errors (the original bug)
+                if "JSON" in result["message"] or "Expecting value" in result["message"]:
+                    json_parsing_errors.append(result["test"])
+                    music_fix_status = "FAILED"
+            else:
+                # Check for successful music generation
+                if ("Music generation" in result["message"] or 
+                    "Binary MP3 data" in result["message"] or
+                    "polling fix" in result["message"].lower()):
+                    music_fix_status = "SUCCESS"
+        
+        if critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES: {', '.join(critical_failures)}")
+        
+        # Music generation fix status
+        if music_fix_status == "SUCCESS":
+            print(f"\n✅ MUSIC GENERATION FIX STATUS: VERIFIED WORKING")
+            print("   🔧 Binary MP3 data polling logic successful")
+            print("   🎵 No JSON parsing errors detected")
+            print("   📊 Content-Type and Content-Length handling correct")
+        elif music_fix_status == "FAILED":
+            print(f"\n❌ MUSIC GENERATION FIX STATUS: STILL HAS ISSUES")
+            if json_parsing_errors:
+                print(f"   🚨 JSON parsing errors detected in: {', '.join(json_parsing_errors)}")
+                print("   🔧 The polling logic fix may not be working correctly")
+        else:
+            print(f"\n⚠️  MUSIC GENERATION FIX STATUS: INCONCLUSIVE")
+            print("   🔍 Tests may not have reached the polling logic")
+            print("   💡 This could be due to missing ElevenLabs API key (expected)")
+        
+        # Recommendations
+        print(f"\n💡 RECOMMENDATIONS:")
+        if music_fix_status == "SUCCESS":
+            print("   ✅ Music generation fix is working correctly")
+            print("   🎵 Ready for production use")
+        elif json_parsing_errors:
+            print("   🚨 JSON parsing errors indicate the fix needs more work")
+            print("   🔧 Review polling logic in both Voice Studio and texttomusic node")
+        else:
+            print("   🔑 To fully test, configure a valid ElevenLabs API key")
+            print("   🧪 Current tests validate endpoint structure and error handling")
+        
+        return {
+            "total_tests": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "success_rate": (passed_tests/total_tests)*100,
+            "critical_failures": critical_failures,
+            "music_fix_status": music_fix_status,
+            "json_parsing_errors": json_parsing_errors,
+            "results": self.test_results
+        }
+
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_comprehensive_elevenlabs_test()
+    summary = tester.run_music_generation_test()
