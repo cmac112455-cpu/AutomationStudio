@@ -165,6 +165,15 @@ backend:
           - Proper validation of nodes and edges
           - Returns workflow ID and metadata correctly
           - Workflow stored in MongoDB workflows collection
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ VIDEO AD CREATOR WORKFLOW CREATION: Working perfectly
+          - Successfully created complex 9-node workflow: Start → AI-1 → VideoGen-1 → Screenshot-1 → AI-2 → ImageToVideo → Screenshot-2 → Stitch → End
+          - All node types supported: start, gemini, videogen, screenshot, imagetovideo, stitch, end
+          - Proper edge connections (8 edges) validated
+          - Workflow ID: 68b2ead4-295b-44ff-b1fa-976c1da392ce
+          - Workflow retrieval working correctly with full structure validation
           
   - task: "Workflow Execution API (/api/workflows/{id}/execute)"
     implemented: true
