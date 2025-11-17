@@ -534,98 +534,6 @@ const VoicesPage = () => {
             <div>
               <Label className="text-sm font-medium mb-3 block">Settings</Label>
               
-              {/* Quick Presets */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <button
-                  onClick={() => applyPreset('natural')}
-                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800"
-                >
-                  Natural
-                </button>
-                <button
-                  onClick={() => applyPreset('expressive')}
-                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800"
-                >
-                  Expressive
-                </button>
-                <button
-                  onClick={() => applyPreset('professional')}
-                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800"
-                >
-                  Professional
-                </button>
-              </div>
-
-              {/* Saved Presets */}
-              {savedPresets.length > 0 && (
-                <div className="mb-4 border border-gray-800 rounded-lg p-3 bg-[#13141a]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <Label className="text-xs font-medium">Your Presets</Label>
-                  </div>
-                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {savedPresets.map(preset => (
-                      <div
-                        key={preset.id}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-800/50 group"
-                      >
-                        <button
-                          onClick={() => loadPreset(preset)}
-                          className="flex-1 text-left text-sm"
-                        >
-                          <div className="font-medium">{preset.name}</div>
-                          <div className="text-xs text-gray-400">{preset.voice.name}</div>
-                        </button>
-                        <button
-                          onClick={() => deletePreset(preset.id)}
-                          className="p-1 rounded hover:bg-red-500/20 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Save Preset Button */}
-              {!showSavePreset ? (
-                <Button
-                  onClick={() => setShowSavePreset(true)}
-                  className="w-full mb-4 bg-purple-600 hover:bg-purple-700 text-white text-sm"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save as Preset
-                </Button>
-              ) : (
-                <div className="mb-4 border border-gray-800 rounded-lg p-3 bg-[#13141a]">
-                  <Input
-                    value={presetName}
-                    onChange={(e) => setPresetName(e.target.value)}
-                    placeholder="Preset name..."
-                    className="mb-2 bg-[#0a0b0d] border-gray-700 text-white"
-                    onKeyPress={(e) => e.key === 'Enter' && savePreset()}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={savePreset}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-sm"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setShowSavePreset(false);
-                        setPresetName('');
-                      }}
-                      className="flex-1 bg-gray-800 hover:bg-gray-700 text-sm"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-
               <div className="space-y-4">
                 {/* Model */}
                 <div>
@@ -676,6 +584,23 @@ const VoicesPage = () => {
                   />
                 </div>
 
+                {/* Exaggeration */}
+                <div>
+                  <Label className="text-xs text-gray-400 mb-2 flex justify-between">
+                    <span>Exaggeration</span>
+                    <span>{exaggeration}</span>
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={exaggeration}
+                    onChange={(e) => setExaggeration(parseFloat(e.target.value))}
+                    className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  />
+                </div>
+
                 {/* Speed */}
                 <div>
                   <Label className="text-xs text-gray-400 mb-2 flex justify-between">
@@ -693,8 +618,8 @@ const VoicesPage = () => {
                   />
                 </div>
 
-                {/* Speaker Boost - Modern Animated Switch */}
-                <div className="flex items-center justify-between">
+                {/* Clarity Boost - Modern Animated Switch */}
+                <div className="flex items-center justify-between pt-2 pb-4 border-b border-gray-800">
                   <Label className="text-xs text-gray-400">Clarity boost</Label>
                   <button
                     onClick={() => setSpeakerBoost(!speakerBoost)}
@@ -712,6 +637,101 @@ const VoicesPage = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Quick Presets - Moved Below Clarity Boost */}
+              <div className="mt-6">
+                <Label className="text-xs text-gray-400 mb-3 block">Quick Presets</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => applyPreset('natural')}
+                    className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800 transition-colors"
+                  >
+                    Natural
+                  </button>
+                  <button
+                    onClick={() => applyPreset('expressive')}
+                    className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800 transition-colors"
+                  >
+                    Expressive
+                  </button>
+                  <button
+                    onClick={() => applyPreset('professional')}
+                    className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-800 hover:bg-gray-800 transition-colors"
+                  >
+                    Professional
+                  </button>
+                </div>
+              </div>
+
+              {/* Saved Presets - Moved Below Quick Presets */}
+              {savedPresets.length > 0 && (
+                <div className="mt-4 border border-gray-800 rounded-lg p-3 bg-[#13141a]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <Label className="text-xs font-medium">Your Presets</Label>
+                  </div>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {savedPresets.map(preset => (
+                      <div
+                        key={preset.id}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-800/50 group"
+                      >
+                        <button
+                          onClick={() => loadPreset(preset)}
+                          className="flex-1 text-left text-sm"
+                        >
+                          <div className="font-medium">{preset.name}</div>
+                          <div className="text-xs text-gray-400">{preset.voice.name}</div>
+                        </button>
+                        <button
+                          onClick={() => deletePreset(preset.id)}
+                          className="p-1 rounded hover:bg-red-500/20 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Save Preset Button */}
+              {!showSavePreset ? (
+                <Button
+                  onClick={() => setShowSavePreset(true)}
+                  className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white text-sm"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save as Preset
+                </Button>
+              ) : (
+                <div className="mt-4 border border-gray-800 rounded-lg p-3 bg-[#13141a]">
+                  <Input
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value)}
+                    placeholder="Preset name..."
+                    className="mb-2 bg-[#0a0b0d] border-gray-700 text-white"
+                    onKeyPress={(e) => e.key === 'Enter' && savePreset()}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={savePreset}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-sm"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowSavePreset(false);
+                        setPresetName('');
+                      }}
+                      className="flex-1 bg-gray-800 hover:bg-gray-700 text-sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
