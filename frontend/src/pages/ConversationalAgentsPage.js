@@ -67,7 +67,11 @@ const ConversationalAgentsPage = () => {
   const [showAddDataItemModal, setShowAddDataItemModal] = useState(false);
   const [editingCriteria, setEditingCriteria] = useState(null);
   const [editingDataItem, setEditingDataItem] = useState(null);
-  const [criteriaForm, setCriteriaForm] = useState({ identifier: '', description: '' });
+  const [criteriaForm, setCriteriaForm] = useState({ 
+    id: '', 
+    name: '', 
+    conversation_goal_prompt: '' 
+  });
   const [dataItemForm, setDataItemForm] = useState({ 
     identifier: '', 
     data_type: 'string', 
