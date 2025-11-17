@@ -2242,7 +2242,6 @@ async def generate_music_studio(request: dict, user_id: str = Depends(get_curren
         
         payload = {
             "prompt": prompt,
-            "model_id": "eleven_music_v1",
             "duration_seconds": int(duration_seconds)
         }
         
