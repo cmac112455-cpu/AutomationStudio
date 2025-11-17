@@ -3932,19 +3932,23 @@ async def get_conversation_audio(
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        # Fetch audio URL from ElevenLabs
+        # Fetch audio from ElevenLabs
+        logging.info(f"[ANALYTICS] 🎵 Fetching audio for conversation {conversation_id}")
         response = requests.get(
             f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}/audio",
-            headers={"xi-api-key": elevenlabs_key}
+            headers={"xi-api-key": elevenlabs_key},
+            stream=True
         )
+        
+        logging.info(f"[ANALYTICS] Audio response status: {response.status_code}")
+        logging.info(f"[ANALYTICS] Audio content-type: {response.headers.get('content-type')}")
+        logging.info(f"[ANALYTICS] Audio content-length: {response.headers.get('content-length')}")
         
         if response.status_code != 200:
             logging.error(f"[ANALYTICS] ElevenLabs audio API error: {response.text}")
             raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
         
-        # The response is the actual audio file, we need to return it as a streaming response
-        # or return a temporary URL
-        logging.info(f"[ANALYTICS] Fetched audio for conversation {conversation_id}")
+        logging.info(f"[ANALYTICS] ✅ Successfully fetched audio for conversation {conversation_id}")
         
         # Return the audio content with proper headers
         return Response(
