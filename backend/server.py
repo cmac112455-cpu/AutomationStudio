@@ -2545,7 +2545,7 @@ async def start_agent_call(agent_id: str, user_id: str = Depends(get_current_use
         raise HTTPException(status_code=500, detail="Failed to start call")
 
 @api_router.post("/conversational-ai/agents/{agent_id}/greeting")
-async def generate_greeting(agent_id: str, user_id: str = Depends(get_current_user)):
+async def generate_greeting(agent_id: str, greeting_data: dict, user_id: str = Depends(get_current_user)):
     """Generate audio for agent's first message"""
     try:
         agent = await db.conversational_agents.find_one(
@@ -2555,6 +2555,9 @@ async def generate_greeting(agent_id: str, user_id: str = Depends(get_current_us
         
         if not agent or not agent.get("firstMessage"):
             return {"audio_url": None}
+        
+        call_log_id = greeting_data.get("call_log_id")
+        audio_url = None
         
         # Generate audio for first message
         if agent.get("voice"):
@@ -2587,9 +2590,28 @@ async def generate_greeting(agent_id: str, user_id: str = Depends(get_current_us
                 if tts_response.status_code == 200:
                     audio_bytes = tts_response.content
                     audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
-                    return {"audio_url": f"data:audio/mpeg;base64,{audio_base64}"}
+                    audio_url = f"data:audio/mpeg;base64,{audio_base64}"
         
-        return {"audio_url": None}
+        # Update call log with greeting info
+        if call_log_id:
+            try:
+                await db.conversational_call_logs.update_one(
+                    {"id": call_log_id, "user_id": user_id},
+                    {
+                        "$set": {
+                            "response": agent["firstMessage"],
+                            "audio_url": audio_url,
+                            "audio_generated": bool(audio_url),
+                            "backend_logs.greeting_generated": True,
+                            "backend_logs.greeting_tts_success": bool(audio_url)
+                        }
+                    }
+                )
+                logging.info(f"[CONVERSATIONAL_AI] Updated call log {call_log_id} with greeting")
+            except Exception as log_error:
+                logging.error(f"[CONVERSATIONAL_AI] Failed to update call log: {str(log_error)}")
+        
+        return {"audio_url": audio_url}
         
     except Exception as e:
         logging.error(f"[CONVERSATIONAL_AI] Error generating greeting: {str(e)}")
