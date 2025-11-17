@@ -675,6 +675,53 @@ backend:
           - Success rate: 6/9 nodes successful (67% - limited by external API reliability)
 
 frontend:
+  - task: "Conversational AI Tools Tab"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/ConversationalAgentsPage.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ TOOLS TAB IMPLEMENTATION COMPLETE
+          
+          Replaced "Coming Soon" placeholder with full-featured Tools tab:
+          
+          KEY FEATURES:
+          1. System Tools Section
+             - Toggle for "end_call" tool
+             - Styled with icons and descriptions
+             - Real-time updates to ElevenLabs
+          
+          2. Server Tools (Webhooks) Section
+             - Empty state with guidance
+             - Link to ElevenLabs dashboard to create webhooks
+             - Ready to display webhook tools once created
+          
+          3. Smart State Management
+             - Shows warning if agent not synced with ElevenLabs
+             - Loading state while fetching tools
+             - Auto-loads when Tools tab opened
+          
+          4. State Updates
+             - Changed loadAgentTools to use built_in_tools field
+             - updateAgentTools sends built_in_tools and tool_ids
+             - systemTools state now tracks built_in_tools array
+          
+          5. UI/UX Enhancements
+             - Glass-morph design matching other tabs
+             - Toggle switches for system tools
+             - Info box explaining tool types
+             - Color-coded sections (cyan for system, purple for server)
+          
+          Needs testing with synced ElevenLabs agent to verify:
+          - Tools load correctly on tab open
+          - End call toggle persists after save
+          - Tools remain visible after page reload
+
   - task: "Conversational AI Analytics Tab"
     implemented: true
     working: "NA"
