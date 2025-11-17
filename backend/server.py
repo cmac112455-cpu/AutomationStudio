@@ -2969,6 +2969,8 @@ async def update_agent_analysis_config(
             raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
         
         logging.info(f"[ANALYSIS_CONFIG] ✅ Successfully updated analysis config for agent {agent_id}")
+        logging.info(f"[ANALYSIS_CONFIG] ElevenLabs response status: {patch_response.status_code}")
+        logging.info(f"[ANALYSIS_CONFIG] ElevenLabs response: {patch_response.text[:500] if patch_response.text else 'No response body'}")
         
         return {
             "message": "Analysis configuration updated successfully",
