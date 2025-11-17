@@ -3901,6 +3901,63 @@ async def get_conversation_details(
         raise HTTPException(status_code=500, detail=f"Failed to fetch conversation details: {str(e)}")
 
 
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analytics/conversations/{conversation_id}/audio")
+async def get_conversation_audio(
+    agent_id: str,
+    conversation_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Get audio recording URL for a conversation from ElevenLabs"""
+    try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch audio URL from ElevenLabs
+        response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}/audio",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYTICS] ElevenLabs audio API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        # The response is the actual audio file, we need to return it as a streaming response
+        # or return a temporary URL
+        logging.info(f"[ANALYTICS] Fetched audio for conversation {conversation_id}")
+        
+        # Return the audio content with proper headers
+        return Response(
+            content=response.content,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": f"attachment; filename=conversation_{conversation_id}.mp3"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYTICS] Error fetching conversation audio: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch conversation audio: {str(e)}")
+
+
 @api_router.get("/conversational-ai/agents/{agent_id}/analytics/dashboard")
 async def get_analytics_dashboard(
     agent_id: str,
