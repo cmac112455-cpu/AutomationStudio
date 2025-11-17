@@ -3445,12 +3445,18 @@ async def update_agent_tools(
                 if tool_config is not None:
                     tools_array.append(tool_config)
             
+            # Make sure to set the tools array (even if empty)
             prompt_config["tools"] = tools_array
             
             enabled_count = len([t for t in new_built_in_tools.values() if t])
-            logging.info(f"[TOOLS] Built ElevenLabs object structure with {enabled_count} enabled tools")
-            logging.info(f"[TOOLS] Enabled tools keys: {[k for k, v in new_built_in_tools.items() if v is not None]}")
-            logging.info(f"[TOOLS] Also updated 'tools' array with {len(tools_array)} items")
+            disabled_count = len([t for t in new_built_in_tools.values() if t is None])
+            
+            logging.info(f"[TOOLS] Built ElevenLabs structure:")
+            logging.info(f"[TOOLS]   - {enabled_count} tools ENABLED")
+            logging.info(f"[TOOLS]   - {disabled_count} tools DISABLED (set to null)")
+            logging.info(f"[TOOLS] Enabled tools: {[k for k, v in new_built_in_tools.items() if v is not None]}")
+            logging.info(f"[TOOLS] Disabled tools: {[k for k, v in new_built_in_tools.items() if v is None]}")
+            logging.info(f"[TOOLS] Tools array has {len(tools_array)} items (only enabled tools)")
         
         if "tool_ids" in tools_update:
             prompt_config["tool_ids"] = tools_update["tool_ids"]
