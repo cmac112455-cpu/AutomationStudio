@@ -1956,7 +1956,7 @@ const ConversationalAgentsPage = () => {
                             </div>
                             <Button
                               onClick={() => {
-                                setCriteriaForm({ identifier: '', description: '' });
+                                setCriteriaForm({ id: '', name: '', conversation_goal_prompt: '' });
                                 setEditingCriteria(null);
                                 setShowAddCriteriaModal(true);
                               }}
