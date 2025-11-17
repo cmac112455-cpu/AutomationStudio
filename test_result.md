@@ -737,13 +737,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "ElevenLabs Integration API Endpoints"
-    - "TTS Preview Endpoint"
-    - "Text-to-Speech Workflow Node"
-    - "Audio Overlay Workflow Node"
-    - "AutomationStudioPage - Text-to-Speech Node"
-  stuck_tasks:
-    - "AutomationStudioPage - Text-to-Speech Node"
+    - "Music Generation Polling Fix (Voice Studio & Workflow Node)"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
