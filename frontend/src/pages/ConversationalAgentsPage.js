@@ -32,6 +32,8 @@ const ConversationalAgentsPage = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [micWorking, setMicWorking] = useState(false);
+  const audioContextRef = useRef(null);
+  const audioChunksBuffer = useRef([]);
   
   // Form state
   const [formData, setFormData] = useState({
