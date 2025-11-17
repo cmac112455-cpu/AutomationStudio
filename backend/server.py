@@ -2419,6 +2419,7 @@ async def create_agent(agent_data: dict, user_id: str = Depends(get_current_user
             "model": agent_data.get("model", "gpt-4o"),
             "firstMessage": agent_data.get("firstMessage", ""),
             "language": agent_data.get("language", "en"),
+            "elevenlabs_agent_id": agent_data.get("elevenlabs_agent_id", ""),
             "maxDuration": agent_data.get("maxDuration", 600),
             "temperature": agent_data.get("temperature", 0.7),
             "responseDelay": agent_data.get("responseDelay", 100),
