@@ -323,7 +323,7 @@ const VoicesPage = () => {
                     }`}
                   >
                     <div className="font-medium text-sm">{voice.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-gray-400 mt-1">
                       {voice.labels?.gender || 'Voice'}
                     </div>
                     {personalVoices.length > 3 && (
@@ -332,7 +332,7 @@ const VoicesPage = () => {
                           e.stopPropagation();
                           removeFromPersonalVoices(voice.voice_id);
                         }}
-                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-700"
                       >
                         <X className="w-3 h-3" />
                       </button>
