@@ -2078,37 +2078,123 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     result = {"status": "error", "error": "No image data found from previous node. Connect a Screenshot node before Image-To-Video node."}
                 else:
                     try:
-                        # Save image temporarily
-                        temp_image_path = f"/tmp/img2vid_{str(uuid.uuid4())}.png"
-                        image_bytes = base64.b64decode(image_base64)
-                        with open(temp_image_path, 'wb') as f:
-                            f.write(image_bytes)
+                        logging.info(f"[IMAGETOVIDEO] Starting image-to-video generation with prompt: {prompt[:100]}")
+                        logging.info(f"[IMAGETOVIDEO] Parameters: duration={duration}, size={size}")
                         
-                        video_gen = OpenAIVideoGeneration(api_key=os.environ.get('EMERGENT_LLM_KEY'))
-                        video_bytes = video_gen.text_to_video(
-                            prompt=prompt,
-                            model="sora-2",
-                            size=size,
-                            duration=duration,
-                            max_wait_time=600,
-                            image_path=temp_image_path,
-                            mime_type='image/png'
-                        )
+                        # Call OpenAI Sora 2 API directly with correct input_reference parameter
+                        import requests
+                        from emergentintegrations.llm.utils import get_integration_proxy_url, get_app_identifier
                         
-                        # Cleanup temp image
-                        if os.path.exists(temp_image_path):
-                            os.remove(temp_image_path)
+                        api_key = os.environ.get('EMERGENT_LLM_KEY')
+                        proxy_url = get_integration_proxy_url()
+                        base_url = proxy_url + "/llm/openai/v1"
                         
-                        if video_bytes:
-                            video_base64 = base64.b64encode(video_bytes).decode('utf-8')
-                            result = {"status": "success", "video_base64": video_base64, "duration": duration, "size": size, "prompt": prompt}
+                        headers = {
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json"
+                        }
+                        
+                        app_url = get_app_identifier()
+                        if app_url:
+                            headers['X-App-ID'] = app_url
+                        
+                        # Prepare the payload with input_reference (correct parameter name)
+                        payload = {
+                            "model": "sora-2",
+                            "prompt": prompt,
+                            "size": size,
+                            "seconds": str(duration),
+                            "input_reference": {
+                                "data": f"data:image/png;base64,{image_base64}"
+                            }
+                        }
+                        
+                        logging.info(f"[IMAGETOVIDEO] Sending request to {base_url}/videos")
+                        
+                        # Initiate video generation
+                        response = requests.post(f"{base_url}/videos", headers=headers, json=payload, timeout=30)
+                        response.raise_for_status()
+                        
+                        data = response.json()
+                        operation_id = data.get("id") or data.get("operation_id")
+                        
+                        if not operation_id:
+                            logging.error(f"[IMAGETOVIDEO] No operation ID in response: {data}")
+                            result = {"status": "error", "error": "No operation ID returned from API"}
                         else:
-                            result = {"status": "failed", "error": "Image-to-video generation returned no data"}
+                            logging.info(f"[IMAGETOVIDEO] Video generation initiated with ID: {operation_id}")
+                            
+                            # Wait for completion
+                            operation_url = f"{base_url}/videos/{operation_id}"
+                            start_time = time.time()
+                            max_wait_time = 600  # 10 minutes
+                            poll_interval = 10
+                            
+                            video_uri = None
+                            while time.time() - start_time < max_wait_time:
+                                time.sleep(poll_interval)
+                                
+                                status_response = requests.get(operation_url, headers=headers, timeout=30)
+                                status_response.raise_for_status()
+                                status_data = status_response.json()
+                                
+                                status = status_data.get("status", "").lower()
+                                
+                                if status in ["completed", "complete", "succeeded", "success"]:
+                                    logging.info(f"[IMAGETOVIDEO] Video generation completed!")
+                                    
+                                    # Get video URL or construct it
+                                    video_uri = (status_data.get("video_url") or status_data.get("url") or
+                                               status_data.get("download_url") or 
+                                               f"{base_url}/videos/{operation_id}/content")
+                                    
+                                    logging.info(f"[IMAGETOVIDEO] Video URI: {video_uri}")
+                                    break
+                                    
+                                elif status in ["failed", "error"]:
+                                    error_msg = status_data.get("error", "Unknown error")
+                                    logging.error(f"[IMAGETOVIDEO] Generation failed: {error_msg}")
+                                    result = {"status": "error", "error": f"Video generation failed: {error_msg}"}
+                                    break
+                                    
+                                else:
+                                    progress = status_data.get("progress", 0)
+                                    elapsed = int(time.time() - start_time)
+                                    logging.info(f"[IMAGETOVIDEO] Still processing... ({elapsed}s elapsed, status: {status}, progress: {progress}%)")
+                            
+                            # Download the video if URI was obtained
+                            if video_uri:
+                                logging.info(f"[IMAGETOVIDEO] Downloading video from: {video_uri}")
+                                
+                                download_response = requests.get(video_uri, headers=headers, stream=True, timeout=120)
+                                download_response.raise_for_status()
+                                
+                                video_bytes = b""
+                                for chunk in download_response.iter_content(chunk_size=8192):
+                                    if chunk:
+                                        video_bytes += chunk
+                                
+                                logging.info(f"[IMAGETOVIDEO] Downloaded {len(video_bytes)} bytes")
+                                
+                                if len(video_bytes) > 1000:
+                                    video_base64_encoded = base64.b64encode(video_bytes).decode('utf-8')
+                                    result = {
+                                        "status": "success",
+                                        "video_base64": video_base64_encoded,
+                                        "duration": duration,
+                                        "size": size,
+                                        "prompt": prompt
+                                    }
+                                    logging.info(f"[IMAGETOVIDEO] Success! Video encoded to base64")
+                                else:
+                                    result = {"status": "error", "error": f"Video data too small: {len(video_bytes)} bytes"}
+                            else:
+                                if 'result' not in locals():
+                                    result = {"status": "error", "error": "Timeout waiting for video generation"}
+                                    
                     except Exception as e:
+                        logging.error(f"[IMAGETOVIDEO] Exception: {str(e)}")
                         result = {"status": "error", "error": f"Image-to-video generation failed: {str(e)}"}
-                        # Cleanup on error
-                        if os.path.exists(temp_image_path):
-                            os.remove(temp_image_path)
             
             elif node_type == 'imagegen':
                 # Execute Image Generation
