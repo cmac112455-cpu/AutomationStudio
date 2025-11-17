@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the workflow execution endpoint with an Image Generation workflow. Test Scenario: Start > Image Gen (prompt: 'generate me a cow on a beach') > End. Verify workflow creation, execution, progress monitoring, and image generation completion."
+user_problem_statement: "Fix the Video Ad Creator workflow's Image-To-Video node. The node was failing because the screenshot image was not being passed correctly to the Sora 2 API. Issue: Sora 2 API expects multipart/form-data file upload, not JSON with base64 data."
 
 backend:
   - task: "Workflow Creation API (/api/workflows)"
