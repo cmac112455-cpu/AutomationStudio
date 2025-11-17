@@ -1879,7 +1879,7 @@ class TTSPreviewRequest(BaseModel):
     speaker_boost: bool = False
 
 @api_router.get("/tts/voices")
-async def get_elevenlabs_voices(user_id: str = Depends(get_current_user)):
+async def get_elevenlabs_voices(user_id: str = Depends(get_current_user), include_library: bool = True):
     """Fetch all available voices from ElevenLabs API including Voice Library"""
     try:
         # Get ElevenLabs API key from user's integrations
@@ -1899,70 +1899,84 @@ async def get_elevenlabs_voices(user_id: str = Depends(get_current_user)):
         headers = {"xi-api-key": elevenlabs_key}
         all_voices = []
         
-        # 1. Fetch user's personal voices (pre-made, cloned, custom)
-        logging.info(f"[TTS_VOICES] Fetching personal voices from ElevenLabs...")
-        personal_url = "https://api.elevenlabs.io/v1/voices"
-        personal_response = requests.get(personal_url, headers=headers, timeout=10)
+        # 1. Fetch user's voices (includes pre-made + cloned + voices added from library)
+        logging.info(f"[TTS_VOICES] Fetching voices from account...")
+        voices_url = "https://api.elevenlabs.io/v1/voices"
+        voices_response = requests.get(voices_url, headers=headers, timeout=10)
         
-        if personal_response.status_code == 200:
-            personal_data = personal_response.json()
-            personal_voices = personal_data.get('voices', [])
-            all_voices.extend(personal_voices)
-            logging.info(f"[TTS_VOICES] Fetched {len(personal_voices)} personal voices")
-        else:
-            logging.error(f"[TTS_VOICES] Personal voices error: {personal_response.status_code} - {personal_response.text}")
-        
-        # 2. Fetch Voice Library (hundreds of community voices)
-        logging.info(f"[TTS_VOICES] Fetching Voice Library...")
-        
-        # Fetch multiple pages of voice library
-        page_size = 100
-        total_library_voices = 0
-        
-        for page in range(5):  # Fetch up to 5 pages (500 voices)
-            library_url = f"https://api.elevenlabs.io/v1/voices/library?page_size={page_size}&page={page}"
+        if voices_response.status_code == 200:
+            voices_data = voices_response.json()
+            user_voices = voices_data.get('voices', [])
             
-            try:
-                library_response = requests.get(library_url, headers=headers, timeout=15)
-                
-                if library_response.status_code == 200:
-                    library_data = library_response.json()
-                    library_voices = library_data.get('voices', [])
-                    
-                    if not library_voices:
-                        # No more voices to fetch
-                        break
-                    
-                    # Add category label to library voices
-                    for voice in library_voices:
-                        if 'labels' not in voice:
-                            voice['labels'] = {}
-                        voice['labels']['source'] = 'Voice Library'
-                        voice['category'] = library_data.get('category', 'Community')
-                    
-                    all_voices.extend(library_voices)
-                    total_library_voices += len(library_voices)
-                    
-                    logging.info(f"[TTS_VOICES] Page {page}: Fetched {len(library_voices)} library voices")
-                    
-                    # Check if there are more pages
-                    has_more = library_data.get('has_more', False)
-                    if not has_more:
-                        break
-                else:
-                    logging.warning(f"[TTS_VOICES] Library page {page} error: {library_response.status_code}")
-                    break
-                    
-            except Exception as e:
-                logging.warning(f"[TTS_VOICES] Error fetching library page {page}: {str(e)}")
-                break
+            # Mark user voices
+            for voice in user_voices:
+                if 'labels' not in voice:
+                    voice['labels'] = {}
+                voice['labels']['source'] = 'My Voices'
+            
+            all_voices.extend(user_voices)
+            logging.info(f"[TTS_VOICES] Fetched {len(user_voices)} voices from account")
+        else:
+            logging.error(f"[TTS_VOICES] Voices error: {voices_response.status_code} - {voices_response.text}")
+            raise HTTPException(status_code=400, detail="Failed to fetch account voices")
         
-        logging.info(f"[TTS_VOICES] Total library voices fetched: {total_library_voices}")
+        # 2. Search shared Voice Library for popular/featured voices
+        if include_library:
+            logging.info(f"[TTS_VOICES] Searching shared Voice Library...")
+            
+            # Use the search endpoint to get public library voices
+            # Try different search terms to get diverse results
+            search_terms = ["", "a", "e", "i", "o", "u"]  # Get different batches
+            library_voice_ids = set()  # Track IDs to avoid duplicates
+            
+            for search_term in search_terms:
+                try:
+                    # Using the shared voices endpoint
+                    search_url = f"https://api.elevenlabs.io/v1/shared-voices"
+                    params = {"page_size": 100}
+                    if search_term:
+                        params["search"] = search_term
+                    
+                    search_response = requests.get(search_url, headers=headers, params=params, timeout=15)
+                    
+                    if search_response.status_code == 200:
+                        search_data = search_response.json()
+                        library_voices = search_data.get('voices', [])
+                        
+                        for voice in library_voices:
+                            voice_id = voice.get('voice_id') or voice.get('public_owner_id')
+                            if voice_id and voice_id not in library_voice_ids:
+                                library_voice_ids.add(voice_id)
+                                
+                                # Format library voice to match user voice structure
+                                formatted_voice = {
+                                    'voice_id': voice_id,
+                                    'name': voice.get('name', 'Unknown'),
+                                    'labels': voice.get('labels', {})
+                                }
+                                formatted_voice['labels']['source'] = 'Shared Library'
+                                
+                                # Add preview if available
+                                if 'preview_url' in voice:
+                                    formatted_voice['preview_url'] = voice['preview_url']
+                                
+                                all_voices.append(formatted_voice)
+                        
+                        logging.info(f"[TTS_VOICES] Search '{search_term}': Found {len(library_voices)} library voices")
+                    else:
+                        logging.warning(f"[TTS_VOICES] Search '{search_term}' error: {search_response.status_code}")
+                        
+                except Exception as e:
+                    logging.warning(f"[TTS_VOICES] Error searching library with '{search_term}': {str(e)}")
+                    continue
+            
+            logging.info(f"[TTS_VOICES] Total unique library voices: {len(library_voice_ids)}")
+        
         logging.info(f"[TTS_VOICES] TOTAL voices available: {len(all_voices)}")
         
         # Log sample voices
         if all_voices:
-            voice_names = [f"{v.get('name')} ({v.get('voice_id')[:8]}...)" for v in all_voices[:5]]
+            voice_names = [f"{v.get('name')} ({v.get('voice_id', 'N/A')[:8]}...)" for v in all_voices[:5]]
             logging.info(f"[TTS_VOICES] Sample voices: {', '.join(voice_names)}")
         
         return {"voices": all_voices, "total": len(all_voices)}
