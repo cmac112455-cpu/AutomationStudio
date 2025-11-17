@@ -2724,6 +2724,7 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         
         audio_base64 = voice_data.get("audio")
         conversation_history = voice_data.get("conversation_history", [])
+        call_log_id = voice_data.get("call_log_id")
         
         logging.info(f"[CONVERSATIONAL_AI] Voice chat for agent {agent_id}")
         
