@@ -3177,6 +3177,9 @@ async def get_agent_call_logs(agent_id: str, user_id: str = Depends(get_current_
 async def update_call_log(log_id: str, update_data: dict, user_id: str = Depends(get_current_user)):
     """Update a call log entry"""
     try:
+        # Add updated timestamp
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
         result = await db.conversational_call_logs.update_one(
             {"id": log_id, "user_id": user_id},
             {"$set": update_data}
@@ -3192,6 +3195,46 @@ async def update_call_log(log_id: str, update_data: dict, user_id: str = Depends
     except Exception as e:
         logging.error(f"[CONVERSATIONAL_AI] Error updating call log: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update call log")
+
+@api_router.post("/conversational-ai/call-logs/{log_id}/add-exchange")
+async def add_call_exchange(log_id: str, exchange_data: dict, user_id: str = Depends(get_current_user)):
+    """Add a conversation exchange to call log"""
+    try:
+        # Get current log
+        log = await db.conversational_call_logs.find_one(
+            {"id": log_id, "user_id": user_id},
+            {"_id": 0}
+        )
+        
+        if not log:
+            raise HTTPException(status_code=404, detail="Call log not found")
+        
+        # Update with new exchange data
+        update_data = {
+            "transcription": exchange_data.get("user_transcript"),
+            "response": exchange_data.get("agent_response"),
+            "audio_url": exchange_data.get("audio_url"),
+            "exchanges_count": log.get("exchanges_count", 0) + 1,
+            "status": "active",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Update backend logs if provided
+        if "backend_logs" in exchange_data:
+            update_data["backend_logs"] = exchange_data["backend_logs"]
+        
+        await db.conversational_call_logs.update_one(
+            {"id": log_id, "user_id": user_id},
+            {"$set": update_data}
+        )
+        
+        return {"message": "Exchange added successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error adding exchange: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to add exchange")
 
 @api_router.post("/voice-studio/completions/{completion_id}/save")
 async def save_completion(completion_id: str, user_id: str = Depends(get_current_user)):
