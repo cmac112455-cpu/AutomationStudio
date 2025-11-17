@@ -16,7 +16,8 @@ import {
   ListChecks,
   Mic,
   Music,
-  Bot
+  Bot,
+  History
 } from 'lucide-react';
 
 export default function Layout({ children }) {
