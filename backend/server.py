@@ -2489,6 +2489,100 @@ async def delete_agent(agent_id: str, user_id: str = Depends(get_current_user)):
         logging.error(f"[CONVERSATIONAL_AI] Error deleting agent: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete agent")
 
+@api_router.post("/conversational-ai/sync-elevenlabs-agents")
+async def sync_elevenlabs_agents(user_id: str = Depends(get_current_user)):
+    """Sync agents from ElevenLabs account"""
+    try:
+        # Get ElevenLabs API key from user integrations
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Syncing ElevenLabs agents for user {user_id}")
+        
+        # Fetch agents from ElevenLabs
+        import requests
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/agents",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[CONVERSATIONAL_AI] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        elevenlabs_agents = response.json().get("agents", [])
+        logging.info(f"[CONVERSATIONAL_AI] Found {len(elevenlabs_agents)} agents from ElevenLabs")
+        
+        synced_count = 0
+        updated_count = 0
+        
+        for el_agent in elevenlabs_agents:
+            agent_id = el_agent.get("agent_id")
+            agent_name = el_agent.get("name", "Unnamed Agent")
+            
+            # Check if agent already exists
+            existing = await db.conversational_agents.find_one(
+                {"user_id": user_id, "elevenlabs_agent_id": agent_id},
+                {"_id": 0}
+            )
+            
+            agent_data = {
+                "name": agent_name,
+                "description": f"Synced from ElevenLabs",
+                "systemPrompt": el_agent.get("conversation_config", {}).get("agent", {}).get("prompt", {}).get("prompt", ""),
+                "voice": el_agent.get("conversation_config", {}).get("tts", {}).get("voice_id", ""),
+                "model": "gpt-4o",  # Default
+                "firstMessage": el_agent.get("conversation_config", {}).get("agent", {}).get("first_message", ""),
+                "language": el_agent.get("conversation_config", {}).get("conversation", {}).get("language", "en"),
+                "elevenlabs_agent_id": agent_id,
+                "synced_from_elevenlabs": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if existing:
+                # Update existing agent
+                await db.conversational_agents.update_one(
+                    {"user_id": user_id, "elevenlabs_agent_id": agent_id},
+                    {"$set": agent_data}
+                )
+                updated_count += 1
+                logging.info(f"[CONVERSATIONAL_AI] Updated agent: {agent_name} ({agent_id})")
+            else:
+                # Create new agent
+                new_agent = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    **agent_data,
+                    "maxDuration": 600,
+                    "temperature": 0.7,
+                    "responseDelay": 100,
+                    "enableInterruption": True,
+                    "enableFallback": True,
+                    "status": "active",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.conversational_agents.insert_one(new_agent)
+                synced_count += 1
+                logging.info(f"[CONVERSATIONAL_AI] Created new agent: {agent_name} ({agent_id})")
+        
+        return {
+            "message": f"Successfully synced {synced_count} new agents and updated {updated_count} existing agents",
+            "synced": synced_count,
+            "updated": updated_count,
+            "total": len(elevenlabs_agents)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[CONVERSATIONAL_AI] Error syncing agents: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to sync agents: {str(e)}")
+
 @api_router.get("/conversational-ai/agents/{agent_id}/signed-url")
 async def get_elevenlabs_signed_url(agent_id: str, user_id: str = Depends(get_current_user)):
     """Get ElevenLabs signed URL for WebSocket connection"""
