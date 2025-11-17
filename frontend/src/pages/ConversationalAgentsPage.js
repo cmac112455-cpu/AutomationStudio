@@ -549,16 +549,27 @@ const ConversationalAgentsPage = () => {
     }
   };
 
-  const updateAgentTools = async (toolsData) => {
+  const updateAgentTools = async (newBuiltInTools, newToolIds) => {
     if (!editingAgent?.id) return;
     
     try {
-      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/tools`, toolsData);
+      const payload = {
+        built_in_tools: Array.isArray(newBuiltInTools) ? newBuiltInTools : [],
+        tool_ids: Array.isArray(newToolIds) ? newToolIds : []
+      };
+      
+      console.log('🔧 Updating tools with payload:', payload);
+      
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/tools`, payload);
       toast.success('✅ Tools updated in ElevenLabs!');
-      await loadAgentTools(editingAgent.id);
+      
+      // Update local state
+      setBuiltInTools(payload.built_in_tools);
+      setToolIds(payload.tool_ids);
     } catch (error) {
       console.error('Error updating tools:', error);
       toast.error(error.response?.data?.detail || 'Failed to update tools');
+      throw error;
     }
   };
 
