@@ -146,6 +146,64 @@ export default function Layout({ children }) {
               </div>
             )}
           </div>
+
+          {/* Voice Studio Section with Sub-items */}
+          <div>
+            <button
+              onClick={() => setVoiceStudioExpanded(!voiceStudioExpanded)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                location.pathname.startsWith('/voice-studio')
+                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-l-4 border-purple-500 text-purple-400'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Mic className="w-5 h-5" />
+              <span className="font-medium flex-1 text-left">Voice Studio</span>
+              {voiceStudioExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+
+            {voiceStudioExpanded && (
+              <div className="ml-8 mt-2 space-y-1">
+                <Link
+                  to="/voice-studio/voices"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/voice-studio/voices'
+                      ? 'bg-white/10 text-purple-400'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Mic className="w-4 h-4" />
+                  Voices
+                </Link>
+                <Link
+                  to="/voice-studio/music"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/voice-studio/music'
+                      ? 'bg-white/10 text-purple-400'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Music className="w-4 h-4" />
+                  Music
+                </Link>
+                <Link
+                  to="/voice-studio/completions"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === '/voice-studio/completions'
+                      ? 'bg-white/10 text-purple-400'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <ListChecks className="w-4 h-4" />
+                  Completions
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* User Info & Logout */}
