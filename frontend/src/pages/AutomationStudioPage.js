@@ -415,14 +415,12 @@ export default function AutomationStudioPage() {
           {id: 'end-1', type: 'end', position: {x: 1300, y: 50}, data: {}}
         ],
         edges: [
-          {id: 'e1', source: 'start-1', target: 'ai-1'},
-          {id: 'e2', source: 'ai-1', target: 'video-1'},
-          {id: 'e3', source: 'video-1', target: 'screenshot-1'},
-          {id: 'e4', source: 'screenshot-1', target: 'ai-2'},
-          {id: 'e5', source: 'ai-2', target: 'video-2'},
-          {id: 'e6', source: 'video-2', target: 'screenshot-2'},
-          {id: 'e7', source: 'screenshot-2', target: 'stitch-1'},
-          {id: 'e8', source: 'stitch-1', target: 'end-1'}
+          {id: 'e1', source: 'start-1', target: 'video-1'},
+          {id: 'e2', source: 'video-1', target: 'screenshot-1'},
+          {id: 'e3', source: 'screenshot-1', target: 'video-2'},
+          {id: 'e4', source: 'video-2', target: 'screenshot-2'},
+          {id: 'e5', source: 'screenshot-2', target: 'stitch-1'},
+          {id: 'e6', source: 'stitch-1', target: 'end-1'}
         ]
       }
     };
