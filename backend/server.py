@@ -2768,12 +2768,14 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         audio_bytes = base64.b64decode(audio_base64)
         logging.info(f"[CONVERSATIONAL_AI] Audio decoded: {len(audio_bytes)} bytes")
         
-        # Save audio to temporary file (Whisper needs a file)
-        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
+        # Save audio to temporary file as WAV (Whisper prefers wav/mp3)
+        # WebM might not have proper headers, so we save as mp3 which is more flexible
+        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
             temp_audio.write(audio_bytes)
             temp_audio_path = temp_audio.name
         
         logging.info(f"[CONVERSATIONAL_AI] Audio saved to temp file: {temp_audio_path}")
+        logging.info(f"[CONVERSATIONAL_AI] File size: {len(audio_bytes)} bytes")
         
         try:
             # Transcribe audio
