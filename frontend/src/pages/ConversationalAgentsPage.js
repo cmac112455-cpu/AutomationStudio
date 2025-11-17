@@ -24,6 +24,7 @@ const ConversationalAgentsPage = () => {
   const [isSending, setIsSending] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [currentCallLogId, setCurrentCallLogId] = useState(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
   const [callActive, setCallActive] = useState(false);
