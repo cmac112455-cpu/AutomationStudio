@@ -1872,7 +1872,7 @@ async def delete_integration(service: str, user_id: str = Depends(get_current_us
 class TTSPreviewRequest(BaseModel):
     text: str
     voice: str = 'Rachel'
-    model_id: str = 'eleven_monolingual_v1'
+    model_id: str = 'eleven_turbo_v2_5'
     stability: float = 0.5
     similarity_boost: float = 0.75
     style: float = 0
