@@ -552,27 +552,27 @@ const ConversationalAgentsPage = () => {
     }
   };
 
-  const updateAgentTools = async (newBuiltInTools, newToolIds) => {
+  const saveToolsChanges = async () => {
     if (!editingAgent?.id) return;
     
+    setSavingTools(true);
     try {
       const payload = {
-        built_in_tools: Array.isArray(newBuiltInTools) ? newBuiltInTools : [],
-        tool_ids: Array.isArray(newToolIds) ? newToolIds : []
+        built_in_tools: Array.isArray(builtInTools) ? builtInTools : [],
+        tool_ids: Array.isArray(toolIds) ? toolIds : []
       };
       
-      console.log('🔧 Updating tools with payload:', payload);
+      console.log('🔧 Saving tools to ElevenLabs:', payload);
       
       await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/tools`, payload);
-      toast.success('✅ Tools updated in ElevenLabs!');
+      toast.success('✅ Tools saved to ElevenLabs!');
       
-      // Update local state
-      setBuiltInTools(payload.built_in_tools);
-      setToolIds(payload.tool_ids);
+      setUnsavedToolsChanges(false);
     } catch (error) {
-      console.error('Error updating tools:', error);
-      toast.error(error.response?.data?.detail || 'Failed to update tools');
-      throw error;
+      console.error('Error saving tools:', error);
+      toast.error(error.response?.data?.detail || 'Failed to save tools');
+    } finally {
+      setSavingTools(false);
     }
   };
 
