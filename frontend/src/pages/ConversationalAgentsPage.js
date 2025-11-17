@@ -255,12 +255,148 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  // Load agent analysis config (evaluation criteria & data collection)
+  const loadAgentAnalysisConfig = async (agentId) => {
+    if (!agentId) return;
+    
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/analysis-config`);
+      const config = response.data;
+      
+      setEvaluationCriteria(config.evaluation_criteria || []);
+      setDataCollectionItems(config.data_collection || []);
+      
+      console.log('📋 Analysis config loaded:', config);
+    } catch (error) {
+      console.error('Error loading analysis config:', error);
+      // Set empty arrays if error
+      setEvaluationCriteria([]);
+      setDataCollectionItems([]);
+    }
+  };
+
+  // Add evaluation criteria
+  const addEvaluationCriteria = async () => {
+    if (!editingAgent?.elevenlabs_agent_id) {
+      toast.error('Agent must be synced with ElevenLabs first');
+      return;
+    }
+
+    if (!criteriaForm.identifier || !criteriaForm.description) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (evaluationCriteria.length >= 30) {
+      toast.error('Maximum 30 evaluation criteria allowed');
+      return;
+    }
+
+    try {
+      const updatedCriteria = editingCriteria
+        ? evaluationCriteria.map(c => c.identifier === editingCriteria.identifier ? criteriaForm : c)
+        : [...evaluationCriteria, criteriaForm];
+
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+        evaluation_criteria: updatedCriteria
+      });
+
+      setEvaluationCriteria(updatedCriteria);
+      setShowAddCriteriaModal(false);
+      setCriteriaForm({ identifier: '', description: '' });
+      setEditingCriteria(null);
+      toast.success(editingCriteria ? 'Criteria updated successfully' : 'Criteria added successfully');
+    } catch (error) {
+      console.error('Error saving criteria:', error);
+      toast.error(error.response?.data?.detail || 'Failed to save criteria');
+    }
+  };
+
+  // Delete evaluation criteria
+  const deleteEvaluationCriteria = async (identifier) => {
+    if (!editingAgent?.elevenlabs_agent_id) return;
+
+    try {
+      const updatedCriteria = evaluationCriteria.filter(c => c.identifier !== identifier);
+
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+        evaluation_criteria: updatedCriteria
+      });
+
+      setEvaluationCriteria(updatedCriteria);
+      toast.success('Criteria deleted successfully');
+    } catch (error) {
+      console.error('Error deleting criteria:', error);
+      toast.error('Failed to delete criteria');
+    }
+  };
+
+  // Add data collection item
+  const addDataCollectionItem = async () => {
+    if (!editingAgent?.elevenlabs_agent_id) {
+      toast.error('Agent must be synced with ElevenLabs first');
+      return;
+    }
+
+    if (!dataItemForm.identifier || !dataItemForm.description) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    const maxItems = 40; // Could be 25 depending on plan
+    if (dataCollectionItems.length >= maxItems) {
+      toast.error(`Maximum ${maxItems} data collection items allowed`);
+      return;
+    }
+
+    try {
+      const updatedItems = editingDataItem
+        ? dataCollectionItems.map(item => item.identifier === editingDataItem.identifier ? dataItemForm : item)
+        : [...dataCollectionItems, dataItemForm];
+
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+        data_collection: updatedItems
+      });
+
+      setDataCollectionItems(updatedItems);
+      setShowAddDataItemModal(false);
+      setDataItemForm({ identifier: '', data_type: 'string', description: '' });
+      setEditingDataItem(null);
+      toast.success(editingDataItem ? 'Data item updated successfully' : 'Data item added successfully');
+    } catch (error) {
+      console.error('Error saving data item:', error);
+      toast.error(error.response?.data?.detail || 'Failed to save data item');
+    }
+  };
+
+  // Delete data collection item
+  const deleteDataCollectionItem = async (identifier) => {
+    if (!editingAgent?.elevenlabs_agent_id) return;
+
+    try {
+      const updatedItems = dataCollectionItems.filter(item => item.identifier !== identifier);
+
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/analysis-config`, {
+        data_collection: updatedItems
+      });
+
+      setDataCollectionItems(updatedItems);
+      toast.success('Data item deleted successfully');
+    } catch (error) {
+      console.error('Error deleting data item:', error);
+      toast.error('Failed to delete data item');
+    }
+  };
+
   // Load analytics when Analysis tab is opened
   useEffect(() => {
     if (activeTab === 'analysis' && editingAgent?.id) {
-      loadAnalytics(editingAgent.id);
+      loadAgentAnalysisConfig(editingAgent.id);
+      if (analysisSection === 'analytics') {
+        loadAnalytics(editingAgent.id);
+      }
     }
-  }, [activeTab, editingAgent?.id, analyticsTimeRange]);
+  }, [activeTab, editingAgent?.id, analyticsTimeRange, analysisSection]);
 
   const loadKnowledgeBase = async () => {
     try {
