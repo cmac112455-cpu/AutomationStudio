@@ -1710,7 +1710,7 @@ const ConversationalAgentsPage = () => {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold">Your Knowledge Base</h3>
                       <Button
-                        onClick={loadKnowledgeBase}
+                        onClick={() => editingAgent?.id && loadKnowledgeBase(editingAgent.id)}
                         className="bg-gray-700 hover:bg-gray-600"
                         size="sm"
                       >
