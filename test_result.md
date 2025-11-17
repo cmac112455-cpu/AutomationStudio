@@ -469,12 +469,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Automation Studio Workflow Creation and Execution"
-    - "Completions Page Display and Data Fetching"
-    - "End-to-end workflow execution with image generation"
-  stuck_tasks: []
+    - "Video Ad Creator Workflow Complete End-to-End Test"
+    - "Image-To-Video Node (imagetovideo) in Workflow Engine"
+  stuck_tasks:
+    - "Image-To-Video Node (imagetovideo) in Workflow Engine"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "main"
