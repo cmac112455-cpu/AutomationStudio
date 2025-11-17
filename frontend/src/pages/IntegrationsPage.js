@@ -20,7 +20,7 @@ const IntegrationsPage = () => {
 
   const loadIntegrations = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('apoe_token');
       const response = await axios.get(`${BACKEND_URL}/api/integrations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
