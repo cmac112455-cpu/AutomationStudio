@@ -233,52 +233,7 @@ const ConversationalAgentsPage = () => {
     setIsConnecting(false);
   };
 
-  const testMicrophone = async () => {
-    try {
-      console.log('🧪 Testing microphone...');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Test audio level
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      source.connect(analyser);
-      analyser.fftSize = 256;
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      
-      toast.success('Microphone test started - Speak now!', { duration: 5000 });
-      
-      let checks = 0;
-      const testInterval = setInterval(() => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        console.log('🔊 Audio level:', average.toFixed(2));
-        setAudioLevel(Math.min(100, average));
-        
-        if (average > 5) {
-          setMicWorking(true);
-        }
-        
-        checks++;
-        if (checks >= 50) { // 5 seconds
-          clearInterval(testInterval);
-          stream.getTracks().forEach(track => track.stop());
-          audioContext.close();
-          setAudioLevel(0);
-          
-          if (average > 0) {
-            toast.success('✅ Microphone is working!');
-          } else {
-            toast.error('❌ Microphone not detecting sound!');
-          }
-        }
-      }, 100);
-      
-    } catch (error) {
-      console.error('❌ Microphone test failed:', error);
-      toast.error('Microphone test failed: ' + error.message);
-    }
-  };
+  // testMicrophone function removed - using ElevenLabs SDK
 
   const initiateCall = async () => {
     if (!testingAgent) return;
