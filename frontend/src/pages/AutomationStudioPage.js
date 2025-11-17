@@ -481,18 +481,16 @@ export default function AutomationStudioPage() {
   const loadTemplate = (templateName) => {
     const templates = {
       'video-ad-creator': {
-        name: 'Video Ad Creator with Perfect Voice Sync',
+        name: 'Video Ad Creator',
         nodes: [
           {id: 'start-1', type: 'start', position: {x: 100, y: 100}, data: {}},
-          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 100}, data: {prompt: 'Create a detailed video scene description for the FIRST 4 seconds of a product advertisement. IMPORTANT: Generate ONLY visuals and background music - NO voiceover yet.\n\n1. PRODUCT & SCENE: Be extremely specific - exact product, exact setting, exact lighting, exact camera movement.\n\n2. BACKGROUND AUDIO: Describe background music/ambient sounds (e.g. "Soft uplifting piano music")\n\n3. VOICEOVER SCRIPT PART 1: Create the FIRST HALF of a compelling voiceover script that ends MID-SENTENCE (e.g. "What fuels your-")\n\n4. FORMAT:\n   SCENE: [Visual description]\n   BACKGROUND AUDIO: [Music/sounds description]\n   VOICEOVER PART 1: "[Incomplete sentence]"', model: 'gemini-2.5-pro'}},
+          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 100}, data: {prompt: 'Create a detailed video scene description for the FIRST 4 seconds of a product advertisement.\n\n1. PRODUCT & SCENE: Be extremely specific - exact product, exact setting, exact lighting, exact camera movement.\n\n2. BACKGROUND AUDIO: Describe background music/ambient sounds (e.g. "Soft uplifting piano music")\n\n3. FORMAT:\n   SCENE: [Visual description]\n   BACKGROUND AUDIO: [Music/sounds description]', model: 'gemini-2.5-pro'}},
           {id: 'video-1', type: 'videogen', position: {x: 550, y: 100}, data: {duration: 4, size: '1280x720'}},
           {id: 'screenshot-1', type: 'screenshot', position: {x: 800, y: 100}, data: {}},
-          {id: 'ai-2', type: 'gemini', position: {x: 1050, y: 100}, data: {prompt: 'Continue the advertisement. Create the SECOND 4 seconds. Generate ONLY visuals and background music - NO voiceover yet.\n\n1. VISUAL CONTINUATION: Describe the next 4 seconds\n\n2. BACKGROUND AUDIO: Continue the SAME music from Part 1\n\n3. VOICEOVER PART 2: COMPLETE the sentence from Part 1 (e.g. if Part 1 was "What fuels your-", Part 2 is "day for maximum health")\n\n4. FORMAT:\n   SCENE: [Visual continuation]\n   BACKGROUND AUDIO: [Same music]\n   VOICEOVER PART 2: "[Complete the sentence]"', model: 'gemini-2.5-pro'}},
+          {id: 'ai-2', type: 'gemini', position: {x: 1050, y: 100}, data: {prompt: 'Continue the advertisement. Create the SECOND 4 seconds.\n\n1. VISUAL CONTINUATION: Describe the next 4 seconds\n\n2. BACKGROUND AUDIO: Continue the SAME music from Part 1\n\n3. FORMAT:\n   SCENE: [Visual continuation]\n   BACKGROUND AUDIO: [Same music]', model: 'gemini-2.5-pro'}},
           {id: 'video-2', type: 'imagetovideo', position: {x: 1300, y: 100}, data: {duration: 4, size: '1280x720'}},
           {id: 'stitch-1', type: 'stitch', position: {x: 1550, y: 100}, data: {}},
-          {id: 'tts-1', type: 'texttospeech', position: {x: 1800, y: 100}, data: {voice: 'Rachel'}},
-          {id: 'audio-1', type: 'audiooverlay', position: {x: 2050, y: 100}, data: {}},
-          {id: 'end-1', type: 'end', position: {x: 2300, y: 100}, data: {}}
+          {id: 'end-1', type: 'end', position: {x: 1800, y: 100}, data: {}}
         ],
         edges: [
           {id: 'e1', source: 'start-1', target: 'ai-1'},
@@ -501,9 +499,7 @@ export default function AutomationStudioPage() {
           {id: 'e4', source: 'screenshot-1', target: 'ai-2'},
           {id: 'e5', source: 'ai-2', target: 'video-2'},
           {id: 'e6', source: 'video-2', target: 'stitch-1'},
-          {id: 'e7', source: 'stitch-1', target: 'tts-1'},
-          {id: 'e8', source: 'tts-1', target: 'audio-1'},
-          {id: 'e9', source: 'audio-1', target: 'end-1'}
+          {id: 'e7', source: 'stitch-1', target: 'end-1'}
         ]
       }
     };
