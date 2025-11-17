@@ -2713,6 +2713,10 @@ async def chat_with_agent(agent_id: str, chat_data: dict, user_id: str = Depends
 async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = Depends(get_current_user)):
     """Voice chat with a conversational AI agent (speech-to-text + chat + text-to-speech)"""
     try:
+        logging.info(f"[CONVERSATIONAL_AI] ========== VOICE CHAT REQUEST RECEIVED ==========")
+        logging.info(f"[CONVERSATIONAL_AI] Agent ID: {agent_id}")
+        logging.info(f"[CONVERSATIONAL_AI] User ID: {user_id}")
+        
         # Get the agent
         agent = await db.conversational_agents.find_one(
             {"id": agent_id, "user_id": user_id},
@@ -2720,11 +2724,22 @@ async def voice_chat_with_agent(agent_id: str, voice_data: dict, user_id: str = 
         )
         
         if not agent:
+            logging.error(f"[CONVERSATIONAL_AI] Agent not found: {agent_id}")
             raise HTTPException(status_code=404, detail="Agent not found")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Agent found: {agent.get('name')}")
         
         audio_base64 = voice_data.get("audio")
         conversation_history = voice_data.get("conversation_history", [])
         call_log_id = voice_data.get("call_log_id")
+        
+        logging.info(f"[CONVERSATIONAL_AI] Audio size: {len(audio_base64) if audio_base64 else 0} chars")
+        logging.info(f"[CONVERSATIONAL_AI] Call log ID: {call_log_id}")
+        logging.info(f"[CONVERSATIONAL_AI] Conversation history: {len(conversation_history)} messages")
+        
+        if not audio_base64:
+            logging.error(f"[CONVERSATIONAL_AI] No audio data received!")
+            raise HTTPException(status_code=400, detail="No audio data provided")
         
         logging.info(f"[CONVERSATIONAL_AI] Voice chat for agent {agent_id}")
         
