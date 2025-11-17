@@ -2342,34 +2342,59 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                                 f.write(video_bytes)
                             temp_files.append(temp_path)
                         
-                        # Create concat file for ffmpeg
-                        concat_file = f"{temp_dir}/concat.txt"
-                        with open(concat_file, 'w') as f:
-                            for temp_path in temp_files:
-                                f.write(f"file '{temp_path}'\n")
-                        
                         # Output file
                         output_path = f"{temp_dir}/stitched_output.mp4"
                         
-                        # Run ffmpeg to concatenate videos with seamless audio
-                        # Re-encode with audio normalization and proper format
-                        cmd = [
-                            'ffmpeg', '-f', 'concat', '-safe', '0',
-                            '-i', concat_file,
-                            # Video encoding - use fast preset for reasonable speed
-                            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
-                            # Audio encoding - normalize audio levels and ensure consistent format
-                            '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
-                            # Audio filter to normalize volume across all clips
-                            '-af', 'loudnorm=I=-16:LRA=11:TP=-1.5',
-                            # Pixel format for compatibility
-                            '-pix_fmt', 'yuv420p',
-                            # Overwrite output file
-                            '-y',
-                            output_path
-                        ]
+                        # Build ffmpeg command with seamless audio crossfading
+                        # For 2+ videos, we'll use complex filter to:
+                        # 1. Normalize audio for each clip
+                        # 2. Add 0.5 second crossfade between audio tracks
+                        # 3. Concatenate videos
                         
-                        logging.info(f"[STITCH] Running ffmpeg with audio normalization")
+                        logging.info(f"[STITCH] Stitching {len(temp_files)} videos with audio crossfading")
+                        
+                        if len(temp_files) == 2:
+                            # For 2 videos, use direct acrossfade
+                            cmd = [
+                                'ffmpeg',
+                                '-i', temp_files[0],
+                                '-i', temp_files[1],
+                                '-filter_complex',
+                                # Video: concatenate
+                                '[0:v][1:v]concat=n=2:v=1:a=0[vout];'
+                                # Audio: normalize each, then crossfade
+                                '[0:a]loudnorm=I=-16:LRA=11:TP=-1.5[a0];'
+                                '[1:a]loudnorm=I=-16:LRA=11:TP=-1.5[a1];'
+                                '[a0][a1]acrossfade=d=0.5:c1=tri:c2=tri[aout]',
+                                '-map', '[vout]',
+                                '-map', '[aout]',
+                                '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                                '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                                '-pix_fmt', 'yuv420p',
+                                '-y',
+                                output_path
+                            ]
+                        else:
+                            # For 3+ videos, use concat demuxer with audio normalization
+                            # Create concat file
+                            concat_file = f"{temp_dir}/concat.txt"
+                            with open(concat_file, 'w') as f:
+                                for temp_path in temp_files:
+                                    f.write(f"file '{temp_path}'\n")
+                            
+                            cmd = [
+                                'ffmpeg', '-f', 'concat', '-safe', '0',
+                                '-i', concat_file,
+                                '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                                # Advanced audio filter: normalize + smooth transitions
+                                '-af', 'loudnorm=I=-16:LRA=11:TP=-1.5,afade=t=in:st=0:d=0.3,afade=t=out:st={duration-0.3}:d=0.3',
+                                '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                                '-pix_fmt', 'yuv420p',
+                                '-y',
+                                output_path
+                            ]
+                        
+                        logging.info(f"[STITCH] Running ffmpeg with seamless audio")
                         logging.info(f"[STITCH] Command: {' '.join(cmd)}")
                         result_proc = subprocess.run(cmd, capture_output=True, text=True)
                         
