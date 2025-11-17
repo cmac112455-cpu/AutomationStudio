@@ -3449,6 +3449,191 @@ async def execute_workflow(workflow_id: str, user_id: str = Depends(get_current_
                     result = {"status": "error", "error": f"Text-to-music failed: {str(e)}"}
 
             
+            elif node_type == 'audiostitch':
+                # Execute Audio Stitch - combines audio tracks with stitched video
+                try:
+                    logging.info(f"[AUDIO_STITCH] Node {node_id} executing")
+                    
+                    # Step 1: Find the stitched video from previous stitch node
+                    stitched_video_base64 = None
+                    for prev_node_id in execution_order:
+                        if prev_node_id == node_id:
+                            break
+                        prev_result = results.get(prev_node_id, {})
+                        if prev_result.get('status') == 'success':
+                            # Check if it's from a stitch node
+                            prev_node = next((n for n in workflow['nodes'] if n['id'] == prev_node_id), None)
+                            if prev_node and prev_node.get('type') == 'stitch':
+                                stitched_video_base64 = prev_result.get('video_base64')
+                                if stitched_video_base64:
+                                    logging.info(f"[AUDIO_STITCH] Found stitched video from node {prev_node_id}")
+                                    break
+                    
+                    if not stitched_video_base64:
+                        result = {"status": "error", "error": "No stitched video found from previous stitch node"}
+                        logging.error("[AUDIO_STITCH] No stitched video found")
+                    else:
+                        # Step 2: Find audio tracks from TTS and Music nodes
+                        tts_audio_base64 = None
+                        music_audio_base64 = None
+                        
+                        for prev_node_id in execution_order:
+                            if prev_node_id == node_id:
+                                break
+                            prev_result = results.get(prev_node_id, {})
+                            if prev_result.get('status') == 'success':
+                                prev_node = next((n for n in workflow['nodes'] if n['id'] == prev_node_id), None)
+                                if prev_node:
+                                    node_type_check = prev_node.get('type')
+                                    # Check for TTS audio
+                                    if node_type_check == 'texttospeech' and not tts_audio_base64:
+                                        tts_audio_base64 = prev_result.get('audio_base64')
+                                        if tts_audio_base64:
+                                            logging.info(f"[AUDIO_STITCH] Found TTS audio from node {prev_node_id}")
+                                    # Check for Music audio
+                                    elif node_type_check == 'texttomusic' and not music_audio_base64:
+                                        music_audio_base64 = prev_result.get('music_base64') or prev_result.get('audio_base64')
+                                        if music_audio_base64:
+                                            logging.info(f"[AUDIO_STITCH] Found Music audio from node {prev_node_id}")
+                        
+                        if not tts_audio_base64 and not music_audio_base64:
+                            result = {"status": "error", "error": "No audio tracks found from TTS or Music nodes"}
+                            logging.error("[AUDIO_STITCH] No audio tracks found")
+                        else:
+                            import tempfile
+                            import subprocess
+                            import shutil
+                            
+                            temp_dir = tempfile.mkdtemp()
+                            logging.info(f"[AUDIO_STITCH] Using temp directory: {temp_dir}")
+                            
+                            try:
+                                # Save video
+                                video_path = f"{temp_dir}/input_video.mp4"
+                                video_bytes = base64.b64decode(stitched_video_base64)
+                                with open(video_path, 'wb') as f:
+                                    f.write(video_bytes)
+                                
+                                # Get video duration
+                                probe_cmd = [
+                                    'ffprobe', '-v', 'error', 
+                                    '-show_entries', 'format=duration',
+                                    '-of', 'default=noprint_wrappers=1:nokey=1',
+                                    video_path
+                                ]
+                                probe_result = subprocess.run(probe_cmd, capture_output=True, text=True)
+                                video_duration = float(probe_result.stdout.strip())
+                                logging.info(f"[AUDIO_STITCH] Video duration: {video_duration}s")
+                                
+                                # Prepare audio track(s)
+                                audio_inputs = []
+                                filter_complex_parts = []
+                                
+                                if tts_audio_base64 and music_audio_base64:
+                                    # Both audio tracks - mix them intelligently
+                                    logging.info("[AUDIO_STITCH] Mixing TTS and Music audio")
+                                    
+                                    # Save TTS audio
+                                    tts_path = f"{temp_dir}/tts_audio.mp3"
+                                    tts_bytes = base64.b64decode(tts_audio_base64)
+                                    with open(tts_path, 'wb') as f:
+                                        f.write(tts_bytes)
+                                    audio_inputs.append(tts_path)
+                                    
+                                    # Save Music audio
+                                    music_path = f"{temp_dir}/music_audio.mp3"
+                                    music_bytes = base64.b64decode(music_audio_base64)
+                                    with open(music_path, 'wb') as f:
+                                        f.write(music_bytes)
+                                    audio_inputs.append(music_path)
+                                    
+                                    # Mix: TTS at 100% volume, Music at 30% (background)
+                                    # Trim both to video length
+                                    filter_complex = (
+                                        f"[1:a]atrim=0:{video_duration},volume=1.0[tts];"
+                                        f"[2:a]atrim=0:{video_duration},volume=0.3[music];"
+                                        f"[tts][music]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+                                    )
+                                    audio_map = "[aout]"
+                                    
+                                elif tts_audio_base64:
+                                    # Only TTS audio
+                                    logging.info("[AUDIO_STITCH] Using TTS audio only")
+                                    tts_path = f"{temp_dir}/tts_audio.mp3"
+                                    tts_bytes = base64.b64decode(tts_audio_base64)
+                                    with open(tts_path, 'wb') as f:
+                                        f.write(tts_bytes)
+                                    audio_inputs.append(tts_path)
+                                    
+                                    # Trim to video length
+                                    filter_complex = f"[1:a]atrim=0:{video_duration}[aout]"
+                                    audio_map = "[aout]"
+                                    
+                                else:
+                                    # Only Music audio
+                                    logging.info("[AUDIO_STITCH] Using Music audio only")
+                                    music_path = f"{temp_dir}/music_audio.mp3"
+                                    music_bytes = base64.b64decode(music_audio_base64)
+                                    with open(music_path, 'wb') as f:
+                                        f.write(music_bytes)
+                                    audio_inputs.append(music_path)
+                                    
+                                    # Trim to video length
+                                    filter_complex = f"[1:a]atrim=0:{video_duration}[aout]"
+                                    audio_map = "[aout]"
+                                
+                                # Build FFmpeg command
+                                output_path = f"{temp_dir}/final_video.mp4"
+                                
+                                cmd = ['ffmpeg', '-i', video_path]
+                                for audio_input in audio_inputs:
+                                    cmd.extend(['-i', audio_input])
+                                
+                                cmd.extend([
+                                    '-filter_complex', filter_complex,
+                                    '-map', '0:v:0',  # Video from input
+                                    '-map', audio_map,  # Audio from filter
+                                    '-c:v', 'copy',  # Copy video (no re-encode)
+                                    '-c:a', 'aac',
+                                    '-b:a', '192k',
+                                    '-shortest',
+                                    '-y',
+                                    output_path
+                                ])
+                                
+                                logging.info(f"[AUDIO_STITCH] Running FFmpeg command")
+                                ffmpeg_result = subprocess.run(cmd, capture_output=True, text=True)
+                                
+                                if ffmpeg_result.returncode != 0:
+                                    logging.error(f"[AUDIO_STITCH] FFmpeg failed: {ffmpeg_result.stderr}")
+                                    raise Exception(f"FFmpeg failed: {ffmpeg_result.stderr}")
+                                
+                                # Read final video
+                                with open(output_path, 'rb') as f:
+                                    final_video_bytes = f.read()
+                                
+                                logging.info(f"[AUDIO_STITCH] Created final video with audio: {len(final_video_bytes)} bytes")
+                                
+                                # Encode to base64
+                                final_video_base64 = base64.b64encode(final_video_bytes).decode('utf-8')
+                                
+                                result = {
+                                    "status": "success",
+                                    "video_base64": final_video_base64,
+                                    "audio_type": "mixed" if (tts_audio_base64 and music_audio_base64) else ("tts" if tts_audio_base64 else "music"),
+                                    "duration": video_duration
+                                }
+                                
+                            finally:
+                                # Cleanup
+                                shutil.rmtree(temp_dir)
+                
+                except Exception as e:
+                    import traceback
+                    logging.error(f"[AUDIO_STITCH] Exception: {str(e)}")
+                    logging.error(f"[AUDIO_STITCH] Traceback: {traceback.format_exc()}")
+                    result = {"status": "error", "error": f"Audio stitch failed: {str(e)}"}
+            
             elif node_type == 'taskplanner':
                 # Execute Task Planner action
                 action = node_data.get('action', 'create')
