@@ -7,7 +7,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
 
 const IntegrationsPage = () => {
   const [integrations, setIntegrations] = useState({
-    elevenlabs: { apiKey: '', connected: false, loading: false }
+    elevenlabs: { apiKey: '', connected: false, loading: false, errorMessage: '' }
   });
   const [saveStatus, setSaveStatus] = useState({});
 
