@@ -79,6 +79,8 @@ const ConversationalAgentsPage = () => {
     evaluation: false,
     metadata: false
   });
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [loadingAudio, setLoadingAudio] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
