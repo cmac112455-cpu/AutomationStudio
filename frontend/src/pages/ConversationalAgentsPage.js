@@ -365,11 +365,11 @@ const ConversationalAgentsPage = () => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      console.log('Manually stopping recording...');
       mediaRecorder.stop();
-      setIsRecording(false);
-      setMediaRecorder(null);
     }
+    // State will be cleaned up in recorder.onstop handler
   };
 
   const processVoiceInput = async (audioBlob) => {
