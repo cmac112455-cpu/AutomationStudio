@@ -2151,7 +2151,8 @@ const ConversationalAgentsPage = () => {
                                   const newTools = e.target.checked
                                     ? [...builtInTools, 'keypad']
                                     : builtInTools.filter(t => t !== 'keypad');
-                                  updateAgentTools(newTools, toolIds);
+                                  setBuiltInTools(newTools);
+                                  setUnsavedToolsChanges(true);
                                 }}
                                 className="sr-only peer"
                               />
