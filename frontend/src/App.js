@@ -90,6 +90,7 @@ function App() {
                         <Route path="/copilot" element={<CoPilotPage />} />
                         <Route path="/tasks" element={<TasksPage />} />
                         <Route path="/automation/studio" element={<AutomationStudioPage />} />
+                        <Route path="/automation/integrations" element={<IntegrationsPage />} />
                         <Route path="/automation/completions" element={<CompletionsPage />} />
                         <Route path="/automation" element={<Navigate to="/automation/studio" />} />
                         <Route path="/" element={<Navigate to="/dashboard" />} />
