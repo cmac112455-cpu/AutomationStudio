@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the Video Ad Creator workflow's Image-To-Video node. The node was failing because the screenshot image was not being passed correctly to the Sora 2 API. Issue: Sora 2 API expects multipart/form-data file upload, not JSON with base64 data."
+user_problem_statement: "Fix the Music Generation feature in Voice Studio. When users try to generate music, the process fails after loading with error 'Invalid API response: Expecting value: line 1 column 1 (char 0)'. Issue: The ElevenLabs polling endpoint returns raw binary MP3 data when ready, not JSON, but the code was trying to parse it as JSON."
 
 backend:
   - task: "Image-To-Video Node (imagetovideo) in Workflow Engine"
