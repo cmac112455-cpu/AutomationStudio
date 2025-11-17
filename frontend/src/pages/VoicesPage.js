@@ -37,7 +37,72 @@ const VoicesPage = () => {
   useEffect(() => {
     fetchVoices();
     loadPersonalVoices();
+    loadSavedPresets();
   }, []);
+
+  const loadSavedPresets = () => {
+    const stored = localStorage.getItem('voice_presets');
+    if (stored) {
+      setSavedPresets(JSON.parse(stored));
+    }
+  };
+
+  const savePreset = () => {
+    if (!presetName.trim()) {
+      toast.error('Please enter a preset name');
+      return;
+    }
+    if (!selectedVoice) {
+      toast.error('Please select a voice first');
+      return;
+    }
+
+    const preset = {
+      id: Date.now().toString(),
+      name: presetName,
+      voice: selectedVoice,
+      settings: {
+        stability,
+        similarityBoost,
+        style,
+        speakerBoost,
+        speed,
+        modelId
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = [...savedPresets, preset];
+    setSavedPresets(updated);
+    localStorage.setItem('voice_presets', JSON.stringify(updated));
+    setPresetName('');
+    setShowSavePreset(false);
+    toast.success(`Preset "${presetName}" saved`);
+  };
+
+  const loadPreset = (preset) => {
+    setSelectedVoice(preset.voice);
+    setStability(preset.settings.stability);
+    setSimilarityBoost(preset.settings.similarityBoost);
+    setStyle(preset.settings.style);
+    setSpeakerBoost(preset.settings.speakerBoost);
+    setSpeed(preset.settings.speed);
+    setModelId(preset.settings.modelId);
+    
+    // Add voice to personal voices if not already there
+    if (!personalVoices.some(v => v.voice_id === preset.voice.voice_id)) {
+      addToPersonalVoices(preset.voice);
+    }
+    
+    toast.success(`Loaded preset "${preset.name}"`);
+  };
+
+  const deletePreset = (presetId) => {
+    const updated = savedPresets.filter(p => p.id !== presetId);
+    setSavedPresets(updated);
+    localStorage.setItem('voice_presets', JSON.stringify(updated));
+    toast.success('Preset deleted');
+  };
 
   const fetchVoices = async () => {
     try {
