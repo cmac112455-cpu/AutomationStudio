@@ -15,6 +15,7 @@ import VoicesPage from './pages/VoicesPage';
 import MusicPage from './pages/MusicPage';
 import VoiceCompletionsPage from './pages/VoiceCompletionsPage';
 import ConversationalAgentsPage from './pages/ConversationalAgentsPage';
+import ConversationalAICompletionsPage from './pages/ConversationalAICompletionsPage';
 import Layout from './components/Layout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
