@@ -1863,7 +1863,9 @@ async def delete_integration(service: str, user_id: str = Depends(get_current_us
     """Remove integration API key for a service"""
     await db.users.update_one(
         {"id": user_id},
-
+        {"$unset": {f"integrations.{service}": ""}}
+    )
+    return {"status": "success", "service": service}
 
 # ============ TTS PREVIEW ENDPOINT ============
 
