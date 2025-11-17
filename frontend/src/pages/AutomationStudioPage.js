@@ -407,12 +407,14 @@ export default function AutomationStudioPage() {
         name: 'Video Ad Creator - Extended Videos',
         nodes: [
           {id: 'start-1', type: 'start', position: {x: 100, y: 50}, data: {}},
-          {id: 'video-1', type: 'videogen', position: {x: 300, y: 50}, data: {duration: 4, size: '1280x720', prompt: 'A sleek modern smartphone resting on a clean white marble desk in a bright office with natural sunlight streaming through floor-to-ceiling windows. The camera slowly orbits around the phone, highlighting its premium metallic frame and glass back with subtle reflections.'}},
-          {id: 'screenshot-1', type: 'screenshot', position: {x: 500, y: 50}, data: {}},
-          {id: 'video-2', type: 'imagetovideo', position: {x: 700, y: 50}, data: {duration: 4, size: '1280x720', prompt: 'The smartphone screen illuminates with a smooth animation. Colorful app icons appear on the vibrant OLED display. The camera gently zooms in to show the crisp interface details and smooth transitions between screens.'}},
-          {id: 'screenshot-2', type: 'screenshot', position: {x: 900, y: 50}, data: {}},
-          {id: 'stitch-1', type: 'stitch', position: {x: 1100, y: 50}, data: {}},
-          {id: 'end-1', type: 'end', position: {x: 1300, y: 50}, data: {}}
+          {id: 'ai-1', type: 'gemini', position: {x: 300, y: 50}, data: {prompt: 'Create a detailed 4-second video scene description for a product advertisement. Be EXTREMELY SPECIFIC with concrete details: describe the exact product (e.g. "silver laptop", "red coffee mug", "blue running shoes"), the exact setting (e.g. "white marble desk", "wooden kitchen table", "park bench"), exact lighting (e.g. "morning sunlight from left", "soft lamp light"), and exact camera movement (e.g. "camera slowly pans right", "camera orbits clockwise"). Use only professional, technical, concrete language. Example format: "A [specific product] on a [specific surface] in a [specific location] with [specific lighting]. The camera [specific movement] to show [specific details]."', model: 'gemini-2.5-pro'}},
+          {id: 'video-1', type: 'videogen', position: {x: 500, y: 50}, data: {duration: 4, size: '1280x720'}},
+          {id: 'screenshot-1', type: 'screenshot', position: {x: 700, y: 50}, data: {}},
+          {id: 'ai-2', type: 'gemini', position: {x: 700, y: 200}, data: {prompt: 'Continue the previous video scene with a seamless 4-second follow-up. Be EXTREMELY SPECIFIC: describe the exact next action (e.g. "screen lights up", "lid opens", "button presses"), exact visual changes (e.g. "blue interface appears", "steam rises", "LEDs glow green"), and exact camera movement (e.g. "camera zooms in 30%", "camera tilts down slightly"). Use only concrete, technical, professional language describing physical objects and actions. No abstract concepts.', model: 'gemini-2.5-pro'}},
+          {id: 'video-2', type: 'imagetovideo', position: {x: 900, y: 125}, data: {duration: 4, size: '1280x720'}},
+          {id: 'screenshot-2', type: 'screenshot', position: {x: 1100, y: 125}, data: {}},
+          {id: 'stitch-1', type: 'stitch', position: {x: 1300, y: 87}, data: {}},
+          {id: 'end-1', type: 'end', position: {x: 1500, y: 87}, data: {}}
         ],
         edges: [
           {id: 'e1', source: 'start-1', target: 'video-1'},
