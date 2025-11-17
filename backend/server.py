@@ -3028,6 +3028,15 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         agent_config = conversation_config.get("agent", {})
         prompt_config = agent_config.get("prompt", {})
         
+        # Log the full structure for debugging
+        logging.info(f"[TOOLS] ============ AGENT STRUCTURE DEBUG ============")
+        logging.info(f"[TOOLS] Agent data keys: {list(agent_data.keys())}")
+        logging.info(f"[TOOLS] Conversation config keys: {list(conversation_config.keys())}")
+        logging.info(f"[TOOLS] Agent config keys: {list(agent_config.keys())}")
+        logging.info(f"[TOOLS] Prompt config keys: {list(prompt_config.keys())}")
+        logging.info(f"[TOOLS] Full prompt config: {prompt_config}")
+        logging.info(f"[TOOLS] ================================================")
+        
         # Extract tools from the correct nested structure
         built_in_tools = prompt_config.get("built_in_tools", [])
         tool_ids = prompt_config.get("tool_ids", [])
