@@ -159,36 +159,33 @@ const MusicPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content - Left Side */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Prompt Input - ChatGPT Style */}
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
-              <div className="relative bg-gray-900 rounded-2xl border border-gray-800/50 shadow-2xl overflow-hidden">
-                <Textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Describe the music you want to create... Try: 'Epic cinematic orchestral music with dramatic strings'"
-                  className="bg-transparent border-0 text-white text-base min-h-[200px] resize-none focus:ring-0 p-6 placeholder:text-gray-500"
-                />
-                <div className="px-6 pb-4 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{prompt.length} / 2000</span>
-                  <Button
-                    onClick={generateMusic}
-                    disabled={generating || !prompt.trim()}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-6 py-2 rounded-xl shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader className="w-4 h-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate
-                      </>
-                    )}
-                  </Button>
-                </div>
+            {/* Prompt Input */}
+            <div className="bg-[#13141a] rounded-xl border border-gray-800 p-6">
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe the music you want to create... Try: 'Epic cinematic orchestral music with dramatic strings'"
+                className="bg-[#0a0b0d] border-gray-700 text-white text-base min-h-[200px] resize-none focus:border-gray-600"
+              />
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs text-gray-500">{prompt.length} / 2000</span>
+                <Button
+                  onClick={generateMusic}
+                  disabled={generating || !prompt.trim()}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-6 py-2 rounded-xl shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {generating ? (
+                    <>
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
