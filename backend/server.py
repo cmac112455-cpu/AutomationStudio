@@ -2710,10 +2710,23 @@ async def list_knowledge_base(agent_id: str, user_id: str = Depends(get_current_
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to fetch knowledge base: {str(e)}")
 
-@api_router.delete("/conversational-ai/knowledge-base/{kb_id}")
-async def delete_knowledge_base_item(kb_id: str, user_id: str = Depends(get_current_user)):
-    """Delete a knowledge base item from ElevenLabs"""
+@api_router.delete("/conversational-ai/agents/{agent_id}/knowledge-base/{kb_id}")
+async def delete_knowledge_base_item(agent_id: str, kb_id: str, user_id: str = Depends(get_current_user)):
+    """Remove knowledge base item from agent and optionally delete from ElevenLabs"""
     try:
+        # Verify agent ownership
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
         # Get ElevenLabs API key
         user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
         elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
@@ -2721,25 +2734,30 @@ async def delete_knowledge_base_item(kb_id: str, user_id: str = Depends(get_curr
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        # Delete from ElevenLabs
-        import requests
-        response = requests.delete(
-            f"https://api.elevenlabs.io/v1/convai/knowledge-base/{kb_id}",
-            headers={"xi-api-key": elevenlabs_key}
+        # Remove from agent
+        remove_response = requests.post(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}/remove-from-knowledge-base",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json={"document_id": kb_id}
         )
         
-        if response.status_code != 200:
-            logging.error(f"[KNOWLEDGE_BASE] ElevenLabs API error: {response.text}")
-            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        if remove_response.status_code not in [200, 201, 204]:
+            logging.error(f"[KNOWLEDGE_BASE] Error removing KB from agent: {remove_response.text}")
+            raise HTTPException(status_code=remove_response.status_code, detail=f"Failed to remove from agent: {remove_response.text}")
         
-        logging.info(f"[KNOWLEDGE_BASE] Deleted item: {kb_id}")
+        logging.info(f"[KNOWLEDGE_BASE] ✅ Removed KB {kb_id} from agent {agent_id}")
         
-        return {"message": "Knowledge base item deleted successfully"}
+        return {"message": "Knowledge base item removed from agent successfully"}
         
     except HTTPException:
         raise
     except Exception as e:
         logging.error(f"[KNOWLEDGE_BASE] Error deleting item: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}")
 
 @api_router.post("/conversational-ai/sync-elevenlabs-agents")
