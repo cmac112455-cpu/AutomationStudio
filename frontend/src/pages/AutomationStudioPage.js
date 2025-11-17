@@ -1017,6 +1017,13 @@ export default function AutomationStudioPage() {
               <Mic className="w-3.5 h-3.5" />
               Audio Overlay
             </button>
+            <button
+              onClick={() => addNode('texttomusic')}
+              className="w-full p-2 rounded bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-xs flex items-center gap-2"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              Text-to-Music
+            </button>
           </div>
           
           <h3 className="text-sm font-semibold mb-3 text-gray-400">INTEGRATIONS</h3>
