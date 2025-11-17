@@ -518,12 +518,32 @@ const ConversationalAgentsPage = () => {
     
     setLoadingTools(true);
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/tools`);
-      setSystemTools(response.data.built_in_tools || []);
-      console.log('🔧 Tools loaded:', response.data);
+      // Get agent's configured tools
+      const agentToolsResponse = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/tools`);
+      const agentTools = agentToolsResponse.data;
+      
+      setBuiltInTools(Array.isArray(agentTools.built_in_tools) ? agentTools.built_in_tools : []);
+      setToolIds(Array.isArray(agentTools.tool_ids) ? agentTools.tool_ids : []);
+      
+      console.log('🔧 Agent tools loaded:', agentTools);
+      
+      // Get workspace tools (available server/client tools)
+      try {
+        const workspaceResponse = await axios.get(`${BACKEND_URL}/api/conversational-ai/workspace-tools`);
+        setWorkspaceTools({
+          server_tools: Array.isArray(workspaceResponse.data.server_tools) ? workspaceResponse.data.server_tools : [],
+          client_tools: Array.isArray(workspaceResponse.data.client_tools) ? workspaceResponse.data.client_tools : []
+        });
+        console.log('🔧 Workspace tools loaded:', workspaceResponse.data);
+      } catch (workspaceError) {
+        console.warn('Could not load workspace tools:', workspaceError);
+        setWorkspaceTools({ server_tools: [], client_tools: [] });
+      }
     } catch (error) {
       console.error('Error loading tools:', error);
-      setSystemTools([]);
+      setBuiltInTools([]);
+      setToolIds([]);
+      setWorkspaceTools({ server_tools: [], client_tools: [] });
     } finally {
       setLoadingTools(false);
     }
