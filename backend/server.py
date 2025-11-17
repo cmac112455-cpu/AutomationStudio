@@ -2953,6 +2953,7 @@ async def update_agent_analysis_config(
         }
         
         logging.info(f"[ANALYSIS_CONFIG] Sending update to ElevenLabs for agent {elevenlabs_agent_id}")
+        logging.info(f"[ANALYSIS_CONFIG] Update payload: {json_lib.dumps(update_payload, indent=2)}")
         
         patch_response = requests.patch(
             f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
