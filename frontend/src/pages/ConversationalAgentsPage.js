@@ -415,8 +415,12 @@ const ConversationalAgentsPage = () => {
           return;
         }
         
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        console.log('🎵 Audio blob created, size:', audioBlob.size, 'bytes');
+        // Create blob with proper audio/webm MIME type
+        const audioBlob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
+        console.log('🎵 Audio blob created');
+        console.log('   - Size:', audioBlob.size, 'bytes');
+        console.log('   - Type:', audioBlob.type);
+        console.log('   - Chunks:', chunks.length);
         
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
