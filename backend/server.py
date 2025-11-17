@@ -2619,14 +2619,11 @@ async def chat_with_agent(agent_id: str, chat_data: dict, user_id: str = Depends
         audio_url = None
         if agent.get("voice"):
             try:
-                # Get ElevenLabs API key
-                integration = await db.user_integrations.find_one(
-                    {"user_id": user_id, "platform": "elevenlabs"},
-                    {"_id": 0}
-                )
+                # Get ElevenLabs API key from user integrations
+                user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+                elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
                 
-                if integration and integration.get("api_key"):
-                    elevenlabs_key = integration["api_key"]
+                if elevenlabs_key:
                     
                     # Generate speech
                     import requests
