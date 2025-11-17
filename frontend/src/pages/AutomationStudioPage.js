@@ -1646,6 +1646,79 @@ export default function AutomationStudioPage() {
                 </>
               )}
 
+              {/* Text-to-Music Node Config */}
+              {selectedNode.type === 'texttomusic' && (
+                <>
+                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Mic className="w-4 h-4 text-purple-400" />
+                      <span className="text-sm font-semibold text-purple-400">ElevenLabs Music Generation</span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Generate background music, songs, or sound effects from text prompts
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Music Prompt</Label>
+                    <Textarea
+                      value={nodeConfig.prompt || ''}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                      placeholder="e.g., 'Epic cinematic orchestral music with dramatic strings and horns' or leave empty to use AI node output..."
+                      className="bg-[#0f1218] border-gray-700 text-white mt-2"
+                      rows={4}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Describe the style, mood, instruments, tempo, or genre. Can auto-receive from AI nodes.
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white flex items-center justify-between">
+                      <span>Duration (seconds)</span>
+                      <span className="text-xs text-gray-400">{nodeConfig.duration_seconds || 120}s</span>
+                    </Label>
+                    <input
+                      type="range"
+                      min="30"
+                      max="300"
+                      step="10"
+                      value={nodeConfig.duration_seconds || 120}
+                      onChange={(e) => setNodeConfig({ ...nodeConfig, duration_seconds: parseInt(e.target.value) })}
+                      className="w-full mt-2 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Length of generated music (30s to 5 minutes)
+                    </p>
+                  </div>
+
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-xs text-gray-300">
+                    <div className="flex items-start gap-2">
+                      <span className="text-yellow-400">⚡</span>
+                      <div>
+                        <strong className="text-white">Note:</strong> Music generation can take 30 seconds to 5 minutes depending on duration. 
+                        The node will automatically wait for completion. Generated music is commercially licensed for broad use.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 text-xs text-gray-300 mt-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-400">💡</span>
+                      <div>
+                        <strong className="text-white">Example Prompts:</strong>
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          <li>"Upbeat pop music with piano and drums, 90 BPM"</li>
+                          <li>"Dark ambient electronic soundscape with synth pads"</li>
+                          <li>"Acoustic guitar folk song with soft vocals in English"</li>
+                          <li>"Cinematic trailer music with epic drums and brass"</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
 
               {/* Database Node Config */}
               {selectedNode.type === 'database' && (
