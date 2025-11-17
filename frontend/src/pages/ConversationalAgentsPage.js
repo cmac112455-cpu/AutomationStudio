@@ -1996,8 +1996,8 @@ const ConversationalAgentsPage = () => {
                                 <Phone className="w-5 h-5 text-red-400" />
                               </div>
                               <div>
-                                <h4 className="font-medium">End Call</h4>
-                                <p className="text-sm text-gray-400">Allow agent to end conversations</p>
+                                <h4 className="font-medium">End Conversation</h4>
+                                <p className="text-sm text-gray-400">Allow agent to end calls when appropriate</p>
                               </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -2008,6 +2008,168 @@ const ConversationalAgentsPage = () => {
                                   const newTools = e.target.checked
                                     ? [...builtInTools, 'end_call']
                                     : builtInTools.filter(t => t !== 'end_call');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Detect Language Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                <MessageSquare className="w-5 h-5 text-blue-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Detect Language</h4>
+                                <p className="text-sm text-gray-400">Automatically detect the user's language</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('detect_language')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'detect_language']
+                                    : builtInTools.filter(t => t !== 'detect_language');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Skip Turn Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                                <RefreshCw className="w-5 h-5 text-yellow-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Skip Turn</h4>
+                                <p className="text-sm text-gray-400">Skip a conversation turn when needed</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('skip_turn')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'skip_turn']
+                                    : builtInTools.filter(t => t !== 'skip_turn');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Transfer to Agent Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                <Bot className="w-5 h-5 text-green-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Transfer to Agent</h4>
+                                <p className="text-sm text-gray-400">Transfer conversation to another AI agent</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_agent')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'transfer_to_agent']
+                                    : builtInTools.filter(t => t !== 'transfer_to_agent');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Transfer to Number Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                                <Phone className="w-5 h-5 text-emerald-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Transfer to Number</h4>
+                                <p className="text-sm text-gray-400">Transfer call to a human phone number</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_number')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'transfer_to_number']
+                                    : builtInTools.filter(t => t !== 'transfer_to_number');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Play Keypad Touch Tone Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-lg">🔢</span>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Play Keypad Touch Tone</h4>
+                                <p className="text-sm text-gray-400">Play DTMF tones for keypad inputs</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('keypad')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'keypad']
+                                    : builtInTools.filter(t => t !== 'keypad');
+                                  updateAgentTools(newTools, toolIds);
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                            </label>
+                          </div>
+
+                          {/* Voicemail Detection Tool */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-lg">📧</span>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Voicemail Detection</h4>
+                                <p className="text-sm text-gray-400">Detect and handle voicemail systems</p>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(builtInTools) && builtInTools.includes('voicemail')}
+                                onChange={(e) => {
+                                  const newTools = e.target.checked
+                                    ? [...builtInTools, 'voicemail']
+                                    : builtInTools.filter(t => t !== 'voicemail');
                                   updateAgentTools(newTools, toolIds);
                                 }}
                                 className="sr-only peer"
