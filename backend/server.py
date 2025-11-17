@@ -3668,9 +3668,7 @@ async def add_call_exchange(log_id: str, exchange_data: dict, user_id: str = Dep
 async def get_agent_usage_analytics(
     agent_id: str,
     user_id: str = Depends(get_current_user),
-    aggregation_interval: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    aggregation_interval: Optional[str] = "day"
 ):
     """Get usage analytics for an agent from ElevenLabs"""
     try:
@@ -3694,14 +3692,28 @@ async def get_agent_usage_analytics(
         if not elevenlabs_key:
             raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
         
-        # Build query parameters
-        params = {}
-        if aggregation_interval:
-            params["aggregation_interval"] = aggregation_interval
-        if start_date:
-            params["start_date"] = start_date
-        if end_date:
-            params["end_date"] = end_date
+        # Calculate start and end unix timestamps based on aggregation interval
+        end_unix = int(datetime.now(timezone.utc).timestamp())
+        
+        # Calculate start time based on interval
+        if aggregation_interval == "day":
+            start_time = datetime.now(timezone.utc) - timedelta(days=1)
+        elif aggregation_interval == "week":
+            start_time = datetime.now(timezone.utc) - timedelta(weeks=1)
+        elif aggregation_interval == "month":
+            start_time = datetime.now(timezone.utc) - timedelta(days=30)
+        else:
+            start_time = datetime.now(timezone.utc) - timedelta(weeks=1)  # Default to week
+        
+        start_unix = int(start_time.timestamp())
+        
+        # Build query parameters with required unix timestamps
+        params = {
+            "start_unix": start_unix,
+            "end_unix": end_unix
+        }
+        
+        logging.info(f"[ANALYTICS] Fetching usage for agent {agent_id} from {start_unix} to {end_unix}")
         
         # Fetch usage data from ElevenLabs
         response = requests.get(
