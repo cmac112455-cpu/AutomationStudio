@@ -318,8 +318,8 @@ const VoicesPage = () => {
                     onClick={() => setSelectedVoice(voice)}
                     className={`relative p-4 rounded-lg border-2 transition-all text-left ${
                       selectedVoice?.voice_id === voice.voice_id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
-                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-gray-800 hover:border-gray-700'
                     }`}
                   >
                     <div className="font-medium text-sm">{voice.name}</div>
