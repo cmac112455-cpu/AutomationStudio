@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BACKEND_URL = "https://voice-flow-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://ai-copilot-22.preview.emergentagent.com/api"
 
 def test_auth_and_chat():
     """Test authentication and chat functionality"""

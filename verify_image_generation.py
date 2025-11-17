@@ -8,7 +8,7 @@ import json
 import time
 import base64
 
-BACKEND_URL = "https://voice-flow-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://ai-copilot-22.preview.emergentagent.com/api"
 
 def test_image_generation():
     print("🧪 VERIFYING IMAGE GENERATION FUNCTIONALITY")
