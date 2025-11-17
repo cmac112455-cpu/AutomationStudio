@@ -1803,6 +1803,37 @@ async def get_execution(execution_id: str, user_id: str = Depends(get_current_us
         raise HTTPException(status_code=404, detail="Execution not found")
     return execution
 
+# ============ INTEGRATIONS ENDPOINTS ============
+
+class IntegrationConfig(BaseModel):
+    apiKey: str
+
+@api_router.get("/integrations")
+async def get_integrations(user_id: str = Depends(get_current_user)):
+    """Get user's integration configurations"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+    return user.get("integrations", {}) if user else {}
+
+@api_router.post("/integrations/{service}")
+async def save_integration(service: str, config: IntegrationConfig, user_id: str = Depends(get_current_user)):
+    """Save integration API key for a service"""
+    # Update user's integrations
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {f"integrations.{service}": {"apiKey": config.apiKey}}}
+    )
+    return {"status": "success", "service": service}
+
+@api_router.delete("/integrations/{service}")
+async def delete_integration(service: str, user_id: str = Depends(get_current_user)):
+    """Remove integration API key for a service"""
+    await db.users.update_one(
+        {"id": user_id},
+        {"$unset": {f"integrations.{service}": ""}}
+    )
+    return {"status": "success", "service": service}
+
+
 @api_router.get("/workflows/{workflow_id}", response_model=Workflow)
 async def get_workflow(workflow_id: str, user_id: str = Depends(get_current_user)):
     workflow = await db.workflows.find_one({"id": workflow_id, "user_id": user_id}, {"_id": 0})
