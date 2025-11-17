@@ -2820,6 +2820,161 @@ async def get_elevenlabs_signed_url(agent_id: str, user_id: str = Depends(get_cu
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.get("/conversational-ai/agents/{agent_id}/analysis-config")
+async def get_agent_analysis_config(agent_id: str, user_id: str = Depends(get_current_user)):
+    """Get agent's analysis configuration (evaluation criteria & data collection)"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            # Return empty config if not linked to ElevenLabs
+            return {
+                "evaluation_criteria": [],
+                "data_collection": []
+            }
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch agent details from ElevenLabs
+        response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[ANALYSIS_CONFIG] ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"ElevenLabs API error: {response.text}")
+        
+        agent_data = response.json()
+        
+        # Extract analysis configuration from agent data
+        conversation_config = agent_data.get("conversation_config", {})
+        agent_config = conversation_config.get("agent", {})
+        
+        evaluation_criteria = agent_config.get("evaluation_criteria", [])
+        data_collection = agent_config.get("data_collection", [])
+        
+        logging.info(f"[ANALYSIS_CONFIG] Loaded config for agent {agent_id}: {len(evaluation_criteria)} criteria, {len(data_collection)} data items")
+        
+        return {
+            "evaluation_criteria": evaluation_criteria,
+            "data_collection": data_collection
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYSIS_CONFIG] Error fetching config: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch analysis config: {str(e)}")
+
+
+@api_router.patch("/conversational-ai/agents/{agent_id}/analysis-config")
+async def update_agent_analysis_config(
+    agent_id: str,
+    config_update: dict,
+    user_id: str = Depends(get_current_user)
+):
+    """Update agent's analysis configuration (evaluation criteria & data collection)"""
+    try:
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # First, get current agent configuration
+        get_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if get_response.status_code != 200:
+            logging.error(f"[ANALYSIS_CONFIG] Error getting agent: {get_response.text}")
+            raise HTTPException(status_code=get_response.status_code, detail="Failed to get agent configuration")
+        
+        current_agent = get_response.json()
+        conversation_config = current_agent.get("conversation_config", {})
+        agent_config = conversation_config.get("agent", {})
+        
+        # Update evaluation criteria and/or data collection
+        if "evaluation_criteria" in config_update:
+            agent_config["evaluation_criteria"] = config_update["evaluation_criteria"]
+            logging.info(f"[ANALYSIS_CONFIG] Updating evaluation criteria: {len(config_update['evaluation_criteria'])} items")
+        
+        if "data_collection" in config_update:
+            agent_config["data_collection"] = config_update["data_collection"]
+            logging.info(f"[ANALYSIS_CONFIG] Updating data collection: {len(config_update['data_collection'])} items")
+        
+        # Update conversation config with modified agent config
+        conversation_config["agent"] = agent_config
+        
+        # Send update to ElevenLabs
+        update_payload = {
+            "conversation_config": conversation_config
+        }
+        
+        logging.info(f"[ANALYSIS_CONFIG] Sending update to ElevenLabs for agent {elevenlabs_agent_id}")
+        
+        patch_response = requests.patch(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json=update_payload
+        )
+        
+        if patch_response.status_code not in [200, 204]:
+            logging.error(f"[ANALYSIS_CONFIG] ElevenLabs API error: {patch_response.text}")
+            raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
+        
+        logging.info(f"[ANALYSIS_CONFIG] ✅ Successfully updated analysis config for agent {agent_id}")
+        
+        return {
+            "message": "Analysis configuration updated successfully",
+            "evaluation_criteria": agent_config.get("evaluation_criteria", []),
+            "data_collection": agent_config.get("data_collection", [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[ANALYSIS_CONFIG] Error updating config: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update analysis config: {str(e)}")
+
+
 @api_router.post("/conversational-ai/agents/{agent_id}/start-call")
 async def start_call_with_agent(agent_id: str, user_id: str = Depends(get_current_user)):
     """Start a call session with an agent"""
