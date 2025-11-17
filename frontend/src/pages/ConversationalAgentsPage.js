@@ -510,6 +510,36 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  // Load tools
+  const loadAgentTools = async (agentId) => {
+    if (!agentId) return;
+    
+    setLoadingTools(true);
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/agents/${agentId}/tools`);
+      setSystemTools(response.data.system_tools || []);
+      console.log('🔧 Tools loaded:', response.data);
+    } catch (error) {
+      console.error('Error loading tools:', error);
+      setSystemTools([]);
+    } finally {
+      setLoadingTools(false);
+    }
+  };
+
+  const updateAgentTools = async (toolsData) => {
+    if (!editingAgent?.id) return;
+    
+    try {
+      await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/tools`, toolsData);
+      toast.success('✅ Tools updated in ElevenLabs!');
+      await loadAgentTools(editingAgent.id);
+    } catch (error) {
+      console.error('Error updating tools:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update tools');
+    }
+  };
+
   // Load analytics when Analysis tab is opened
   useEffect(() => {
     if (activeTab === 'analysis' && editingAgent?.id) {
@@ -519,6 +549,13 @@ const ConversationalAgentsPage = () => {
       }
     }
   }, [activeTab, editingAgent?.id, analyticsTimeRange, analysisSection]);
+  
+  // Load tools when Tools tab is opened
+  useEffect(() => {
+    if (activeTab === 'tools' && editingAgent?.id) {
+      loadAgentTools(editingAgent.id);
+    }
+  }, [activeTab, editingAgent?.id]);
 
   const loadKnowledgeBase = async (agentId) => {
     if (!agentId) {
