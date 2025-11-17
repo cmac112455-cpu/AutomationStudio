@@ -3383,7 +3383,12 @@ async def update_agent_tools(
             "conversation_config": conversation_config
         }
         
+        logging.info(f"[TOOLS] ============ UPDATE PAYLOAD DEBUG ============")
         logging.info(f"[TOOLS] Sending tools update to ElevenLabs for agent {elevenlabs_agent_id}")
+        logging.info(f"[TOOLS] Updated built_in_tools: {prompt_config.get('built_in_tools', [])}")
+        logging.info(f"[TOOLS] Updated tool_ids: {prompt_config.get('tool_ids', [])}")
+        logging.info(f"[TOOLS] Payload structure: conversation_config.agent.prompt.built_in_tools")
+        logging.info(f"[TOOLS] ================================================")
         
         patch_response = requests.patch(
             f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
