@@ -643,6 +643,61 @@ export default function AutomationStudioPage() {
     }
   };
 
+
+
+  const previewVoice = async () => {
+    try {
+      setPreviewLoading(true);
+      
+      const token = localStorage.getItem('apoe_token');
+      const previewText = nodeConfig.text || "Hello! This is a preview of the selected voice. You can customize the voice settings to achieve your desired sound.";
+      
+      const response = await axios.post(
+        `${BACKEND_URL}/api/tts/preview`,
+        {
+          text: previewText,
+          voice: nodeConfig.voice || 'Rachel',
+          model_id: nodeConfig.model_id || 'eleven_monolingual_v1',
+          stability: nodeConfig.stability || 0.5,
+          similarity_boost: nodeConfig.similarity_boost || 0.75,
+          style: nodeConfig.style || 0,
+          speaker_boost: nodeConfig.speaker_boost || false
+        },
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+
+      // Create audio URL from blob
+      const audioUrl = URL.createObjectURL(response.data);
+      
+      // Stop previous audio if playing
+      if (previewAudio) {
+        previewAudio.pause();
+        URL.revokeObjectURL(previewAudio.src);
+      }
+      
+      // Create and play new audio
+      const audio = new Audio(audioUrl);
+      audio.onended = () => {
+        setPreviewLoading(false);
+      };
+      audio.onerror = () => {
+        setPreviewLoading(false);
+        alert('Failed to play audio preview');
+      };
+      
+      setPreviewAudio(audio);
+      await audio.play();
+      
+    } catch (error) {
+      console.error('Preview failed:', error);
+      setPreviewLoading(false);
+      alert(error.response?.data?.detail || 'Failed to generate preview. Check your ElevenLabs integration.');
+    }
+  };
+
   const onNodeClick = useCallback((event, node) => {
     setSelectedNodeForDeletion(node);
     setContextMenu(null); // Close context menu on click
