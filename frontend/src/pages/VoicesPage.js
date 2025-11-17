@@ -426,12 +426,12 @@ const VoicesPage = () => {
 
             {audioUrl && (
               <div className="space-y-3">
-                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                <div className="border border-gray-800 rounded-lg p-4">
                   <audio controls src={audioUrl} className="w-full" />
                 </div>
                 <Button
                   onClick={downloadAudio}
-                  className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full bg-gray-800 hover:bg-gray-700 text-white"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download
