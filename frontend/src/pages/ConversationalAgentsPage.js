@@ -991,8 +991,8 @@ const ConversationalAgentsPage = () => {
       {(showCreateModal || editingAgent) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#13141a] rounded-xl border border-gray-800 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[#13141a] border-b border-gray-800 p-6">
-              <div className="flex items-center justify-between">
+            <div className="sticky top-0 bg-[#13141a] border-b border-gray-800 p-6 z-10">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">
                   {editingAgent ? 'Edit Agent' : 'Create New Agent'}
                 </h2>
@@ -1001,15 +1001,73 @@ const ConversationalAgentsPage = () => {
                     setShowCreateModal(false);
                     setEditingAgent(null);
                     resetForm();
+                    setActiveTab('agent');
                   }}
                   className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
+              
+              {/* Tabs */}
+              <div className="flex gap-1 bg-[#0a0b0d] p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab('agent')}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === 'agent'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  🤖 Agent
+                </button>
+                <button
+                  onClick={() => setActiveTab('knowledge')}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === 'knowledge'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  📚 Knowledge Base
+                </button>
+                <button
+                  onClick={() => setActiveTab('tools')}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === 'tools'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  🔧 Tools
+                </button>
+                <button
+                  onClick={() => setActiveTab('analysis')}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === 'analysis'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  📊 Analysis
+                </button>
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeTab === 'settings'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  }`}
+                >
+                  ⚙️ Settings
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-6">
+              {/* Agent Tab Content */}
+              {activeTab === 'agent' && (
+                <div className="space-y-6">
               {/* Basic Info */}
               <div>
                 <Label className="text-white mb-2 block">Agent Name *</Label>
