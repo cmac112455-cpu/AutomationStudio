@@ -2862,7 +2862,12 @@ const ConversationalAgentsPage = () => {
                                     ))}
                                     <Button
                                       onClick={() => {
-                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || []), { number: '', condition: '' }];
+                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || []), { 
+                                          number: '', 
+                                          condition: '', 
+                                          delay_ms: 0, 
+                                          transfer_message: ''
+                                        }];
                                         setEditingToolSettings({
                                           ...editingToolSettings,
                                           config: {
