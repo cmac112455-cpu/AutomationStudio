@@ -518,6 +518,17 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  // Load available agents for transfer
+  const loadAvailableAgents = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/conversational-ai/available-agents`);
+      setAvailableAgents(response.data.agents || []);
+    } catch (error) {
+      console.warn('Could not load available agents:', error);
+      setAvailableAgents([]);
+    }
+  };
+
   // Load tools
   const loadAgentTools = async (agentId) => {
     if (!agentId) return;
@@ -538,6 +549,9 @@ const ConversationalAgentsPage = () => {
       }
       
       console.log('🔧 Agent tools loaded:', agentTools);
+      
+      // Load available agents for transfer
+      await loadAvailableAgents();
       
       // Get workspace tools (available server/client tools)
       try {
