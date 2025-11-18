@@ -201,7 +201,7 @@ const IntegrationsPage = () => {
                   <input
                     type="password"
                     value={integrations.elevenlabs.apiKey}
-                    onChange={(e) => handleInputChange('elevenlabs', e.target.value)}
+                    onChange={(e) => handleInputChange('elevenlabs', 'apiKey', e.target.value)}
                     placeholder="sk_..."
                     className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
