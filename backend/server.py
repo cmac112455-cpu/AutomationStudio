@@ -3411,11 +3411,14 @@ async def update_agent_tools(
         # Update tools in the correct nested location: conversation_config.agent.prompt
         if "built_in_tools" in tools_update:
             # Frontend sends array of tool names: ["end_call", "detect_language"]
+            # AND custom tool configs: { "end_call": {...custom settings...} }
             # ElevenLabs needs object: { "end_call": {...}, "detect_language": {...} }
             tool_names_to_enable = tools_update["built_in_tools"]
+            custom_tool_configs = tools_update.get("tool_configs", {})
             
             logging.info(f"[TOOLS] ============ SAVE OPERATION ============")
             logging.info(f"[TOOLS] Received from frontend: {tool_names_to_enable}")
+            logging.info(f"[TOOLS] Custom configs provided: {list(custom_tool_configs.keys())}")
             logging.info(f"[TOOLS] These are FRONTEND names that need backend mapping")
             
             # Build the built_in_tools object
