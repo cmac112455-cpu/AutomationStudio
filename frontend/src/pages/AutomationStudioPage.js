@@ -865,14 +865,20 @@ export default function AutomationStudioPage() {
       if (node.type === 'elevenlabsconversational') {
         axios.get(`${BACKEND_URL}/api/conversational-ai/agents`)
           .then(response => {
-            const agents = response.data.agents || [];
+            const agents = Array.isArray(response.data) ? response.data : [];
+            console.log('Loaded agents:', agents);
             setNodeConfig({ 
               ...config, 
-              availableAgents: agents.map(a => ({ id: a.id, name: a.name }))
+              availableAgents: agents.map(a => ({ 
+                id: a.id, 
+                name: a.name,
+                elevenlabs_agent_id: a.elevenlabs_agent_id 
+              }))
             });
           })
           .catch(error => {
             console.error('Error fetching agents:', error);
+            toast.error('Failed to load agents');
             setNodeConfig({ ...config, availableAgents: [] });
           });
       } else {
