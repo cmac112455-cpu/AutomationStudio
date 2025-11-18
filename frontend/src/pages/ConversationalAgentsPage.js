@@ -2137,25 +2137,34 @@ const ConversationalAgentsPage = () => {
                               <div>
                                 <h4 className="font-medium">Transfer to Agent</h4>
                                 <p className="text-sm text-gray-400">Transfer conversation to another AI agent</p>
+                                {!builtInTools.includes('transfer_to_agent') && (
+                                  <p className="text-xs text-yellow-400 mt-1">⚙️ Configure transfer rules first</p>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {builtInTools.includes('transfer_to_agent') && (
-                                <button
-                                  onClick={() => setEditingToolSettings({
-                                    toolName: 'transfer_to_agent',
-                                    config: toolConfigs['transfer_to_agent'] || {}
-                                  })}
-                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                                  title="Tool Settings"
-                                >
-                                  <Settings className="w-4 h-4 text-gray-400" />
-                                </button>
-                              )}
+                              <button
+                                onClick={() => setEditingToolSettings({
+                                  toolName: 'transfer_to_agent',
+                                  config: toolConfigs['transfer_to_agent'] || {
+                                    params: {
+                                      system_tool_type: 'transfer_to_agent',
+                                      transfer_to_agent: {
+                                        transfers: []
+                                      }
+                                    }
+                                  }
+                                })}
+                                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                title="Configure Transfer Rules"
+                              >
+                                <Settings className="w-4 h-4 text-gray-400" />
+                              </button>
                               <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                   type="checkbox"
                                   checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_agent')}
+                                  disabled={!toolConfigs['transfer_to_agent']?.params?.transfer_to_agent?.transfers?.length}
                                   onChange={(e) => {
                                     const newTools = e.target.checked
                                       ? [...builtInTools, 'transfer_to_agent']
@@ -2165,7 +2174,7 @@ const ConversationalAgentsPage = () => {
                                   }}
                                   className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white peer-disabled:opacity-50 peer-disabled:cursor-not-allowed after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                               </label>
                             </div>
                           </div>
