@@ -2238,50 +2238,34 @@ const ConversationalAgentsPage = () => {
                             </div>
                           </div>
 
-                          {/* Transfer to Number Tool */}
-                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+                          {/* Transfer to Number Tool - COMING SOON */}
+                          <div className="relative flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 opacity-60">
+                            <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                              🚧 COMING SOON
+                            </div>
                             <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
                                 <Phone className="w-5 h-5 text-emerald-400" />
                               </div>
                               <div>
-                                <h4 className="font-medium">Transfer to Number</h4>
-                                <p className="text-sm text-gray-400">Transfer call to a human phone number</p>
-                                {!builtInTools.includes('transfer_to_number') && (
-                                  <p className="text-xs text-yellow-400 mt-1">⚙️ Configure transfer rules first</p>
-                                )}
+                                <h4 className="font-medium text-gray-400">Transfer to Number</h4>
+                                <p className="text-sm text-gray-500">Transfer call to a human phone number</p>
+                                <p className="text-xs text-yellow-400 mt-1">⚠️ Feature under development</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setEditingToolSettings({
-                                  toolName: 'transfer_to_number',
-                                  config: toolConfigs['transfer_to_number'] || {
-                                    params: {
-                                      system_tool_type: 'transfer_to_number',
-                                      transfer_to_number: {
-                                        transfers: []
-                                      }
-                                    }
-                                  }
-                                })}
-                                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                                title="Configure Transfer Rules"
+                                disabled
+                                className="p-2 bg-gray-700 rounded-lg opacity-50 cursor-not-allowed"
+                                title="Coming Soon"
                               >
-                                <Settings className="w-4 h-4 text-gray-400" />
+                                <Settings className="w-4 h-4 text-gray-500" />
                               </button>
-                              <label className="relative inline-flex items-center cursor-pointer">
+                              <label className="relative inline-flex items-center cursor-not-allowed opacity-50">
                                 <input
                                   type="checkbox"
-                                  checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_number')}
-                                  disabled={!toolConfigs['transfer_to_number']?.params?.transfer_to_number?.transfers?.length}
-                                  onChange={(e) => {
-                                    const newTools = e.target.checked
-                                      ? [...builtInTools, 'transfer_to_number']
-                                      : builtInTools.filter(t => t !== 'transfer_to_number');
-                                    setBuiltInTools(newTools);
-                                    setUnsavedToolsChanges(true);
-                                  }}
+                                  checked={false}
+                                  disabled={true}
                                   className="sr-only peer"
                                 />
                                 <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white peer-disabled:opacity-50 peer-disabled:cursor-not-allowed after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
