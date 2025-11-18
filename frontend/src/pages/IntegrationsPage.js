@@ -39,6 +39,11 @@ const IntegrationsPage = () => {
             accountSid: response.data.twilio?.accountSid || '',
             authToken: response.data.twilio?.authToken || '',
             connected: !!(response.data.twilio?.accountSid && response.data.twilio?.authToken)
+          },
+          manychat: {
+            ...prev.manychat,
+            apiKey: response.data.manychat?.apiKey || '',
+            connected: !!response.data.manychat?.apiKey
           }
         }));
       }
