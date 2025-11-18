@@ -1828,9 +1828,9 @@ async def get_integrations(user_id: str = Depends(get_current_user)):
 
 @api_router.post("/integrations/{service}")
 async def save_integration(service: str, config: IntegrationConfig, user_id: str = Depends(get_current_user)):
-    """Save integration API key for a service"""
+    """Save integration configuration for a service"""
     
-    # Validate the API key before saving
+    # Validate the API key/credentials before saving
     if service == "elevenlabs":
         try:
             # Test the API key by fetching available voices
@@ -1854,12 +1854,62 @@ async def save_integration(service: str, config: IntegrationConfig, user_id: str
                 status_code=400,
                 detail="Failed to validate API key. Please check your key and internet connection."
             )
+        
+        # Update user's integrations
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {f"integrations.{service}": {"apiKey": config.apiKey}}}
+        )
     
-    # Update user's integrations
-    await db.users.update_one(
-        {"id": user_id},
-        {"$set": {f"integrations.{service}": {"apiKey": config.apiKey}}}
-    )
+    elif service == "twilio":
+        try:
+            # Validate Twilio credentials by making a test API call
+            from twilio.rest import Client
+            
+            if not config.accountSid or not config.authToken:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Account SID and Auth Token are required for Twilio integration."
+                )
+            
+            # Test the credentials
+            client = Client(config.accountSid, config.authToken)
+            
+            # Try to fetch account details to validate credentials
+            account = client.api.accounts(config.accountSid).fetch()
+            
+            logging.info(f"Twilio credentials validated successfully for user {user_id}")
+            
+            # Save Twilio configuration
+            twilio_config = {
+                "accountSid": config.accountSid,
+                "authToken": config.authToken,
+            }
+            
+            if config.phoneNumber:
+                twilio_config["phoneNumber"] = config.phoneNumber
+            
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {f"integrations.{service}": twilio_config}}
+            )
+            
+        except ImportError:
+            logging.error("Twilio library not installed")
+            raise HTTPException(
+                status_code=500,
+                detail="Twilio integration is not properly configured on the server."
+            )
+        except Exception as e:
+            logging.error(f"Failed to validate Twilio credentials: {str(e)}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid Twilio credentials. Please check your Account SID and Auth Token. Error: {str(e)}"
+            )
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported service: {service}")
+    
     return {"status": "success", "service": service}
 
 @api_router.delete("/integrations/{service}")
