@@ -169,6 +169,27 @@ const ElevenLabsNode = ({ data }) => {
   );
 };
 
+const ElevenLabsConversationalNode = ({ data }) => {
+  return (
+    <NodeWrapper color="#f59e0b" hasInput={true} nodeType="elevenlabsconversational">
+      <div className="px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 backdrop-blur-sm min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-amber-500" />
+          <div className="font-semibold text-white">ElevenLabs AI Agent</div>
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Agent: {data.agentName || 'Click to configure'}
+        </div>
+        {data.tools && data.tools.length > 0 && (
+          <div className="text-xs text-gray-400">
+            Tools: {data.tools.length} enabled
+          </div>
+        )}
+      </div>
+    </NodeWrapper>
+  );
+};
+
 const ManyChatNode = ({ data }) => {
   return (
     <NodeWrapper color="#ec4899" hasInput={true} nodeType="manychat">
