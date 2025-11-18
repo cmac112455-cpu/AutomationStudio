@@ -3475,41 +3475,46 @@ async def update_agent_tools(
                 # Check if custom config exists
                 custom_config = custom_tool_configs.get(frontend_name, {})
                 
-                # Build params object based on tool type
-                params_obj = {
-                    "system_tool_type": backend_name
-                }
-                
-                # Add tool-specific params based on tool type
-                if backend_name == "transfer_to_agent":
-                    # Transfer to agent needs a transfers array
-                    params_obj["transfer_to_agent"] = {
-                        "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
-                    }
-                elif backend_name == "transfer_to_number":
-                    # Transfer to number needs a transfers array
-                    params_obj["transfer_to_number"] = {
-                        "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
-                    }
-                elif backend_name == "voicemail_detection":
-                    # Voicemail needs a message
-                    params_obj["voicemail_message"] = custom_config.get("params", {}).get("voicemail_message", "")
-                
                 # Create tool object matching ElevenLabs API structure
-                # Based on error: tools[4].system.params.transfer_to_agent.transfers
-                # The structure needs system.params nested
+                # Based on user's original working config structure
                 tool_obj = {
                     "type": "system",
                     "name": backend_name,
-                    "description": custom_config.get("description", ""),
-                    "system": {
-                        "params": params_obj
-                    }
+                    "description": custom_config.get("description", "")
                 }
+                
+                # Build params object - structure varies by tool type
+                if backend_name == "transfer_to_agent":
+                    # Transfer to agent structure from user's config
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "transfer_to_agent": {
+                            "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
+                        }
+                    }
+                elif backend_name == "transfer_to_number":
+                    # Transfer to number structure
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "transfer_to_number": {
+                            "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
+                        }
+                    }
+                elif backend_name == "voicemail_detection":
+                    # Voicemail structure
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "")
+                    }
+                else:
+                    # Simple tools just need system_tool_type
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name
+                    }
                 
                 tools_array.append(tool_obj)
                 logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
-                logging.info(f"[TOOLS]    Params: {params_obj}")
+                logging.info(f"[TOOLS]    Full tool object: {tool_obj}")
             
             # Set the tools array - this is the SOURCE OF TRUTH for ElevenLabs
             prompt_config["tools"] = tools_array
