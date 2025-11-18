@@ -612,6 +612,101 @@ const IntegrationsPage = () => {
                 </div>
               )}
 
+              {/* ManyChat Detail */}
+              {selectedIntegration === 'manychat' && (
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden">
+                        {integrationsList.find(i => i.id === 'manychat').logo}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-1">ManyChat</h2>
+                        <p className="text-gray-400">Chatbot automation platform</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedIntegration(null)} className="text-gray-400 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+                    <h3 className="text-sm font-semibold text-blue-400 mb-2">How to get your API Key:</h3>
+                    <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+                      <li>Go to <a href="https://manychat.com/settings/api" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">ManyChat Settings → API</a></li>
+                      <li>Click "Generate API Key"</li>
+                      <li>Copy the key and paste it below</li>
+                    </ol>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+                      <div className="relative">
+                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                          type="password"
+                          value={integrations.manychat.apiKey}
+                          onChange={(e) => handleInputChange('manychat', 'apiKey', e.target.value)}
+                          placeholder="Enter your ManyChat API key"
+                          className="w-full pl-10 pr-4 py-3 bg-[#0f1218] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      {integrations.manychat.connected ? (
+                        <button
+                          onClick={() => disconnectIntegration('manychat')}
+                          className="px-6 py-3 bg-pink-500/20 text-pink-400 rounded-xl hover:bg-pink-500/30 transition-colors font-medium"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => saveIntegration('manychat')}
+                          disabled={!integrations.manychat.apiKey || integrations.manychat.loading}
+                          className="px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl hover:from-pink-700 hover:to-purple-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                          {integrations.manychat.loading ? (
+                            <>
+                              <Loader className="w-4 h-4 mr-2 animate-spin" />
+                              Connecting...
+                            </>
+                          ) : (
+                            'Connect'
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {saveStatus.manychat === 'success' && (
+                      <div className="flex items-center text-green-400 text-sm">
+                        <Check className="w-4 h-4 mr-1" />
+                        Successfully connected to ManyChat
+                      </div>
+                    )}
+                    
+                    {saveStatus.manychat === 'error' && (
+                      <div className="flex items-start text-red-400 text-sm">
+                        <X className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                        <span>{integrations.manychat.errorMessage || 'Failed to connect. Please check your API key.'}</span>
+                      </div>
+                    )}
+
+                    <div className="bg-[#0f1218] rounded-xl p-4 border border-gray-800">
+                      <h3 className="text-sm font-medium text-white mb-2">What you can do:</h3>
+                      <ul className="text-sm text-gray-400 space-y-1">
+                        <li>• Send automated messages to your subscribers</li>
+                        <li>• Trigger chatbot flows from your workflows</li>
+                        <li>• Manage contacts and subscriber data</li>
+                        <li>• Integrate with Facebook Messenger, Instagram, WhatsApp</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Twilio Detail */}
               {selectedIntegration === 'twilio' && (
                 <div className="p-8">
