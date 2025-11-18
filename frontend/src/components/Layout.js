@@ -112,7 +112,7 @@ export default function Layout({ children }) {
             <button
               onClick={() => setAutomationExpanded(!automationExpanded)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                location.pathname.startsWith('/automation')
+                location.pathname.startsWith('/automation') && location.pathname !== '/automation/integrations'
                   ? 'bg-gradient-to-r from-[#00d4ff]/20 to-[#4785ff]/20 border-l-4 border-[#00d4ff] text-[#00d4ff]'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
