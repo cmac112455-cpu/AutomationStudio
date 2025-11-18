@@ -190,6 +190,64 @@ backend:
           The Tools tab backend fix is fully functional and production-ready.
           Tools configuration will now persist correctly after save operations.
           The main user-reported bug (tools disappearing after save) is RESOLVED.
+      - working: false
+        agent: "user"
+        comment: |
+          ❌ USER REPORT: Tools still not saving properly
+          - User reports: "when i'm turning tools on and off they are not changing on elevenlabs"
+          - ElevenLabs website also giving errors when trying to save
+          - Previous fix using complex built_in_tools object structure may be wrong
+      - working: "NA"
+        agent: "main"
+        comment: |
+          ✅ MAJOR REFACTOR: Simplified to match ElevenLabs 2025 API structure
+          
+          RESEARCH FINDINGS (June 2025 API changes):
+          - ElevenLabs deprecated inline tool configuration
+          - New centralized tool management system introduced
+          - Tools should be simple objects in 'tools' array: {type, name, description}
+          - The 'tools' array is the SOURCE OF TRUTH (not built_in_tools object)
+          
+          CHANGES MADE:
+          1. PATCH endpoint - Simplified tool structure:
+             - Removed complex built_in_tools object with null values
+             - Now creates simple tool objects: {"type": "system", "name": "end_call", "description": ""}
+             - Only updates the 'tools' array (source of truth)
+             - Maps frontend names to backend names properly
+          
+          2. GET endpoint - Updated to match:
+             - Only reads from 'tools' array
+             - Removed built_in_tools object logic
+             - Cleaner logging
+          
+          3. Frontend - Enhanced error handling:
+             - Added 1 second delay before reload to let ElevenLabs process
+             - Better console logging for debugging
+             - Shows actual error messages from API
+          
+          4. Improved logging:
+             - Clearer log messages
+             - Shows exactly what's sent to ElevenLabs
+             - Shows exactly what ElevenLabs returns
+             - Better error message parsing
+          
+          STRUCTURE NOW:
+          ```json
+          {
+            "conversation_config": {
+              "agent": {
+                "prompt": {
+                  "tools": [
+                    {"type": "system", "name": "end_call", "description": ""},
+                    {"type": "system", "name": "language_detection", "description": ""}
+                  ]
+                }
+              }
+            }
+          }
+          ```
+          
+          Backend restarted successfully. Ready for testing with user's ElevenLabs account.
 
 backend:
   - task: "Conversational AI Analytics Endpoints"
