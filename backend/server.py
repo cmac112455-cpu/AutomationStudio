@@ -3489,39 +3489,44 @@ async def update_agent_tools(
                     "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto")
                 }
                 
-                # Build system.params structure based on error path showing system.params
-                # Error clearly states: tools[4].system.params.transfer_to_agent.transfers
+                # Build ONLY system.params structure (no root-level params!)
+                # Error path: tools[4].system.params.transfer_to_agent.transfers
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent with nested system.params structure
+                    # Transfer to agent - system.params with system_tool_type + transfer_to_agent.transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
                     tool_obj["system"] = {
                         "params": {
+                            "system_tool_type": backend_name,
                             "transfer_to_agent": {
                                 "transfers": transfers
                             }
                         }
                     }
                 elif backend_name == "transfer_to_number":
-                    # Transfer to number with nested system.params structure
+                    # Transfer to number - system.params with system_tool_type + transfer_to_number.transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
                     tool_obj["system"] = {
                         "params": {
+                            "system_tool_type": backend_name,
                             "transfer_to_number": {
                                 "transfers": transfers
                             }
                         }
                     }
                 elif backend_name == "voicemail_detection":
-                    # Voicemail with nested system.params structure
+                    # Voicemail - system.params with system_tool_type + voicemail_message
                     tool_obj["system"] = {
                         "params": {
+                            "system_tool_type": backend_name,
                             "voicemail_message": custom_config.get("params", {}).get("voicemail_message") or ""
                         }
                     }
                 else:
-                    # Simple tools with empty system.params
+                    # Simple tools - system.params with system_tool_type only
                     tool_obj["system"] = {
-                        "params": {}
+                        "params": {
+                            "system_tool_type": backend_name
+                        }
                     }
                 
                 tools_array.append(tool_obj)
