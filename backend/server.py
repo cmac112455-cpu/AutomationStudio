@@ -3461,16 +3461,21 @@ async def update_agent_tools(
                             "type": "system",
                             "name": tool_key,
                             "description": custom_config.get("description", ""),
-                            "response_timeout_secs": custom_config.get("response_timeout_secs", 20),
+                            "response_timeout_secs": int(custom_config.get("response_timeout_secs", 20)),
                             "disable_interruptions": custom_config.get("disable_interruptions", False),
                             "force_pre_tool_speech": custom_config.get("force_pre_tool_speech", False),
                             "assignments": custom_config.get("assignments", []),
                             "tool_call_sound": custom_config.get("tool_call_sound"),
                             "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto"),
-                            "params": custom_config.get("params", {"system_tool_type": tool_key})
+                            "params": {"system_tool_type": tool_key}
                         }
+                        # Handle params properly
+                        if "params" in custom_config and isinstance(custom_config["params"], dict):
+                            new_built_in_tools[tool_key]["params"].update(custom_config["params"])
+                        # Special handling for voicemail
                         if tool_key == "voicemail_detection":
-                            new_built_in_tools[tool_key]["params"]["voicemail_message"] = custom_config.get("params", {}).get("voicemail_message", "")
+                            if "voicemail_message" not in new_built_in_tools[tool_key]["params"]:
+                                new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
                     elif tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
                         # Keep existing config from ElevenLabs
                         new_built_in_tools[tool_key] = current_built_in_tools[tool_key]
