@@ -632,11 +632,27 @@ const IntegrationsPage = () => {
 
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
                     <h3 className="text-sm font-semibold text-blue-400 mb-2">How to get your API Key:</h3>
-                    <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                      <li>Go to <a href="https://manychat.com/settings/api" target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">ManyChat Settings → API</a></li>
-                      <li>Click "Generate API Key"</li>
-                      <li>Copy the key and paste it below</li>
+                    <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside mb-3">
+                      <li>Go to ManyChat → <strong>Settings → API</strong></li>
+                      <li>Click "Generate API Key" button</li>
+                      <li>Copy the generated API Key</li>
+                      <li>Paste it in the field below</li>
                     </ol>
+                    <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                      <span className="text-yellow-400 text-lg">⚠️</span>
+                      <div className="text-xs text-yellow-200">
+                        <strong>Important:</strong> Refreshing or deleting your token will disable all connected API methods. This is a PRO feature.
+                      </div>
+                    </div>
+                    <a 
+                      href="https://help.manychat.com/hc/en-us/articles/14959510331420-How-to-generate-a-token-for-the-Manychat-API-and-where-to-get-parameters" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-xs text-pink-400 hover:underline mt-2 inline-flex items-center gap-1"
+                    >
+                      View detailed guide
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
 
                   <div className="space-y-4">
