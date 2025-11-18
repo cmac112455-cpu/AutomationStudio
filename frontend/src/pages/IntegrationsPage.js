@@ -237,8 +237,7 @@ const IntegrationsPage = () => {
                 {/* Action Button */}
                 <button
                   onClick={() => {
-                    // Navigate to detailed integration page
-                    window.location.href = `/integrations/${integration.id}`;
+                    setSelectedIntegration(integration.id);
                   }}
                   className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
                 >
