@@ -3488,6 +3488,11 @@ async def update_agent_tools(
             # Set the tools array - this is the SOURCE OF TRUTH for ElevenLabs
             prompt_config["tools"] = tools_array
             
+            # CRITICAL: Remove built_in_tools if it exists (prevents corruption)
+            if "built_in_tools" in prompt_config:
+                del prompt_config["built_in_tools"]
+                logging.info(f"[TOOLS] 🧹 Removed built_in_tools object to prevent corruption")
+            
             logging.info(f"[TOOLS] Built simplified ElevenLabs structure:")
             logging.info(f"[TOOLS]   - {len(tools_array)} tools ENABLED")
             logging.info(f"[TOOLS] Enabled tools: {[t['name'] for t in tools_array]}")
