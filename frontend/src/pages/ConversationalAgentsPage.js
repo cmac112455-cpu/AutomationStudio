@@ -2172,7 +2172,7 @@ const ConversationalAgentsPage = () => {
 
                           {/* Transfer to Number Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
                                 <Phone className="w-5 h-5 text-emerald-400" />
                               </div>
@@ -2181,26 +2181,40 @@ const ConversationalAgentsPage = () => {
                                 <p className="text-sm text-gray-400">Transfer call to a human phone number</p>
                               </div>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_number')}
-                                onChange={(e) => {
-                                  const newTools = e.target.checked
-                                    ? [...builtInTools, 'transfer_to_number']
-                                    : builtInTools.filter(t => t !== 'transfer_to_number');
-                                  setBuiltInTools(newTools);
-                                  setUnsavedToolsChanges(true);
-                                }}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {builtInTools.includes('transfer_to_number') && (
+                                <button
+                                  onClick={() => setEditingToolSettings({
+                                    toolName: 'transfer_to_number',
+                                    config: toolConfigs['transfer_to_number'] || {}
+                                  })}
+                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                  title="Tool Settings"
+                                >
+                                  <Settings className="w-4 h-4 text-gray-400" />
+                                </button>
+                              )}
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_number')}
+                                  onChange={(e) => {
+                                    const newTools = e.target.checked
+                                      ? [...builtInTools, 'transfer_to_number']
+                                      : builtInTools.filter(t => t !== 'transfer_to_number');
+                                    setBuiltInTools(newTools);
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Play Keypad Touch Tone Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
                                 <span className="text-lg">🔢</span>
                               </div>
@@ -2209,26 +2223,40 @@ const ConversationalAgentsPage = () => {
                                 <p className="text-sm text-gray-400">Play DTMF tones for keypad inputs</p>
                               </div>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={Array.isArray(builtInTools) && builtInTools.includes('keypad')}
-                                onChange={(e) => {
-                                  const newTools = e.target.checked
-                                    ? [...builtInTools, 'keypad']
-                                    : builtInTools.filter(t => t !== 'keypad');
-                                  setBuiltInTools(newTools);
-                                  setUnsavedToolsChanges(true);
-                                }}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {builtInTools.includes('keypad') && (
+                                <button
+                                  onClick={() => setEditingToolSettings({
+                                    toolName: 'keypad',
+                                    config: toolConfigs['keypad'] || {}
+                                  })}
+                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                  title="Tool Settings"
+                                >
+                                  <Settings className="w-4 h-4 text-gray-400" />
+                                </button>
+                              )}
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(builtInTools) && builtInTools.includes('keypad')}
+                                  onChange={(e) => {
+                                    const newTools = e.target.checked
+                                      ? [...builtInTools, 'keypad']
+                                      : builtInTools.filter(t => t !== 'keypad');
+                                    setBuiltInTools(newTools);
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Voicemail Detection Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
                                 <span className="text-lg">📧</span>
                               </div>
@@ -2237,21 +2265,35 @@ const ConversationalAgentsPage = () => {
                                 <p className="text-sm text-gray-400">Detect and handle voicemail systems</p>
                               </div>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={Array.isArray(builtInTools) && builtInTools.includes('voicemail')}
-                                onChange={(e) => {
-                                  const newTools = e.target.checked
-                                    ? [...builtInTools, 'voicemail']
-                                    : builtInTools.filter(t => t !== 'voicemail');
-                                  setBuiltInTools(newTools);
-                                  setUnsavedToolsChanges(true);
-                                }}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {builtInTools.includes('voicemail') && (
+                                <button
+                                  onClick={() => setEditingToolSettings({
+                                    toolName: 'voicemail',
+                                    config: toolConfigs['voicemail'] || {}
+                                  })}
+                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                  title="Tool Settings"
+                                >
+                                  <Settings className="w-4 h-4 text-gray-400" />
+                                </button>
+                              )}
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(builtInTools) && builtInTools.includes('voicemail')}
+                                  onChange={(e) => {
+                                    const newTools = e.target.checked
+                                      ? [...builtInTools, 'voicemail']
+                                      : builtInTools.filter(t => t !== 'voicemail');
+                                    setBuiltInTools(newTools);
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>
