@@ -296,51 +296,31 @@ const IntegrationsPage = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Twilio API Key (SID)
+                Account SID
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
                   type="text"
-                  value={integrations.twilio.apiKey}
-                  onChange={(e) => handleInputChange('twilio', 'apiKey', e.target.value)}
-                  placeholder="SK..."
+                  value={integrations.twilio.accountSid}
+                  onChange={(e) => handleInputChange('twilio', 'accountSid', e.target.value)}
+                  placeholder="AC..."
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Create an API Key in your Twilio Console</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                API Secret
+                Auth Token
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
                   type="password"
-                  value={integrations.twilio.apiSecret}
-                  onChange={(e) => handleInputChange('twilio', 'apiSecret', e.target.value)}
-                  placeholder="Enter your API secret"
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Keep this secret secure - it's only shown once when created</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Phone Number (Optional)
-              </label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                </svg>
-                <input
-                  type="text"
-                  value={integrations.twilio.phoneNumber}
-                  onChange={(e) => handleInputChange('twilio', 'phoneNumber', e.target.value)}
-                  placeholder="+1234567890"
+                  value={integrations.twilio.authToken}
+                  onChange={(e) => handleInputChange('twilio', 'authToken', e.target.value)}
+                  placeholder="Enter your auth token"
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
