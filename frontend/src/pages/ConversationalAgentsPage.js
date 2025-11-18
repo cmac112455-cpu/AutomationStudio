@@ -2425,9 +2425,38 @@ const ConversationalAgentsPage = () => {
                             <div className="p-6 space-y-6">
                               {/* Description */}
                               <div>
-                                <Label htmlFor="tool-description" className="text-sm font-medium mb-2 block">
-                                  Description
-                                </Label>
+                                <div className="flex items-center justify-between mb-2">
+                                  <Label htmlFor="tool-description" className="text-sm font-medium">
+                                    Description
+                                  </Label>
+                                  <Button
+                                    onClick={() => {
+                                      const defaultDescriptions = {
+                                        'end_call': `Gracefully conclude conversations when appropriate\nCall this function when:\n1. EXPLICIT ENDINGS\n- User says goodbye variants: "bye," "see you," "that's all," etc.\n- User directly declines help: "no thanks," "I'm good," etc.\n- User indicates completion: "that's what I needed," "all set," etc.\n\n2. IMPLICIT ENDINGS\n- User gives minimal/disengaged responses after their needs are met\n- User expresses intention to leave: "I need to go," "getting late," etc.\n- Natural conversation conclusion after all queries are resolved\n\nBefore calling this function:\n1. Confirm all user queries are fully addressed\n2. Provide a contextually appropriate closing response:\n- For task completion: "Glad I could help with [specific task]! Have a great day!"\n- For general endings: "Thanks for chatting! Take care!"\n- For business contexts: "Thank you for your business! Don't hesitate to reach out again."\n\nDO NOT:\n- Call this function during active problem-solving\n- End conversation when user expresses new concerns\n- Use generic closings without acknowledging the specific interaction\n- Continue conversation after user has clearly indicated ending\n- Add "Let me know if you need anything else" after user says goodbye\n\nExample Flow:\nUser: "That's all I needed, thanks!"\nAssistant: "Happy I could help with your password reset! Have a wonderful day!"\n[end_call function called]`,
+                                        'detect_language': `Automatically detect and switch to the user's preferred language during conversation`,
+                                        'skip_turn': `Skip the current conversation turn when the agent needs to pause or wait for user input`,
+                                        'transfer_to_agent': `Transfer the conversation to another AI agent when the current agent cannot handle the request`,
+                                        'transfer_to_number': `Transfer the call to a human operator or specific phone number when escalation is needed`,
+                                        'keypad': `Play DTMF touch tones for phone menu navigation and number input`,
+                                        'voicemail': `Detect when a call reaches voicemail and optionally leave a pre-configured message`
+                                      };
+                                      
+                                      setEditingToolSettings({
+                                        ...editingToolSettings,
+                                        config: { 
+                                          ...editingToolSettings.config, 
+                                          description: defaultDescriptions[editingToolSettings.toolName] || ''
+                                        }
+                                      });
+                                      setUnsavedToolsChanges(true);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs"
+                                  >
+                                    Use Default
+                                  </Button>
+                                </div>
                                 <Textarea
                                   id="tool-description"
                                   value={editingToolSettings.config.description || ''}
@@ -2439,7 +2468,7 @@ const ConversationalAgentsPage = () => {
                                     setUnsavedToolsChanges(true);
                                   }}
                                   placeholder="Describe when this tool should be used..."
-                                  className="min-h-[100px] bg-black/30 border-gray-700 text-gray-300"
+                                  className="min-h-[200px] bg-black/30 border-gray-700 text-gray-300 font-mono text-xs"
                                 />
                                 <p className="text-xs text-gray-500 mt-2">
                                   Provide context to help the agent decide when to use this tool
