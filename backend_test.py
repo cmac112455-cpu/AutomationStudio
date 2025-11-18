@@ -3439,6 +3439,105 @@ class BackendTester:
             "results": self.test_results
         }
 
+    def run_transfer_to_agent_tool_test(self):
+        """Run Transfer to Agent Tool Structure Fix test"""
+        print("🔧 TRANSFER TO AGENT TOOL SAVE - FINAL STRUCTURE FIX TEST")
+        print(f"Backend URL: {self.base_url}")
+        print("🎯 Test Objective: Verify Transfer to Agent tool structure fix")
+        print("🔧 CRITICAL FIX: Params should be DIRECTLY on tool object, not nested under system")
+        print("=" * 100)
+        
+        # Step 1: Authentication
+        print("\n📝 STEP 1: USER AUTHENTICATION")
+        auth_success = self.test_user_registration()
+        if not auth_success:
+            print("Registration failed, trying fallback login...")
+            auth_success = self.test_user_login_fallback()
+        
+        if not auth_success:
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return self.generate_transfer_tool_summary()
+        
+        # Step 2: Transfer to Agent Tool Structure Fix Test (CRITICAL)
+        print("\n🔧 STEP 2: TRANSFER TO AGENT TOOL STRUCTURE FIX (CRITICAL)")
+        print("Testing the FIXED tool structure with params directly on tool object...")
+        transfer_success = self.test_transfer_to_agent_tool_structure_fix()
+        
+        return self.generate_transfer_tool_summary()
+    
+    def generate_transfer_tool_summary(self):
+        """Generate transfer to agent tool test summary"""
+        print("\n" + "=" * 80)
+        print("🔧 TRANSFER TO AGENT TOOL STRUCTURE FIX TEST SUMMARY")
+        print("=" * 80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        print("\n📋 DETAILED RESULTS:")
+        for result in self.test_results:
+            status = "✅" if result["success"] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+        
+        # Critical analysis for transfer to agent tool fix
+        critical_failures = []
+        transfer_fix_status = "UNKNOWN"
+        
+        for result in self.test_results:
+            if not result["success"]:
+                if result["test"] in [
+                    "Transfer to Agent Tool Structure Fix", 
+                    "User Registration",
+                    "User Login (Fallback)"
+                ]:
+                    critical_failures.append(result["test"])
+            else:
+                # Check for successful transfer to agent tool fix
+                if "Transfer to Agent Tool Structure Fix" in result["test"]:
+                    transfer_fix_status = "SUCCESS"
+        
+        if critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES: {', '.join(critical_failures)}")
+        
+        # Transfer to agent tool fix status
+        if transfer_fix_status == "SUCCESS":
+            print(f"\n✅ TRANSFER TO AGENT TOOL STRUCTURE FIX STATUS: VERIFIED WORKING")
+            print("   🔧 PATCH endpoint creates correct structure with params directly on tool object")
+            print("   📋 Structure matches ElevenLabs API requirements")
+            print("   💾 No more 'Field required' errors")
+            print("   🎯 Ready for ElevenLabs API integration")
+        else:
+            print(f"\n❌ TRANSFER TO AGENT TOOL STRUCTURE FIX STATUS: ISSUES DETECTED")
+            print("   🚨 Tool structure fix is not working correctly")
+            print("   🔧 May still have params nested under system instead of directly on tool object")
+        
+        # Recommendations
+        print(f"\n💡 RECOMMENDATIONS:")
+        if transfer_fix_status == "SUCCESS":
+            print("   ✅ Transfer to Agent tool structure fix is working correctly")
+            print("   🎯 Ready for user testing with ElevenLabs agents")
+            print("   📋 Tool configuration should now save without 'Field required' errors")
+        else:
+            print("   🚨 Transfer to Agent tool structure needs additional work")
+            print("   🔧 Review tool object structure in PATCH endpoint")
+            print("   🔍 Ensure params is directly on tool object, not nested under system")
+        
+        return {
+            "total_tests": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "success_rate": (passed_tests/total_tests)*100,
+            "critical_failures": critical_failures,
+            "transfer_fix_status": transfer_fix_status,
+            "results": self.test_results
+        }
+
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_conversational_ai_tools_test()
+    summary = tester.run_transfer_to_agent_tool_test()
