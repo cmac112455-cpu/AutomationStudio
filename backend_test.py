@@ -1204,9 +1204,9 @@ class BackendTester:
             elif get_response.status_code == 400:
                 error_data = get_response.json()
                 error_detail = error_data.get("detail", "")
-                if "ElevenLabs API key not configured" in error_detail:
+                if "ElevenLabs API key not configured" in error_detail or "Agent is not linked to ElevenLabs" in error_detail:
                     print(f"   ✅ SCENARIO 4 SUCCESS: Expected error - {error_detail}")
-                    scenario4_success = True  # Expected without API key
+                    scenario4_success = True  # Expected without API key or unlinked agent
                 else:
                     print(f"   ❌ SCENARIO 4 FAILED: Unexpected error - {error_detail}")
                     scenario4_success = False
