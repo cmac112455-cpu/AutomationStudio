@@ -1182,6 +1182,13 @@ export default function AutomationStudioPage() {
               HTTP Request
             </button>
             <button
+              onClick={() => addNode('elevenlabsconversational')}
+              className="w-full p-2 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-xs flex items-center gap-2"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              ElevenLabs AI
+            </button>
+            <button
               onClick={() => addNode('manychat')}
               className="w-full p-2 rounded bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/50 text-xs flex items-center gap-2"
             >
