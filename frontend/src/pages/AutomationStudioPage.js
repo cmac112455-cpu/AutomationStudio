@@ -858,22 +858,38 @@ export default function AutomationStudioPage() {
       
       // If it's an ElevenLabs Conversational AI node, fetch available agents
       if (node.type === 'elevenlabsconversational') {
-        axios.get(`${BACKEND_URL}/api/conversational-ai/agents`)
+        console.log('[ElevenLabs Node] Fetching agents...');
+        axios.get(`${BACKEND_URL}/api/conversational-ai/agents`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
           .then(response => {
+            console.log('[ElevenLabs Node] Raw response:', response);
+            console.log('[ElevenLabs Node] Response data:', response.data);
+            
             const agents = Array.isArray(response.data) ? response.data : [];
-            console.log('Loaded agents:', agents);
+            console.log('[ElevenLabs Node] Parsed agents:', agents);
+            
+            const mappedAgents = agents.map(a => ({ 
+              id: a.id, 
+              name: a.name,
+              elevenlabs_agent_id: a.elevenlabs_agent_id 
+            }));
+            
+            console.log('[ElevenLabs Node] Mapped agents:', mappedAgents);
+            
             setNodeConfig({ 
               ...config, 
-              availableAgents: agents.map(a => ({ 
-                id: a.id, 
-                name: a.name,
-                elevenlabs_agent_id: a.elevenlabs_agent_id 
-              }))
+              availableAgents: mappedAgents
             });
+            
+            toast.success(`Loaded ${mappedAgents.length} agent(s)`);
           })
           .catch(error => {
-            console.error('Error fetching agents:', error);
-            toast.error('Failed to load agents');
+            console.error('[ElevenLabs Node] Error fetching agents:', error);
+            console.error('[ElevenLabs Node] Error response:', error.response);
+            toast.error(`Failed to load agents: ${error.response?.data?.detail || error.message}`);
             setNodeConfig({ ...config, availableAgents: [] });
           });
       } else {
