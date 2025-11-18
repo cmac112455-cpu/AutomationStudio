@@ -3076,9 +3076,18 @@ async def get_agent_tools(agent_id: str, user_id: str = Depends(get_current_user
         logging.info(f"[TOOLS] Enabled tools (frontend format): {enabled_tools}")
         logging.info(f"[TOOLS] Tool IDs: {tool_ids}")
         
+        # Also return full tool configurations for settings UI
+        tool_configs = {}
+        for tool_config in tools_array:
+            if isinstance(tool_config, dict) and tool_config.get('name'):
+                backend_name = tool_config['name']
+                frontend_name = backend_to_frontend.get(backend_name, backend_name)
+                tool_configs[frontend_name] = tool_config
+        
         return {
             "built_in_tools": enabled_tools,  # Return list of enabled tool names for frontend
-            "tool_ids": tool_ids
+            "tool_ids": tool_ids,
+            "tool_configs": tool_configs  # Full configs for each enabled tool
         }
         
     except HTTPException:
