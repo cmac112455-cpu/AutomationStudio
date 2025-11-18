@@ -32,6 +32,13 @@ const IntegrationsPage = () => {
             ...prev.elevenlabs,
             apiKey: response.data.elevenlabs?.apiKey || '',
             connected: !!response.data.elevenlabs?.apiKey
+          },
+          twilio: {
+            ...prev.twilio,
+            accountSid: response.data.twilio?.accountSid || '',
+            authToken: response.data.twilio?.authToken || '',
+            phoneNumber: response.data.twilio?.phoneNumber || '',
+            connected: !!(response.data.twilio?.accountSid && response.data.twilio?.authToken)
           }
         }));
       }
