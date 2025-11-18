@@ -260,6 +260,145 @@ const IntegrationsPage = () => {
           </div>
         </div>
 
+        {/* Twilio Integration */}
+        <div className="bg-[#1a1d2e] rounded-xl border border-gray-800 p-6 mb-6">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white mb-2 flex items-center">
+                  Twilio
+                  {integrations.twilio.connected && (
+                    <span className="ml-3 px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full flex items-center">
+                      <Check className="w-3 h-3 mr-1" />
+                      Connected
+                    </span>
+                  )}
+                </h2>
+                <p className="text-gray-400 text-sm mb-2">
+                  Connect phone numbers for voice AI calling with ElevenLabs agents
+                </p>
+                <a
+                  href="https://console.twilio.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-400 hover:text-red-300 text-sm flex items-center"
+                >
+                  Get your credentials from Twilio Console
+                  <ExternalLink className="w-3 h-3 ml-1" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Account SID
+              </label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  value={integrations.twilio.accountSid}
+                  onChange={(e) => handleInputChange('twilio', 'accountSid', e.target.value)}
+                  placeholder="AC..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Auth Token
+              </label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="password"
+                  value={integrations.twilio.authToken}
+                  onChange={(e) => handleInputChange('twilio', 'authToken', e.target.value)}
+                  placeholder="Enter your auth token"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Phone Number (Optional)
+              </label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
+                <input
+                  type="text"
+                  value={integrations.twilio.phoneNumber}
+                  onChange={(e) => handleInputChange('twilio', 'phoneNumber', e.target.value)}
+                  placeholder="+1234567890"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              {integrations.twilio.connected ? (
+                <button
+                  onClick={() => disconnectIntegration('twilio')}
+                  className="px-6 py-2.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors font-medium"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={() => saveIntegration('twilio')}
+                  disabled={!integrations.twilio.accountSid || !integrations.twilio.authToken || integrations.twilio.loading}
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {integrations.twilio.loading ? (
+                    <>
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    'Connect'
+                  )}
+                </button>
+              )}
+            </div>
+            
+            {saveStatus.twilio === 'success' && (
+              <div className="flex items-center text-green-400 text-sm">
+                <Check className="w-4 h-4 mr-1" />
+                Successfully connected to Twilio
+              </div>
+            )}
+            
+            {saveStatus.twilio === 'error' && (
+              <div className="flex items-start text-red-400 text-sm">
+                <X className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                <span>{integrations.twilio.errorMessage || 'Failed to connect. Please check your credentials.'}</span>
+              </div>
+            )}
+
+            {/* Usage Info */}
+            <div className="bg-[#0f1218] rounded-lg p-4 border border-gray-800">
+              <h3 className="text-sm font-medium text-white mb-2">How to use:</h3>
+              <ul className="text-sm text-gray-400 space-y-1">
+                <li>• Connect Twilio to enable phone calling for your ElevenLabs AI agents</li>
+                <li>• Your agents can make and receive real phone calls</li>
+                <li>• Configure phone numbers in your Twilio console</li>
+                <li>• Use the ElevenLabs AI node in workflows to trigger voice calls</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* More integrations coming soon */}
         <div className="text-center py-8">
           <p className="text-gray-500 text-sm">More integrations coming soon...</p>
