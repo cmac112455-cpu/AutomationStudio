@@ -567,7 +567,8 @@ const ConversationalAgentsPage = () => {
     try {
       const payload = {
         built_in_tools: Array.isArray(builtInTools) ? builtInTools : [],
-        tool_ids: Array.isArray(toolIds) ? toolIds : []
+        tool_ids: Array.isArray(toolIds) ? toolIds : [],
+        tool_configs: toolConfigs  // Include custom configurations
       };
       
       console.log('🔧 Saving tools to ElevenLabs:', payload);
