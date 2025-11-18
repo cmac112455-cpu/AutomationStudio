@@ -3516,20 +3516,12 @@ async def update_agent_tools(
             "conversation_config": conversation_config
         }
         
-        logging.info(f"[TOOLS] ============ UPDATE PAYLOAD DEBUG ============")
-        logging.info(f"[TOOLS] Sending tools update to ElevenLabs for agent {elevenlabs_agent_id}")
-        logging.info(f"[TOOLS] Full built_in_tools object being sent:")
-        for tool_key, tool_config in prompt_config.get('built_in_tools', {}).items():
-            if tool_config is not None:
-                logging.info(f"[TOOLS]   ✅ {tool_key}: ENABLED (config present)")
-            else:
-                logging.info(f"[TOOLS]   ❌ {tool_key}: DISABLED (set to null)")
-        logging.info(f"[TOOLS] Tool IDs: {prompt_config.get('tool_ids', [])}")
-        
-        # Log the actual built_in_tools object being sent
+        logging.info(f"[TOOLS] ============ SENDING TO ELEVENLABS ============")
+        logging.info(f"[TOOLS] Agent ID: {elevenlabs_agent_id}")
+        logging.info(f"[TOOLS] Tools array being sent:")
         import json
-        logging.info(f"[TOOLS] JSON built_in_tools being sent:")
-        logging.info(json.dumps(prompt_config.get('built_in_tools', {}), indent=2))
+        logging.info(json.dumps(prompt_config.get('tools', []), indent=2))
+        logging.info(f"[TOOLS] Tool IDs: {prompt_config.get('tool_ids', [])}")
         logging.info(f"[TOOLS] ================================================")
         
         patch_response = requests.patch(
