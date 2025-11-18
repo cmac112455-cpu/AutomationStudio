@@ -3157,9 +3157,9 @@ class BackendTester:
             return self.generate_tools_summary()
         
         # Step 2: Tools Tab Backend Endpoints Test (CRITICAL)
-        print("\n🔧 STEP 2: TOOLS TAB BACKEND ENDPOINTS (CRITICAL)")
-        print("Testing all tools configuration endpoints...")
-        tools_success = self.test_conversational_ai_tools_endpoints()
+        print("\n🔧 STEP 2: TOOLS TAB BACKEND ENDPOINTS FIX (CRITICAL)")
+        print("Testing the FIXED Tools endpoints with simplified 2025 ElevenLabs API structure...")
+        tools_success = self.test_tools_tab_backend_endpoints_fix()
         
         return self.generate_tools_summary()
     
