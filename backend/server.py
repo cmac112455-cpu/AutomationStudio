@@ -3476,45 +3476,49 @@ async def update_agent_tools(
                 custom_config = custom_tool_configs.get(frontend_name, {})
                 
                 # Create tool object matching ElevenLabs API structure
-                # Based on user's original working config structure
+                # Error path shows: tools[4].system.params.transfer_to_agent.transfers
                 tool_obj = {
                     "type": "system",
                     "name": backend_name,
                     "description": custom_config.get("description", "")
                 }
                 
-                # Build params object - structure varies by tool type
+                # Build the system.params structure based on tool type
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent structure from user's config
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_agent": {
-                            "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
+                    # Transfer to agent structure based on error path
+                    tool_obj["system"] = {
+                        "params": {
+                            "transfer_to_agent": {
+                                "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
+                            }
                         }
                     }
                 elif backend_name == "transfer_to_number":
                     # Transfer to number structure
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_number": {
-                            "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
+                    tool_obj["system"] = {
+                        "params": {
+                            "transfer_to_number": {
+                                "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
+                            }
                         }
                     }
                 elif backend_name == "voicemail_detection":
                     # Voicemail structure
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "")
+                    tool_obj["system"] = {
+                        "params": {
+                            "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "")
+                        }
                     }
                 else:
-                    # Simple tools just need system_tool_type
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name
+                    # Simple tools - empty params
+                    tool_obj["system"] = {
+                        "params": {}
                     }
                 
                 tools_array.append(tool_obj)
                 logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
-                logging.info(f"[TOOLS]    Full tool object: {tool_obj}")
+                import json
+                logging.info(f"[TOOLS]    Full tool object: {json.dumps(tool_obj, indent=2)}")
             
             # Set the tools array - this is the SOURCE OF TRUTH for ElevenLabs
             prompt_config["tools"] = tools_array
