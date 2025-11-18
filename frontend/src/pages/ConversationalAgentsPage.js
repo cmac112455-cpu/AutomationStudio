@@ -530,6 +530,11 @@ const ConversationalAgentsPage = () => {
       setBuiltInTools(Array.isArray(agentTools.built_in_tools) ? agentTools.built_in_tools : []);
       setToolIds(Array.isArray(agentTools.tool_ids) ? agentTools.tool_ids : []);
       
+      // Store individual tool configurations
+      if (agentTools.tool_configs) {
+        setToolConfigs(agentTools.tool_configs);
+      }
+      
       console.log('🔧 Agent tools loaded:', agentTools);
       
       // Get workspace tools (available server/client tools)
@@ -548,6 +553,7 @@ const ConversationalAgentsPage = () => {
       console.error('Error loading tools:', error);
       setBuiltInTools([]);
       setToolIds([]);
+      setToolConfigs({});
       setWorkspaceTools({ server_tools: [], client_tools: [] });
     } finally {
       setLoadingTools(false);
