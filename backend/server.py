@@ -3655,14 +3655,15 @@ async def repair_agent_configuration(agent_id: str, user_id: str = Depends(get_c
         agent_config = conversation_config.get("agent", {})
         prompt_config = agent_config.get("prompt", {})
         
-        # Build a completely clean prompt configuration - removing all duplicates and corruption
+        # Build a completely clean prompt configuration - removing ALL problematic fields
+        # Only include the essential fields that ElevenLabs requires
         clean_prompt = {
             "prompt": prompt_config.get("prompt", ""),
             "llm": prompt_config.get("llm", "gpt-4o"),
             "temperature": prompt_config.get("temperature", 0.7),
-            "max_tokens": prompt_config.get("max_tokens", -1),  # Single value only
-            "tools": [],  # Clean slate - empty tools array
-            "tool_ids": [],  # Clean slate - empty tool_ids
+            "max_tokens": -1,  # Always -1, no duplicates
+            "tools": [],  # Empty tools array - completely clean
+            "tool_ids": [],  # Empty tool_ids - completely clean
             "knowledge_base": prompt_config.get("knowledge_base", []),
             "custom_llm": prompt_config.get("custom_llm"),
             "rag": prompt_config.get("rag", {
@@ -3677,7 +3678,17 @@ async def repair_agent_configuration(agent_id: str, user_id: str = Depends(get_c
             "ignore_default_personality": prompt_config.get("ignore_default_personality", False)
         }
         
-        # Explicitly do NOT include built_in_tools - we're removing it completely
+        # Add optional fields only if they exist
+        if "reasoning_effort" in prompt_config:
+            clean_prompt["reasoning_effort"] = prompt_config["reasoning_effort"]
+        if "thinking_budget" in prompt_config:
+            clean_prompt["thinking_budget"] = prompt_config["thinking_budget"]
+        if "mcp_server_ids" in prompt_config:
+            clean_prompt["mcp_server_ids"] = prompt_config.get("mcp_server_ids", [])
+        if "native_mcp_server_ids" in prompt_config:
+            clean_prompt["native_mcp_server_ids"] = prompt_config.get("native_mcp_server_ids", [])
+        
+        # CRITICAL: Do NOT include built_in_tools at all - this is causing the corruption
         
         logging.info(f"[REPAIR] ✅ Clean configuration built")
         logging.info(f"[REPAIR]    - Removed all duplicate fields")
