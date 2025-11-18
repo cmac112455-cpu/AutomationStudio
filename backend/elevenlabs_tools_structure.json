@@ -1,0 +1,59 @@
+[
+  {
+    "type": "system",
+    "name": "end_call",
+    "description": "",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "params": {
+      "system_tool_type": "end_call"
+    }
+  },
+  {
+    "type": "system",
+    "name": "language_detection",
+    "description": "",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "params": {
+      "system_tool_type": "language_detection"
+    }
+  },
+  {
+    "type": "system",
+    "name": "play_keypad_touch_tone",
+    "description": "",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "params": {
+      "system_tool_type": "play_keypad_touch_tone"
+    }
+  },
+  {
+    "type": "system",
+    "name": "voicemail_detection",
+    "description": "",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "params": {
+      "system_tool_type": "voicemail_detection",
+      "voicemail_message": null
+    }
+  }
+]
