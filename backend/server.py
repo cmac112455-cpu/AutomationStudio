@@ -3475,12 +3475,31 @@ async def update_agent_tools(
                 # Check if custom config exists
                 custom_config = custom_tool_configs.get(frontend_name, {})
                 
-                # Create simplified tool object matching ElevenLabs API structure
+                # Create tool object matching ElevenLabs API structure
+                # CRITICAL: params field is REQUIRED by ElevenLabs
                 tool_obj = {
                     "type": "system",
                     "name": backend_name,
-                    "description": custom_config.get("description", "")
+                    "description": custom_config.get("description", ""),
+                    "params": {
+                        "system_tool_type": backend_name
+                    }
                 }
+                
+                # Add tool-specific params based on tool type
+                if backend_name == "transfer_to_agent":
+                    # Transfer to agent needs a transfers array
+                    tool_obj["params"]["transfer_to_agent"] = {
+                        "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
+                    }
+                elif backend_name == "transfer_to_number":
+                    # Transfer to number needs a transfers array
+                    tool_obj["params"]["transfer_to_number"] = {
+                        "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
+                    }
+                elif backend_name == "voicemail_detection":
+                    # Voicemail needs a message
+                    tool_obj["params"]["voicemail_message"] = custom_config.get("params", {}).get("voicemail_message", "")
                 
                 tools_array.append(tool_obj)
                 logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
