@@ -132,6 +132,7 @@ const IntegrationsPage = () => {
   };
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIntegration, setSelectedIntegration] = useState(null);
 
   const integrationsList = [
     {
