@@ -1782,6 +1782,98 @@ export default function AutomationStudioPage() {
                 </>
               )}
 
+              {/* ElevenLabs Conversational AI Node Config */}
+              {selectedNode.type === 'elevenlabsconversational' && (
+                <>
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="w-4 h-4 text-amber-400" />
+                      <span className="text-sm font-semibold text-amber-400">ElevenLabs Conversational AI</span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Configure voice-to-voice AI agent with tools and capabilities
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Select AI Agent</Label>
+                    <Select
+                      value={nodeConfig.agentId || ''}
+                      onValueChange={(value) => {
+                        const selectedAgent = (nodeConfig.availableAgents || []).find(a => a.id === value);
+                        setNodeConfig({ 
+                          ...nodeConfig, 
+                          agentId: value,
+                          agentName: selectedAgent?.name || 'Unknown Agent'
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                        <SelectValue placeholder="Select an agent" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                        {(nodeConfig.availableAgents || []).map(agent => (
+                          <SelectItem key={agent.id} value={agent.id}>
+                            {agent.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {(!nodeConfig.availableAgents || nodeConfig.availableAgents.length === 0) && (
+                      <p className="text-xs text-yellow-400 mt-2">
+                        ⚠️ No agents found. Create an agent in the Conversational AI section first.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label className="text-white">Enable Tools</Label>
+                    <p className="text-xs text-gray-400 mb-2">Select which tools the agent can use</p>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'end_call', name: 'End Call', description: 'Allow agent to end the conversation' },
+                        { id: 'detect_language', name: 'Detect Language', description: 'Auto-detect user language' },
+                        { id: 'skip_turn', name: 'Skip Turn', description: 'Skip agent response if appropriate' },
+                        { id: 'keypad', name: 'Keypad Tones', description: 'Play DTMF tones' },
+                        { id: 'voicemail', name: 'Voicemail Detection', description: 'Detect and handle voicemail' }
+                      ].map(tool => (
+                        <label key={tool.id} className="flex items-start gap-2 p-2 bg-gray-800/50 rounded border border-gray-700 hover:border-amber-500/50 transition-colors cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={(nodeConfig.tools || []).includes(tool.id)}
+                            onChange={(e) => {
+                              const currentTools = nodeConfig.tools || [];
+                              const newTools = e.target.checked
+                                ? [...currentTools, tool.id]
+                                : currentTools.filter(t => t !== tool.id);
+                              setNodeConfig({ ...nodeConfig, tools: newTools });
+                            }}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-white">{tool.name}</div>
+                            <div className="text-xs text-gray-400">{tool.description}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      🚧 Transfer tools (Transfer to Agent, Transfer to Number) coming soon
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-xs text-gray-300">
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-400">ℹ️</span>
+                      <div>
+                        <strong className="text-white">How it works:</strong> This node will initiate a voice conversation using the selected ElevenLabs agent.
+                        The agent will use the enabled tools to provide a natural conversational experience.
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Text-to-Music Node Config */}
               {selectedNode.type === 'texttomusic' && (
                 <>
