@@ -126,10 +126,10 @@ const IntegrationsPage = () => {
     }
   };
 
-  const handleInputChange = (service, value) => {
+  const handleInputChange = (service, field, value) => {
     setIntegrations(prev => ({
       ...prev,
-      [service]: { ...prev[service], apiKey: value }
+      [service]: { ...prev[service], [field]: value }
     }));
   };
 
