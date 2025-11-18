@@ -3603,6 +3603,152 @@ async def update_agent_tools(
         raise HTTPException(status_code=500, detail=f"Failed to update tools: {str(e)}")
 
 
+@api_router.post("/conversational-ai/agents/{agent_id}/repair")
+async def repair_agent_configuration(agent_id: str, user_id: str = Depends(get_current_user)):
+    """
+    Emergency repair endpoint to fix corrupted agent configuration
+    This removes duplicate fields and resets tools to a clean state
+    """
+    try:
+        logging.info(f"[REPAIR] ============ AGENT REPAIR STARTED ============")
+        logging.info(f"[REPAIR] Agent ID: {agent_id}")
+        logging.info(f"[REPAIR] User ID: {user_id}")
+        
+        # Get agent to verify ownership and get elevenlabs_agent_id
+        agent = await db.conversational_agents.find_one(
+            {"id": agent_id, "user_id": user_id},
+            {"_id": 0, "elevenlabs_agent_id": 1}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        elevenlabs_agent_id = agent.get("elevenlabs_agent_id")
+        if not elevenlabs_agent_id:
+            raise HTTPException(status_code=400, detail="Agent is not linked to ElevenLabs")
+        
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Step 1: Get current agent configuration
+        logging.info(f"[REPAIR] Step 1: Fetching current agent configuration...")
+        get_response = requests.get(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if get_response.status_code != 200:
+            logging.error(f"[REPAIR] Error getting agent: {get_response.text}")
+            raise HTTPException(status_code=get_response.status_code, detail="Failed to get agent configuration")
+        
+        agent_data = get_response.json()
+        logging.info(f"[REPAIR] ✅ Agent fetched successfully")
+        
+        # Step 2: Build a CLEAN configuration
+        logging.info(f"[REPAIR] Step 2: Building clean configuration...")
+        
+        conversation_config = agent_data.get("conversation_config", {})
+        agent_config = conversation_config.get("agent", {})
+        prompt_config = agent_config.get("prompt", {})
+        
+        # Build a completely clean prompt configuration - removing all duplicates and corruption
+        clean_prompt = {
+            "prompt": prompt_config.get("prompt", ""),
+            "llm": prompt_config.get("llm", "gpt-4o"),
+            "temperature": prompt_config.get("temperature", 0.7),
+            "max_tokens": prompt_config.get("max_tokens", -1),  # Single value only
+            "tools": [],  # Clean slate - empty tools array
+            "tool_ids": [],  # Clean slate - empty tool_ids
+            "knowledge_base": prompt_config.get("knowledge_base", []),
+            "custom_llm": prompt_config.get("custom_llm"),
+            "rag": prompt_config.get("rag", {
+                "enabled": False,
+                "embedding_model": "e5_mistral_7b_instruct",
+                "max_vector_distance": 0.6,
+                "max_documents_length": 50000,
+                "max_retrieved_rag_chunks_count": 20
+            }),
+            "timezone": prompt_config.get("timezone"),
+            "backup_llm_config": prompt_config.get("backup_llm_config", {"preference": "default"}),
+            "ignore_default_personality": prompt_config.get("ignore_default_personality", False)
+        }
+        
+        # Explicitly do NOT include built_in_tools - we're removing it completely
+        
+        logging.info(f"[REPAIR] ✅ Clean configuration built")
+        logging.info(f"[REPAIR]    - Removed all duplicate fields")
+        logging.info(f"[REPAIR]    - Removed corrupted built_in_tools object")
+        logging.info(f"[REPAIR]    - Set clean tools array: []")
+        logging.info(f"[REPAIR]    - Set clean tool_ids: []")
+        logging.info(f"[REPAIR]    - Preserved knowledge base: {len(clean_prompt['knowledge_base'])} items")
+        
+        # Step 3: Send the clean configuration
+        logging.info(f"[REPAIR] Step 3: Sending clean configuration to ElevenLabs...")
+        
+        clean_agent_config = {
+            "prompt": clean_prompt,
+            "first_message": agent_config.get("first_message", ""),
+            "language": agent_config.get("language", "en")
+        }
+        
+        clean_conversation_config = {
+            "agent": clean_agent_config,
+            "tts": conversation_config.get("tts", {}),
+            "asr": conversation_config.get("asr", {})
+        }
+        
+        update_payload = {
+            "conversation_config": clean_conversation_config
+        }
+        
+        import json
+        logging.info(f"[REPAIR] Sending clean payload:")
+        logging.info(json.dumps(clean_prompt, indent=2))
+        
+        patch_response = requests.patch(
+            f"https://api.elevenlabs.io/v1/convai/agents/{elevenlabs_agent_id}",
+            headers={
+                "xi-api-key": elevenlabs_key,
+                "Content-Type": "application/json"
+            },
+            json=update_payload
+        )
+        
+        logging.info(f"[REPAIR] Response status: {patch_response.status_code}")
+        
+        if patch_response.status_code not in [200, 201]:
+            error_text = patch_response.text
+            logging.error(f"[REPAIR] ❌ REPAIR FAILED:")
+            logging.error(f"[REPAIR] Status: {patch_response.status_code}")
+            logging.error(f"[REPAIR] Error: {error_text}")
+            raise HTTPException(
+                status_code=patch_response.status_code,
+                detail=f"Failed to repair agent: {error_text}"
+            )
+        
+        logging.info(f"[REPAIR] ✅ SUCCESS! Agent repaired successfully!")
+        logging.info(f"[REPAIR] ==============================================")
+        
+        return {
+            "message": "Agent configuration repaired successfully",
+            "details": "All duplicate fields removed, tools reset to clean state",
+            "next_steps": "You can now add tools back through the UI"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[REPAIR] Error repairing agent: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to repair agent: {str(e)}")
+
+
+
 @api_router.post("/conversational-ai/agents/{agent_id}/start-call")
 async def start_call_with_agent(agent_id: str, user_id: str = Depends(get_current_user)):
     """Start a call session with an agent"""
