@@ -1833,38 +1833,57 @@ export default function AutomationStudioPage() {
 
                   <div>
                     <Label className="text-white">Select AI Agent</Label>
-                    <Select
-                      value={nodeConfig.agentId || ''}
-                      onValueChange={(value) => {
-                        const selectedAgent = (nodeConfig.availableAgents || []).find(a => a.id === value);
-                        setNodeConfig({ 
-                          ...nodeConfig, 
-                          agentId: value,
-                          agentName: selectedAgent?.name || 'Unknown Agent',
-                          elevenlabs_agent_id: selectedAgent?.elevenlabs_agent_id || ''
-                        });
-                      }}
-                    >
-                      <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
-                        <SelectValue placeholder="Select an agent" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1a1d2e] border-gray-700">
-                        {(nodeConfig.availableAgents || []).length > 0 ? (
-                          nodeConfig.availableAgents.map(agent => (
-                            <SelectItem key={agent.id} value={agent.id}>
-                              {agent.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="none" disabled>No agents available</SelectItem>
+                    
+                    {nodeConfig.availableAgents === undefined ? (
+                      <div className="mt-2 p-3 bg-gray-800 border border-gray-700 rounded-lg flex items-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin text-amber-400" />
+                        <span className="text-sm text-gray-300">Loading agents...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Select
+                          value={nodeConfig.agentId || ''}
+                          onValueChange={(value) => {
+                            const selectedAgent = (nodeConfig.availableAgents || []).find(a => a.id === value);
+                            console.log('[Select] Selected agent:', selectedAgent);
+                            setNodeConfig({ 
+                              ...nodeConfig, 
+                              agentId: value,
+                              agentName: selectedAgent?.name || 'Unknown Agent',
+                              elevenlabs_agent_id: selectedAgent?.elevenlabs_agent_id || ''
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="bg-[#0f1218] border-gray-700 text-white mt-2">
+                            <SelectValue placeholder="Select an agent" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#1a1d2e] border-gray-700">
+                            {(nodeConfig.availableAgents || []).length > 0 ? (
+                              nodeConfig.availableAgents.map(agent => (
+                                <SelectItem key={agent.id} value={agent.id}>
+                                  {agent.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="none" disabled>No agents available</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        
+                        {nodeConfig.availableAgents && nodeConfig.availableAgents.length === 0 && (
+                          <p className="text-xs text-yellow-400 mt-2">
+                            ⚠️ No agents found. Create an agent in the Conversational AI section first.
+                          </p>
                         )}
-                      </SelectContent>
-                    </Select>
-                    {(!nodeConfig.availableAgents || nodeConfig.availableAgents.length === 0) && (
-                      <p className="text-xs text-yellow-400 mt-2">
-                        ⚠️ No agents found. Create an agent in the Conversational AI section first.
-                      </p>
+                        
+                        {nodeConfig.availableAgents && nodeConfig.availableAgents.length > 0 && (
+                          <p className="text-xs text-gray-400 mt-2">
+                            ✓ Found {nodeConfig.availableAgents.length} agent(s)
+                          </p>
+                        )}
+                      </>
                     )}
+                    
                     {nodeConfig.agentId && (
                       <div className="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
                         <div className="flex items-center gap-2">
