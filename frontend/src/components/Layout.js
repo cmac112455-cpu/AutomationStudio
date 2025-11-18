@@ -26,7 +26,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [automationExpanded, setAutomationExpanded] = React.useState(
-    location.pathname.startsWith('/automation')
+    location.pathname.startsWith('/automation') && location.pathname !== '/automation/integrations'
   );
   const [voiceStudioExpanded, setVoiceStudioExpanded] = React.useState(
     location.pathname.startsWith('/voice-studio')
