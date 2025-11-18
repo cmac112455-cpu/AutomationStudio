@@ -2130,7 +2130,7 @@ const ConversationalAgentsPage = () => {
 
                           {/* Transfer to Agent Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
                                 <Bot className="w-5 h-5 text-green-400" />
                               </div>
@@ -2139,21 +2139,35 @@ const ConversationalAgentsPage = () => {
                                 <p className="text-sm text-gray-400">Transfer conversation to another AI agent</p>
                               </div>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_agent')}
-                                onChange={(e) => {
-                                  const newTools = e.target.checked
-                                    ? [...builtInTools, 'transfer_to_agent']
-                                    : builtInTools.filter(t => t !== 'transfer_to_agent');
-                                  setBuiltInTools(newTools);
-                                  setUnsavedToolsChanges(true);
-                                }}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {builtInTools.includes('transfer_to_agent') && (
+                                <button
+                                  onClick={() => setEditingToolSettings({
+                                    toolName: 'transfer_to_agent',
+                                    config: toolConfigs['transfer_to_agent'] || {}
+                                  })}
+                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                  title="Tool Settings"
+                                >
+                                  <Settings className="w-4 h-4 text-gray-400" />
+                                </button>
+                              )}
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(builtInTools) && builtInTools.includes('transfer_to_agent')}
+                                  onChange={(e) => {
+                                    const newTools = e.target.checked
+                                      ? [...builtInTools, 'transfer_to_agent']
+                                      : builtInTools.filter(t => t !== 'transfer_to_agent');
+                                    setBuiltInTools(newTools);
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Transfer to Number Tool */}
