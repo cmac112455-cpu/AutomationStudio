@@ -2777,7 +2777,7 @@ const ConversationalAgentsPage = () => {
                                           />
                                         </div>
                                         <div>
-                                          <Label className="text-xs mb-1 block">Transfer Condition</Label>
+                                          <Label className="text-xs mb-1 block">Condition</Label>
                                           <Textarea
                                             value={transfer.condition || ''}
                                             onChange={(e) => {
@@ -2797,7 +2797,58 @@ const ConversationalAgentsPage = () => {
                                               });
                                               setUnsavedToolsChanges(true);
                                             }}
-                                            placeholder="When user requests human agent..."
+                                            placeholder="Enter the condition for transferring to this number"
+                                            className="min-h-[60px] bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Delay before transfer (milliseconds)</Label>
+                                          <Input
+                                            type="number"
+                                            value={transfer.delay_ms || 0}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], delay_ms: parseInt(e.target.value) || 0 };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_number: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="0"
+                                            className="bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Transfer message (optional)</Label>
+                                          <Textarea
+                                            value={transfer.transfer_message || ''}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], transfer_message: e.target.value };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_number: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="Message to play before transfer (optional)"
                                             className="min-h-[60px] bg-black/30 border-gray-700 text-gray-300 text-sm"
                                           />
                                         </div>
