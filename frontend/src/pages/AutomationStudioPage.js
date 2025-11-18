@@ -451,6 +451,7 @@ const nodeTypes = {
   http: HttpNode,
   database: DatabaseNode,
   elevenlabs: ElevenLabsNode,
+  elevenlabsconversational: ElevenLabsConversationalNode,
   manychat: ManyChatNode,
   videogen: VideoGenNode,
   imagetovideo: ImageToVideoNode,
