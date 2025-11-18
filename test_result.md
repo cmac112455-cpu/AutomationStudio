@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the Tools tab in Conversational AI Studio. Tools configuration is not working correctly - tools disappear after saving. The tab needs to properly save and retrieve tools using the correct ElevenLabs API structure with built_in_tools and tool_ids."
+user_problem_statement: "Fix the Tools tab in Conversational AI Studio. Tools are not saving to ElevenLabs properly - toggling tools on/off doesn't persist changes. The ElevenLabs website is also giving errors when trying to save. Need to use the correct 2025 ElevenLabs API structure."
 
 backend:
   - task: "Tools Tab Backend Endpoints Fix"
