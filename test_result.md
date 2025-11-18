@@ -107,11 +107,11 @@ user_problem_statement: "Fix the Tools tab in Conversational AI Studio. Tools ar
 backend:
   - task: "Tools Tab Backend Endpoints Fix"
     implemented: true
-    working: true
+    working: "NA"
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
