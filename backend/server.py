@@ -3362,6 +3362,53 @@ async def get_workspace_tools(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Failed to fetch workspace tools: {str(e)}")
 
 
+@api_router.get("/conversational-ai/available-agents")
+async def get_available_agents(user_id: str = Depends(get_current_user)):
+    """Get list of available agents for transfer"""
+    try:
+        # Get ElevenLabs API key
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "integrations": 1})
+        elevenlabs_key = user.get("integrations", {}).get("elevenlabs", {}).get("apiKey") if user else None
+        
+        if not elevenlabs_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        
+        # Fetch all agents
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/convai/agents",
+            headers={"xi-api-key": elevenlabs_key}
+        )
+        
+        if response.status_code != 200:
+            logging.error(f"[AVAILABLE_AGENTS] Error fetching agents: {response.text}")
+            return {"agents": []}
+        
+        agents_data = response.json()
+        agents = agents_data.get("agents", [])
+        
+        # Return simplified agent list with id and name
+        agent_list = [
+            {
+                "agent_id": agent.get("agent_id"),
+                "name": agent.get("name", "Unnamed Agent")
+            }
+            for agent in agents
+            if agent.get("agent_id")
+        ]
+        
+        logging.info(f"[AVAILABLE_AGENTS] Loaded {len(agent_list)} available agents")
+        
+        return {"agents": agent_list}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[AVAILABLE_AGENTS] Error fetching agents: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch agents: {str(e)}")
+
+
 @api_router.patch("/conversational-ai/agents/{agent_id}/tools")
 async def update_agent_tools(
     agent_id: str,
