@@ -131,6 +131,57 @@ const IntegrationsPage = () => {
     }));
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const integrationsList = [
+    {
+      id: 'elevenlabs',
+      name: 'ElevenLabs',
+      description: 'AI voice generation and text-to-speech',
+      category: 'AI & Voice',
+      logo: (
+        <svg className="w-full h-full" viewBox="0 0 200 200" fill="none">
+          <rect width="200" height="200" rx="40" fill="url(#elevenlabs-gradient)"/>
+          <path d="M50 100L80 70V130L50 100Z" fill="white"/>
+          <path d="M90 100L120 70V130L90 100Z" fill="white" opacity="0.7"/>
+          <path d="M130 100L160 70V130L130 100Z" fill="white" opacity="0.4"/>
+          <defs>
+            <linearGradient id="elevenlabs-gradient" x1="0" y1="0" x2="200" y2="200">
+              <stop offset="0%" stopColor="#8B5CF6"/>
+              <stop offset="100%" stopColor="#EC4899"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      ),
+      connected: integrations.elevenlabs.connected,
+      data: integrations.elevenlabs
+    },
+    {
+      id: 'twilio',
+      name: 'Twilio',
+      description: 'Phone numbers and SMS for voice AI calling',
+      category: 'Communication',
+      logo: (
+        <svg className="w-full h-full" viewBox="0 0 200 200" fill="none">
+          <rect width="200" height="200" rx="40" fill="#F22F46"/>
+          <circle cx="100" cy="100" r="60" fill="none" stroke="white" strokeWidth="8"/>
+          <circle cx="80" cy="80" r="12" fill="white"/>
+          <circle cx="120" cy="80" r="12" fill="white"/>
+          <circle cx="80" cy="120" r="12" fill="white"/>
+          <circle cx="120" cy="120" r="12" fill="white"/>
+        </svg>
+      ),
+      connected: integrations.twilio.connected,
+      data: integrations.twilio
+    }
+  ];
+
+  const filteredIntegrations = integrationsList.filter(integration =>
+    integration.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    integration.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    integration.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f1218] to-[#1a1d2e]">
       {/* Header */}
