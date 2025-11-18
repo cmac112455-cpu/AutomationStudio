@@ -3197,7 +3197,7 @@ class BackendTester:
                     critical_failures.append(result["test"])
             else:
                 # Check for successful tools endpoints
-                if "Tools" in result["test"] and "Conversational AI" in result["test"]:
+                if "Tools Tab Backend Endpoints Fix" in result["test"]:
                     tools_fix_status = "SUCCESS"
         
         if critical_failures:
