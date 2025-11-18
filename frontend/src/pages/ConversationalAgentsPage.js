@@ -2538,11 +2538,10 @@ const ConversationalAgentsPage = () => {
                                   <SelectContent>
                                     <SelectItem value="auto">Auto</SelectItem>
                                     <SelectItem value="always">Always</SelectItem>
-                                    <SelectItem value="never">Never</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <p className="text-xs text-gray-500 mt-2">
-                                  Control when tool call sounds are played
+                                  Control when tool call sounds are played (auto or always)
                                 </p>
                               </div>
 
