@@ -2317,6 +2317,147 @@ const ConversationalAgentsPage = () => {
                         </div>
                       </div>
 
+                      {/* Tool Settings Modal */}
+                      {editingToolSettings && (
+                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                          <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-gray-700">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-semibold flex items-center gap-2">
+                                  <Settings className="w-6 h-6 text-cyan-400" />
+                                  Tool Settings: {editingToolSettings.toolName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </h3>
+                                <button
+                                  onClick={() => setEditingToolSettings(null)}
+                                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <div className="p-6 space-y-6">
+                              {/* Description */}
+                              <div>
+                                <Label htmlFor="tool-description" className="text-sm font-medium mb-2 block">
+                                  Description
+                                </Label>
+                                <Textarea
+                                  id="tool-description"
+                                  value={editingToolSettings.config.description || ''}
+                                  onChange={(e) => {
+                                    setEditingToolSettings({
+                                      ...editingToolSettings,
+                                      config: { ...editingToolSettings.config, description: e.target.value }
+                                    });
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  placeholder="Describe when this tool should be used..."
+                                  className="min-h-[100px] bg-black/30 border-gray-700 text-gray-300"
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Provide context to help the agent decide when to use this tool
+                                </p>
+                              </div>
+
+                              {/* Response Timeout */}
+                              <div>
+                                <Label htmlFor="tool-timeout" className="text-sm font-medium mb-2 block">
+                                  Response Timeout (seconds)
+                                </Label>
+                                <Input
+                                  id="tool-timeout"
+                                  type="number"
+                                  min="1"
+                                  max="30"
+                                  value={editingToolSettings.config.response_timeout_secs || 20}
+                                  onChange={(e) => {
+                                    setEditingToolSettings({
+                                      ...editingToolSettings,
+                                      config: { ...editingToolSettings.config, response_timeout_secs: parseInt(e.target.value) }
+                                    });
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="bg-black/30 border-gray-700 text-gray-300"
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                  How long to wait for user input after using this tool
+                                </p>
+                              </div>
+
+                              {/* Disable Interruptions */}
+                              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                                <div>
+                                  <h4 className="font-medium">Disable Interruptions</h4>
+                                  <p className="text-sm text-gray-400">Prevent user from interrupting during tool execution</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editingToolSettings.config.disable_interruptions || false}
+                                    onChange={(e) => {
+                                      setEditingToolSettings({
+                                        ...editingToolSettings,
+                                        config: { ...editingToolSettings.config, disable_interruptions: e.target.checked }
+                                      });
+                                      setUnsavedToolsChanges(true);
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                                </label>
+                              </div>
+
+                              {/* Force Pre-Tool Speech */}
+                              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                                <div>
+                                  <h4 className="font-medium">Force Pre-Tool Speech</h4>
+                                  <p className="text-sm text-gray-400">Agent must speak before executing this tool</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editingToolSettings.config.force_pre_tool_speech || false}
+                                    onChange={(e) => {
+                                      setEditingToolSettings({
+                                        ...editingToolSettings,
+                                        config: { ...editingToolSettings.config, force_pre_tool_speech: e.target.checked }
+                                      });
+                                      setUnsavedToolsChanges(true);
+                                    }}
+                                    className="sr-only peer"
+                                  />
+                                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className="p-6 border-t border-gray-700 flex justify-end gap-3">
+                              <Button
+                                onClick={() => setEditingToolSettings(null)}
+                                variant="outline"
+                                className="border-gray-700"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Update tool configs
+                                  setToolConfigs({
+                                    ...toolConfigs,
+                                    [editingToolSettings.toolName]: editingToolSettings.config
+                                  });
+                                  setEditingToolSettings(null);
+                                }}
+                                className="bg-cyan-500 hover:bg-cyan-600"
+                              >
+                                Apply Settings
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Save Changes Section */}
                       {unsavedToolsChanges && (
                         <div className="sticky bottom-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 border-2 border-orange-500 rounded-xl p-4 animate-pulse">
