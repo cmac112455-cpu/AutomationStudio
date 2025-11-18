@@ -1832,7 +1832,41 @@ export default function AutomationStudioPage() {
                   </div>
 
                   <div>
-                    <Label className="text-white">Select AI Agent</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-white">Select AI Agent</Label>
+                      <Button
+                        onClick={() => {
+                          console.log('[Refresh] Fetching agents...');
+                          axios.get(`${BACKEND_URL}/api/conversational-ai/agents`, {
+                            headers: {
+                              'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                          })
+                            .then(response => {
+                              console.log('[Refresh] Response:', response.data);
+                              const agents = Array.isArray(response.data) ? response.data : [];
+                              const mappedAgents = agents.map(a => ({ 
+                                id: a.id, 
+                                name: a.name,
+                                elevenlabs_agent_id: a.elevenlabs_agent_id 
+                              }));
+                              setNodeConfig({ 
+                                ...nodeConfig, 
+                                availableAgents: mappedAgents
+                              });
+                              toast.success(`Loaded ${mappedAgents.length} agent(s)`);
+                            })
+                            .catch(error => {
+                              console.error('[Refresh] Error:', error);
+                              toast.error(`Failed: ${error.response?.data?.detail || error.message}`);
+                            });
+                        }}
+                        size="sm"
+                        className="h-7 text-xs bg-amber-600 hover:bg-amber-700"
+                      >
+                        Refresh Agents
+                      </Button>
+                    </div>
                     
                     {nodeConfig.availableAgents === undefined ? (
                       <div className="mt-2 p-3 bg-gray-800 border border-gray-700 rounded-lg flex items-center gap-2">
