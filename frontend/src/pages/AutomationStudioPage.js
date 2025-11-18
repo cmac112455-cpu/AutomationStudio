@@ -859,7 +859,26 @@ export default function AutomationStudioPage() {
     setContextMenu(null); // Close context menu on click
     if (node.type !== 'start' && node.type !== 'end') {
       setSelectedNode(node);
-      setNodeConfig(node.data || {});
+      const config = node.data || {};
+      
+      // If it's an ElevenLabs Conversational AI node, fetch available agents
+      if (node.type === 'elevenlabsconversational') {
+        axios.get(`${BACKEND_URL}/api/conversational-ai/agents`)
+          .then(response => {
+            const agents = response.data.agents || [];
+            setNodeConfig({ 
+              ...config, 
+              availableAgents: agents.map(a => ({ id: a.id, name: a.name }))
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching agents:', error);
+            setNodeConfig({ ...config, availableAgents: [] });
+          });
+      } else {
+        setNodeConfig(config);
+      }
+      
       setShowConfigModal(true);
     }
   }, []);
