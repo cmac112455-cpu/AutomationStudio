@@ -91,6 +91,8 @@ const ConversationalAgentsPage = () => {
   const [loadingTools, setLoadingTools] = useState(false);
   const [unsavedToolsChanges, setUnsavedToolsChanges] = useState(false);
   const [savingTools, setSavingTools] = useState(false);
+  const [editingToolSettings, setEditingToolSettings] = useState(null); // {toolName: "end_call", config: {...}}
+  const [toolConfigs, setToolConfigs] = useState({}); // Store individual tool configs
   
   // Form state
   const [formData, setFormData] = useState({
