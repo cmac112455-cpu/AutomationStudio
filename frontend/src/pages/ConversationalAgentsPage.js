@@ -2475,30 +2475,7 @@ const ConversationalAgentsPage = () => {
                                 </p>
                               </div>
 
-                              {/* Response Timeout */}
-                              <div>
-                                <Label htmlFor="tool-timeout" className="text-sm font-medium mb-2 block">
-                                  Response Timeout (seconds)
-                                </Label>
-                                <Input
-                                  id="tool-timeout"
-                                  type="number"
-                                  min="1"
-                                  max="30"
-                                  value={editingToolSettings.config.response_timeout_secs || 20}
-                                  onChange={(e) => {
-                                    setEditingToolSettings({
-                                      ...editingToolSettings,
-                                      config: { ...editingToolSettings.config, response_timeout_secs: parseInt(e.target.value) }
-                                    });
-                                    setUnsavedToolsChanges(true);
-                                  }}
-                                  className="bg-black/30 border-gray-700 text-gray-300"
-                                />
-                                <p className="text-xs text-gray-500 mt-2">
-                                  How long to wait for user input after using this tool
-                                </p>
-                              </div>
+                              {/* Response Timeout - Removed as system tools don't use this */}
 
                               {/* Disable Interruptions */}
                               <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
