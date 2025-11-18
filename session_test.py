@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BACKEND_URL = "https://elevate-agent.preview.emergentagent.com/api"
+BACKEND_URL = "https://toolsync.preview.emergentagent.com/api"
 
 def main():
     session = requests.Session()

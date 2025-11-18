@@ -8,7 +8,7 @@ import json
 import time
 import base64
 
-BACKEND_URL = "https://elevate-agent.preview.emergentagent.com/api"
+BACKEND_URL = "https://toolsync.preview.emergentagent.com/api"
 
 def test_image_generation():
     print("🧪 VERIFYING IMAGE GENERATION FUNCTIONALITY")
