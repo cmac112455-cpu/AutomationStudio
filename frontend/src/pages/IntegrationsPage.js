@@ -183,27 +183,85 @@ const IntegrationsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f1218] to-[#1a1d2e]">
-      {/* Header */}
-      <div className="border-b border-gray-800 bg-[#0f1218]/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/automation/studio"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                ← Back to Studio
-              </Link>
-              <div className="h-6 w-px bg-gray-700"></div>
-              <h1 className="text-2xl font-bold text-white">Integrations</h1>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#1a1d2e] to-[#0a0e1a] text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            Integrations
+          </h1>
+          <p className="text-gray-400 text-lg">Connect your favorite services and tools</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search integrations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-[#1a1d2e]/60 backdrop-blur-xl border border-gray-800/50 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
+            />
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Integrations Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {filteredIntegrations.map((integration) => (
+            <div key={integration.id} className="group relative">
+              <div className="bg-[#1a1d2e]/60 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-6 hover:border-purple-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10">
+                {/* Logo */}
+                <div className="w-16 h-16 mb-4 rounded-xl overflow-hidden">
+                  {integration.logo}
+                </div>
+                
+                {/* Content */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-semibold text-white">{integration.name}</h3>
+                    {integration.connected && (
+                      <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full flex items-center">
+                        <Check className="w-3 h-3 mr-1" />
+                        Connected
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm mb-2">{integration.description}</p>
+                  <span className="inline-block px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                    {integration.category}
+                  </span>
+                </div>
+
+                {/* Action Button */}
+                <button
+                  onClick={() => {
+                    // Navigate to detailed integration page
+                    window.location.href = `/integrations/${integration.id}`;
+                  }}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {integration.connected ? 'Manage' : 'Connect'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* No Results */}
+        {filteredIntegrations.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800/50 flex items-center justify-center">
+              <Search className="w-8 h-8 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">No integrations found</h3>
+            <p className="text-gray-500">Try adjusting your search terms</p>
+          </div>
+        )}
+
+        {/* Legacy Integration Cards (Hidden but kept for functionality) */}
+        <div className="hidden">
         {/* ElevenLabs Integration */}
         <div className="bg-[#1a1d2e] rounded-xl border border-gray-800 p-6 mb-6">
           <div className="flex items-start justify-between mb-6">
