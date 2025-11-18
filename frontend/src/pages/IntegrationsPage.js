@@ -11,7 +11,7 @@ axios.defaults.baseURL = BACKEND_URL;
 const IntegrationsPage = () => {
   const [integrations, setIntegrations] = useState({
     elevenlabs: { apiKey: '', connected: false, loading: false, errorMessage: '' },
-    twilio: { accountSid: '', authToken: '', phoneNumber: '', connected: false, loading: false, errorMessage: '' }
+    twilio: { apiKey: '', apiSecret: '', phoneNumber: '', connected: false, loading: false, errorMessage: '' }
   });
   const [saveStatus, setSaveStatus] = useState({});
 
