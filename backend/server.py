@@ -1862,40 +1862,34 @@ async def save_integration(service: str, config: IntegrationConfig, user_id: str
     
     elif service == "twilio":
         try:
-            # Validate Twilio API Key and Secret
+            # Validate Twilio credentials by making a test API call
             from twilio.rest import Client
             
-            if not config.apiKey or not config.apiSecret:
+            if not config.accountSid or not config.authToken:
                 raise HTTPException(
                     status_code=400,
-                    detail="API Key and API Secret are required for Twilio integration."
+                    detail="Account SID and Auth Token are required for Twilio integration."
                 )
             
-            # Test the API credentials by creating a client
-            # Note: With API Keys, we use the API Key SID as username and Secret as password
-            client = Client(config.apiKey, config.apiSecret)
+            # Test the credentials
+            client = Client(config.accountSid, config.authToken)
             
-            # Try to fetch API key details to validate credentials
-            # This will fail if credentials are invalid
+            # Try to fetch account details to validate credentials
             try:
-                # Test by fetching the API key details
-                api_keys = client.api.keys.list(limit=1)
-                logging.info(f"Twilio API credentials validated successfully for user {user_id}")
+                account = client.api.accounts(config.accountSid).fetch()
+                logging.info(f"Twilio credentials validated successfully for user {user_id}")
             except Exception as e:
-                logging.error(f"Twilio API validation failed: {str(e)}")
+                logging.error(f"Twilio credential validation failed: {str(e)}")
                 raise HTTPException(
                     status_code=400,
-                    detail="Invalid Twilio API Key or Secret. Please check your credentials."
+                    detail="Invalid Twilio credentials. Please check your Account SID and Auth Token."
                 )
             
             # Save Twilio configuration
             twilio_config = {
-                "apiKey": config.apiKey,
-                "apiSecret": config.apiSecret,
+                "accountSid": config.accountSid,
+                "authToken": config.authToken
             }
-            
-            if config.phoneNumber:
-                twilio_config["phoneNumber"] = config.phoneNumber
             
             await db.users.update_one(
                 {"id": user_id},
