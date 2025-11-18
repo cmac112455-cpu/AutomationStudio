@@ -612,6 +612,55 @@ const ConversationalAgentsPage = () => {
     }
   };
 
+  const repairAgentConfiguration = async () => {
+    if (!editingAgent?.id) return;
+    
+    // Confirm with user first
+    const confirmed = window.confirm(
+      '⚠️ REPAIR AGENT CONFIGURATION\n\n' +
+      'This will:\n' +
+      '• Remove all duplicate fields from your agent\n' +
+      '• Clear corrupted tool configurations\n' +
+      '• Reset tools to a clean state\n' +
+      '• Preserve your agent prompt and knowledge base\n\n' +
+      'You will need to add your tools back after repair.\n\n' +
+      'Continue with repair?'
+    );
+    
+    if (!confirmed) return;
+    
+    setSavingTools(true);
+    try {
+      console.log('🔧 REPAIRING agent configuration:', editingAgent.id);
+      
+      const response = await axios.post(
+        `${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/repair`
+      );
+      
+      console.log('✅ Repair response:', response.data);
+      toast.success('✅ Agent repaired successfully! You can now add tools back.');
+      
+      // Reload the agent tools to show clean state
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await loadAgentTools(editingAgent.id);
+      
+      // Clear unsaved changes
+      setUnsavedToolsChanges(false);
+      setBuiltInTools([]);
+      setToolConfigs({});
+      
+      console.log('✅ Agent repaired and reloaded');
+    } catch (error) {
+      console.error('❌ Error repairing agent:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to repair agent';
+      console.error('❌ Error details:', errorMsg);
+      toast.error(`Repair failed: ${errorMsg}`);
+    } finally {
+      setSavingTools(false);
+    }
+  };
+
+
   // Load analytics when Analysis tab is opened
   useEffect(() => {
     if (activeTab === 'analysis' && editingAgent?.id) {
