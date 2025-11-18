@@ -2501,6 +2501,234 @@ const ConversationalAgentsPage = () => {
 
                               {/* Tool Call Sound, Assignments - Removed as system tools don't use these */}
 
+                              {/* Transfer to Agent Rules */}
+                              {editingToolSettings.toolName === 'transfer_to_agent' && (
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">
+                                    Transfer Rules
+                                  </Label>
+                                  <div className="space-y-3">
+                                    {(editingToolSettings.config.params?.transfer_to_agent?.transfers || []).map((transfer, index) => (
+                                      <div key={index} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                          <Label className="text-xs text-gray-400">Rule {index + 1}</Label>
+                                          <button
+                                            onClick={() => {
+                                              const newTransfers = (editingToolSettings.config.params?.transfer_to_agent?.transfers || []).filter((_, i) => i !== index);
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_agent: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            className="text-red-400 hover:text-red-300 text-xs"
+                                          >
+                                            Remove
+                                          </button>
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Agent ID</Label>
+                                          <Input
+                                            value={transfer.agent_id || ''}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_agent?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], agent_id: e.target.value };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_agent: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="agent_abc123..."
+                                            className="bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Transfer Condition</Label>
+                                          <Textarea
+                                            value={transfer.condition || ''}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_agent?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], condition: e.target.value };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_agent: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="When user asks about billing..."
+                                            className="min-h-[60px] bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <Button
+                                      onClick={() => {
+                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_agent?.transfers || []), { agent_id: '', condition: '' }];
+                                        setEditingToolSettings({
+                                          ...editingToolSettings,
+                                          config: {
+                                            ...editingToolSettings.config,
+                                            params: {
+                                              system_tool_type: 'transfer_to_agent',
+                                              transfer_to_agent: {
+                                                transfers: newTransfers
+                                              }
+                                            }
+                                          }
+                                        });
+                                        setUnsavedToolsChanges(true);
+                                      }}
+                                      variant="outline"
+                                      className="w-full border-green-500/30 text-green-400 hover:bg-green-500/10"
+                                    >
+                                      + Add Transfer Rule
+                                    </Button>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    Define which agents to transfer to based on conditions
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Transfer to Number Rules */}
+                              {editingToolSettings.toolName === 'transfer_to_number' && (
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">
+                                    Transfer Rules
+                                  </Label>
+                                  <div className="space-y-3">
+                                    {(editingToolSettings.config.params?.transfer_to_number?.transfers || []).map((transfer, index) => (
+                                      <div key={index} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                          <Label className="text-xs text-gray-400">Rule {index + 1}</Label>
+                                          <button
+                                            onClick={() => {
+                                              const newTransfers = (editingToolSettings.config.params?.transfer_to_number?.transfers || []).filter((_, i) => i !== index);
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_number: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            className="text-red-400 hover:text-red-300 text-xs"
+                                          >
+                                            Remove
+                                          </button>
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Phone Number</Label>
+                                          <Input
+                                            value={transfer.number || ''}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], number: e.target.value };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_number: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="+1234567890 or sip:user@domain.com"
+                                            className="bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Transfer Condition</Label>
+                                          <Textarea
+                                            value={transfer.condition || ''}
+                                            onChange={(e) => {
+                                              const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || [])];
+                                              newTransfers[index] = { ...newTransfers[index], condition: e.target.value };
+                                              setEditingToolSettings({
+                                                ...editingToolSettings,
+                                                config: {
+                                                  ...editingToolSettings.config,
+                                                  params: {
+                                                    ...editingToolSettings.config.params,
+                                                    transfer_to_number: {
+                                                      transfers: newTransfers
+                                                    }
+                                                  }
+                                                }
+                                              });
+                                              setUnsavedToolsChanges(true);
+                                            }}
+                                            placeholder="When user requests human agent..."
+                                            className="min-h-[60px] bg-black/30 border-gray-700 text-gray-300 text-sm"
+                                          />
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <Button
+                                      onClick={() => {
+                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_number?.transfers || []), { number: '', condition: '' }];
+                                        setEditingToolSettings({
+                                          ...editingToolSettings,
+                                          config: {
+                                            ...editingToolSettings.config,
+                                            params: {
+                                              system_tool_type: 'transfer_to_number',
+                                              transfer_to_number: {
+                                                transfers: newTransfers
+                                              }
+                                            }
+                                          }
+                                        });
+                                        setUnsavedToolsChanges(true);
+                                      }}
+                                      variant="outline"
+                                      className="w-full border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                                    >
+                                      + Add Transfer Rule
+                                    </Button>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    Define which phone numbers to transfer to based on conditions
+                                  </p>
+                                </div>
+                              )}
+
                               {/* Voicemail Message (only for voicemail_detection) */}
                               {editingToolSettings.toolName === 'voicemail' && (
                                 <div>
