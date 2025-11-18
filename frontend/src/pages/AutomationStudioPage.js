@@ -859,9 +859,11 @@ export default function AutomationStudioPage() {
       // If it's an ElevenLabs Conversational AI node, fetch available agents
       if (node.type === 'elevenlabsconversational') {
         console.log('[ElevenLabs Node] Fetching agents...');
+        const token = localStorage.getItem('apoe_token');
+        console.log('[ElevenLabs Node] Token exists:', !!token);
         axios.get(`${BACKEND_URL}/api/conversational-ai/agents`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         })
           .then(response => {
