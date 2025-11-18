@@ -3469,11 +3469,22 @@ async def update_agent_tools(
                             "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto"),
                             "params": {"system_tool_type": tool_key}
                         }
-                        # Handle params properly
+                        # Handle params properly - preserve nested structures
                         if "params" in custom_config and isinstance(custom_config["params"], dict):
-                            new_built_in_tools[tool_key]["params"].update(custom_config["params"])
-                        # Special handling for voicemail
-                        if tool_key == "voicemail_detection":
+                            # Merge params recursively
+                            for param_key, param_value in custom_config["params"].items():
+                                if param_key == "system_tool_type":
+                                    continue  # Already set
+                                new_built_in_tools[tool_key]["params"][param_key] = param_value
+                        
+                        # Special handling for transfer tools
+                        if tool_key == "transfer_to_agent":
+                            if "transfer_to_agent" not in new_built_in_tools[tool_key]["params"]:
+                                new_built_in_tools[tool_key]["params"]["transfer_to_agent"] = {"transfers": []}
+                        elif tool_key == "transfer_to_number":
+                            if "transfer_to_number" not in new_built_in_tools[tool_key]["params"]:
+                                new_built_in_tools[tool_key]["params"]["transfer_to_number"] = {"transfers": []}
+                        elif tool_key == "voicemail_detection":
                             if "voicemail_message" not in new_built_in_tools[tool_key]["params"]:
                                 new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
                     elif tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
