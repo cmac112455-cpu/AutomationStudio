@@ -3489,35 +3489,39 @@ async def update_agent_tools(
                     "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto")
                 }
                 
-                # Build params structure - params directly on tool (NOT system.params!)
+                # Build system.params structure based on error path showing system.params
+                # Error clearly states: tools[4].system.params.transfer_to_agent.transfers
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent - params with system_tool_type + transfer_to_agent.transfers
+                    # Transfer to agent with nested system.params structure
                     transfers = custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_agent": {
-                            "transfers": transfers
+                    tool_obj["system"] = {
+                        "params": {
+                            "transfer_to_agent": {
+                                "transfers": transfers
+                            }
                         }
                     }
                 elif backend_name == "transfer_to_number":
-                    # Transfer to number - params with system_tool_type + transfer_to_number.transfers
+                    # Transfer to number with nested system.params structure
                     transfers = custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_number": {
-                            "transfers": transfers
+                    tool_obj["system"] = {
+                        "params": {
+                            "transfer_to_number": {
+                                "transfers": transfers
+                            }
                         }
                     }
                 elif backend_name == "voicemail_detection":
-                    # Voicemail - params with system_tool_type + voicemail_message
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message") or None
+                    # Voicemail with nested system.params structure
+                    tool_obj["system"] = {
+                        "params": {
+                            "voicemail_message": custom_config.get("params", {}).get("voicemail_message") or ""
+                        }
                     }
                 else:
-                    # Simple tools - params with just system_tool_type
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name
+                    # Simple tools with empty system.params
+                    tool_obj["system"] = {
+                        "params": {}
                     }
                 
                 tools_array.append(tool_obj)
