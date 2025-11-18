@@ -3475,49 +3475,49 @@ async def update_agent_tools(
                 # Check if custom config exists
                 custom_config = custom_tool_configs.get(frontend_name, {})
                 
-                # Create tool object matching ElevenLabs API structure
-                # Error path shows: tools[4].system.params.transfer_to_agent.transfers
+                # Create tool object matching ACTUAL ElevenLabs structure (verified from API)
+                # Structure from GET /v1/convai/agents shows params DIRECTLY on tool, NOT under system!
                 tool_obj = {
                     "type": "system",
                     "name": backend_name,
-                    "description": custom_config.get("description", "")
+                    "description": custom_config.get("description", ""),
+                    "response_timeout_secs": custom_config.get("response_timeout_secs", 20),
+                    "disable_interruptions": custom_config.get("disable_interruptions", False),
+                    "force_pre_tool_speech": custom_config.get("force_pre_tool_speech", False),
+                    "assignments": custom_config.get("assignments", []),
+                    "tool_call_sound": custom_config.get("tool_call_sound"),
+                    "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto")
                 }
                 
-                # Build system.params structure with system_tool_type discriminator (REQUIRED by ElevenLabs)
-                # Error says: "Unable to extract tag using discriminator 'system_tool_type'"
-                # This means: system_tool_type is REQUIRED in system.params
+                # Build params structure - params directly on tool (NOT system.params!)
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent with system.params.system_tool_type + transfers
+                    # Transfer to agent - params with system_tool_type + transfer_to_agent.transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
-                    tool_obj["system"] = {
-                        "params": {
-                            "system_tool_type": backend_name,
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "transfer_to_agent": {
                             "transfers": transfers
                         }
                     }
                 elif backend_name == "transfer_to_number":
-                    # Transfer to number with system.params.system_tool_type + transfers
+                    # Transfer to number - params with system_tool_type + transfer_to_number.transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
-                    tool_obj["system"] = {
-                        "params": {
-                            "system_tool_type": backend_name,
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "transfer_to_number": {
                             "transfers": transfers
                         }
                     }
                 elif backend_name == "voicemail_detection":
-                    # Voicemail with system.params.system_tool_type + voicemail_message
-                    tool_obj["system"] = {
-                        "params": {
-                            "system_tool_type": backend_name,
-                            "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "") or ""
-                        }
+                    # Voicemail - params with system_tool_type + voicemail_message
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name,
+                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message") or None
                     }
                 else:
-                    # Simple tools with system.params.system_tool_type only
-                    tool_obj["system"] = {
-                        "params": {
-                            "system_tool_type": backend_name
-                        }
+                    # Simple tools - params with just system_tool_type
+                    tool_obj["params"] = {
+                        "system_tool_type": backend_name
                     }
                 
                 tools_array.append(tool_obj)
