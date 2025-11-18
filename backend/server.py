@@ -1812,7 +1812,10 @@ async def get_execution(execution_id: str, user_id: str = Depends(get_current_us
 # ============ INTEGRATIONS ENDPOINTS ============
 
 class IntegrationConfig(BaseModel):
-    apiKey: str
+    apiKey: Optional[str] = None
+    accountSid: Optional[str] = None
+    authToken: Optional[str] = None
+    phoneNumber: Optional[str] = None
 
 @api_router.get("/integrations")
 async def get_integrations(user_id: str = Depends(get_current_user)):
