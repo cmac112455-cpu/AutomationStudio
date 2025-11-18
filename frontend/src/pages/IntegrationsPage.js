@@ -368,20 +368,13 @@ const IntegrationsPage = () => {
 
             {/* Usage Info */}
             <div className="bg-[#0f1218] rounded-lg p-4 border border-gray-800">
-              <h3 className="text-sm font-medium text-white mb-2">How to get API credentials:</h3>
-              <ol className="text-sm text-gray-400 space-y-1 list-decimal list-inside">
-                <li>Go to <a href="https://console.twilio.com/us1/develop/api-keys?frameUrl=%2Fconsole%2Fproject%2Fapi-keys%3Fx-target-region%3Dus1" target="_blank" rel="noopener noreferrer" className="text-red-400 hover:underline">Twilio API Keys</a></li>
-                <li>Click "Create API Key"</li>
-                <li>Give it a name (e.g., "ElevenLabs Integration")</li>
-                <li>Choose "Standard" key type</li>
-                <li>Copy the SID (API Key) and Secret immediately</li>
-                <li>⚠️ Secret is only shown once - save it securely</li>
-              </ol>
-              <h3 className="text-sm font-medium text-white mt-4 mb-2">What this enables:</h3>
+              <h3 className="text-sm font-medium text-white mb-2">How to use:</h3>
               <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Make real phone calls with your ElevenLabs AI agents</li>
-                <li>• Receive incoming calls to your agents</li>
-                <li>• Use phone numbers in automation workflows</li>
+                <li>• Connect Twilio to enable phone calling for your ElevenLabs AI agents</li>
+                <li>• Your agents can make and receive real phone calls</li>
+                <li>• Find your Account SID and Auth Token in the <a href="https://console.twilio.com/" target="_blank" rel="noopener noreferrer" className="text-red-400 hover:underline">Twilio Console</a></li>
+                <li>• Configure phone numbers in your Twilio dashboard</li>
+                <li>• Use the ElevenLabs AI node in workflows to trigger voice calls</li>
               </ul>
             </div>
           </div>
