@@ -43,6 +43,7 @@ export default function Layout({ children }) {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/copilot', label: 'AI Co-Pilot', icon: MessageSquare },
     { path: '/tasks', label: 'Task Planner', icon: CheckSquare },
+    { path: '/integrations', label: 'Integrations', icon: Sparkles },
   ];
 
   return (
