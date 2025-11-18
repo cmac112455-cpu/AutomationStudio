@@ -17,7 +17,8 @@ import {
   Mic,
   Music,
   Bot,
-  History
+  History,
+  Plug
 } from 'lucide-react';
 
 export default function Layout({ children }) {
