@@ -2691,7 +2691,13 @@ const ConversationalAgentsPage = () => {
                                     ))}
                                     <Button
                                       onClick={() => {
-                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_agent?.transfers || []), { agent_id: '', condition: '' }];
+                                        const newTransfers = [...(editingToolSettings.config.params?.transfer_to_agent?.transfers || []), { 
+                                          agent_id: '', 
+                                          condition: '', 
+                                          delay_ms: 0, 
+                                          transfer_message: '', 
+                                          enable_first_message: true 
+                                        }];
                                         setEditingToolSettings({
                                           ...editingToolSettings,
                                           config: {
