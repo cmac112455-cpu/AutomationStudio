@@ -3012,6 +3012,43 @@ const ConversationalAgentsPage = () => {
                         </div>
                       )}
 
+                      {/* Emergency Repair Section */}
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-xl">🚨</span>
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-red-300 mb-1">Agent Configuration Issues?</h4>
+                              <p className="text-sm text-gray-300 mb-2">
+                                If ElevenLabs shows errors when trying to save (duplicate fields, corrupted tools),
+                                use this emergency repair to clean up your agent configuration.
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                ⚠️ This will reset all tools. You'll need to add them back after repair.
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={repairAgentConfiguration}
+                            disabled={savingTools}
+                            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold px-4 py-2 shadow-lg flex-shrink-0"
+                          >
+                            {savingTools ? (
+                              <>
+                                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 inline-block"></div>
+                                Repairing...
+                              </>
+                            ) : (
+                              <>
+                                🔧 Repair Agent
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
                       {/* Save Changes Section */}
                       {unsavedToolsChanges && (
                         <div className="sticky bottom-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 border-2 border-orange-500 rounded-xl p-4 animate-pulse">
