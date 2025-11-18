@@ -3483,35 +3483,27 @@ async def update_agent_tools(
                     "description": custom_config.get("description", "")
                 }
                 
-                # Build params structure - params should be DIRECTLY on tool object
-                # NOT nested under "system" - that was the bug!
+                # Build params structure - trying without system_tool_type based on SDK examples
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent - params directly on tool_obj
+                    # Transfer to agent - use transfers directly in params (matching SDK structure)
+                    transfers = custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
                     tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_agent": {
-                            "transfers": custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
-                        }
+                        "transfers": transfers
                     }
                 elif backend_name == "transfer_to_number":
-                    # Transfer to number - params directly on tool_obj
+                    # Transfer to number - use transfers directly in params
+                    transfers = custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
                     tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "transfer_to_number": {
-                            "transfers": custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
-                        }
+                        "transfers": transfers
                     }
                 elif backend_name == "voicemail_detection":
-                    # Voicemail - params directly on tool_obj
+                    # Voicemail - message directly in params
                     tool_obj["params"] = {
-                        "system_tool_type": backend_name,
-                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "")
+                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "") or ""
                     }
                 else:
-                    # Simple tools - params directly on tool_obj
-                    tool_obj["params"] = {
-                        "system_tool_type": backend_name
-                    }
+                    # Simple tools - empty params object
+                    tool_obj["params"] = {}
                 
                 tools_array.append(tool_obj)
                 logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
