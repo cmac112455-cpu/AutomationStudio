@@ -64,9 +64,17 @@ const IntegrationsPage = () => {
       console.log('API Key length:', integrations[service].apiKey.length);
       console.log('Backend URL:', BACKEND_URL);
 
+      const payload = service === 'twilio' 
+        ? { 
+            accountSid: integrations[service].accountSid,
+            authToken: integrations[service].authToken,
+            phoneNumber: integrations[service].phoneNumber
+          }
+        : { apiKey: integrations[service].apiKey };
+
       const response = await axios.post(
         `${BACKEND_URL}/api/integrations/${service}`,
-        { apiKey: integrations[service].apiKey },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
