@@ -489,9 +489,15 @@ const IntegrationsPage = () => {
           </div>
         </div>
 
+        </div>
+
         {/* More integrations coming soon */}
-        <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">More integrations coming soon...</p>
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+            <ExternalLink className="w-8 h-8 text-purple-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-300 mb-2">More integrations coming soon</h3>
+          <p className="text-gray-500">We're constantly adding new integrations to help you build better workflows</p>
         </div>
       </div>
     </div>
