@@ -3447,8 +3447,32 @@ async def update_agent_tools(
                         break
                 
                 if should_enable:
-                    # Keep existing config or use default
-                    if tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
+                    # Check if frontend sent custom config for this tool
+                    custom_config = None
+                    for frontend_name, backend_name in frontend_to_backend.items():
+                        if backend_name == tool_key and frontend_name in custom_tool_configs:
+                            custom_config = custom_tool_configs[frontend_name]
+                            logging.info(f"[TOOLS] Using custom config for {tool_key} from frontend")
+                            break
+                    
+                    if custom_config:
+                        # Use custom config from frontend, but ensure required fields
+                        new_built_in_tools[tool_key] = {
+                            "type": "system",
+                            "name": tool_key,
+                            "description": custom_config.get("description", ""),
+                            "response_timeout_secs": custom_config.get("response_timeout_secs", 20),
+                            "disable_interruptions": custom_config.get("disable_interruptions", False),
+                            "force_pre_tool_speech": custom_config.get("force_pre_tool_speech", False),
+                            "assignments": custom_config.get("assignments", []),
+                            "tool_call_sound": custom_config.get("tool_call_sound"),
+                            "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto"),
+                            "params": custom_config.get("params", {"system_tool_type": tool_key})
+                        }
+                        if tool_key == "voicemail_detection":
+                            new_built_in_tools[tool_key]["params"]["voicemail_message"] = custom_config.get("params", {}).get("voicemail_message", "")
+                    elif tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
+                        # Keep existing config from ElevenLabs
                         new_built_in_tools[tool_key] = current_built_in_tools[tool_key]
                     else:
                         # Create default config
@@ -3464,7 +3488,6 @@ async def update_agent_tools(
                             "tool_call_sound_behavior": "auto",
                             "params": {"system_tool_type": tool_key}
                         }
-                        # Add voicemail_message for voicemail_detection
                         if tool_key == "voicemail_detection":
                             new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
                 else:
