@@ -298,34 +298,36 @@ const IntegrationsPage = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Account SID
+                Twilio API Key (SID)
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
                   type="text"
-                  value={integrations.twilio.accountSid}
-                  onChange={(e) => handleInputChange('twilio', 'accountSid', e.target.value)}
-                  placeholder="AC..."
+                  value={integrations.twilio.apiKey}
+                  onChange={(e) => handleInputChange('twilio', 'apiKey', e.target.value)}
+                  placeholder="SK..."
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Create an API Key in your Twilio Console</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Auth Token
+                API Secret
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
                   type="password"
-                  value={integrations.twilio.authToken}
-                  onChange={(e) => handleInputChange('twilio', 'authToken', e.target.value)}
-                  placeholder="Enter your auth token"
+                  value={integrations.twilio.apiSecret}
+                  onChange={(e) => handleInputChange('twilio', 'apiSecret', e.target.value)}
+                  placeholder="Enter your API secret"
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0f1218] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Keep this secret secure - it's only shown once when created</p>
             </div>
 
             <div>
