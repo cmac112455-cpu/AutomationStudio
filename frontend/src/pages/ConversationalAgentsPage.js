@@ -588,19 +588,25 @@ const ConversationalAgentsPage = () => {
       };
       
       console.log('🔧 Saving tools to ElevenLabs:', payload);
+      console.log('🔧 Enabled tools:', builtInTools);
       
       await axios.patch(`${BACKEND_URL}/api/conversational-ai/agents/${editingAgent.id}/tools`, payload);
-      toast.success('✅ Tools saved to ElevenLabs!');
+      toast.success('✅ Tools saved successfully!');
       
       setUnsavedToolsChanges(false);
       
-      // Reload tools after save to ensure sync
-      console.log('🔄 Reloading tools to verify save...');
+      // Wait a moment for ElevenLabs to process, then reload
+      console.log('🔄 Waiting before reloading to verify save...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('🔄 Reloading tools from ElevenLabs...');
       await loadAgentTools(editingAgent.id);
-      console.log('✅ Tools reloaded successfully');
+      console.log('✅ Tools reloaded - UI now synced with ElevenLabs');
     } catch (error) {
-      console.error('Error saving tools:', error);
-      toast.error(error.response?.data?.detail || 'Failed to save tools');
+      console.error('❌ Error saving tools:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to save tools';
+      console.error('❌ Error details:', errorMsg);
+      toast.error(`Failed to save: ${errorMsg}`);
     } finally {
       setSavingTools(false);
     }
