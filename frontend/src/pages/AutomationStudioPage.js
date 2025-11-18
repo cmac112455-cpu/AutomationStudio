@@ -1839,9 +1839,11 @@ export default function AutomationStudioPage() {
                       <Button
                         onClick={() => {
                           console.log('[Refresh] Fetching agents...');
+                          const token = localStorage.getItem('apoe_token');
+                          console.log('[Refresh] Token exists:', !!token);
                           axios.get(`${BACKEND_URL}/api/conversational-ai/agents`, {
                             headers: {
-                              'Authorization': `Bearer ${localStorage.getItem('token')}`
+                              'Authorization': `Bearer ${token}`
                             }
                           })
                             .then(response => {
