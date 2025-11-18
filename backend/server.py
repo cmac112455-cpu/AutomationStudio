@@ -3458,126 +3458,50 @@ async def update_agent_tools(
         # Update tools in the correct nested location: conversation_config.agent.prompt
         if "built_in_tools" in tools_update:
             # Frontend sends array of tool names: ["end_call", "detect_language"]
-            # AND custom tool configs: { "end_call": {...custom settings...} }
-            # ElevenLabs needs object: { "end_call": {...}, "detect_language": {...} }
             tool_names_to_enable = tools_update["built_in_tools"]
             custom_tool_configs = tools_update.get("tool_configs", {})
             
             logging.info(f"[TOOLS] ============ SAVE OPERATION ============")
             logging.info(f"[TOOLS] Received from frontend: {tool_names_to_enable}")
             logging.info(f"[TOOLS] Custom configs provided: {list(custom_tool_configs.keys())}")
-            logging.info(f"[TOOLS] These are FRONTEND names that need backend mapping")
             
-            # Build the built_in_tools object
-            # For each tool in ALL_TOOLS, set to None (disabled) or keep existing config (enabled)
-            all_tool_keys = ["end_call", "language_detection", "transfer_to_agent", "transfer_to_number", 
-                            "skip_turn", "play_keypad_touch_tone", "voicemail_detection"]
+            # Map frontend names to backend names
+            frontend_to_backend = {
+                "end_call": "end_call",
+                "detect_language": "language_detection",
+                "transfer_to_agent": "transfer_to_agent",
+                "transfer_to_number": "transfer_to_number",
+                "skip_turn": "skip_turn",
+                "keypad": "play_keypad_touch_tone",
+                "voicemail": "voicemail_detection"
+            }
             
-            new_built_in_tools = {}
-            for tool_key in all_tool_keys:
-                # Map frontend names to backend names
-                frontend_to_backend = {
-                    "end_call": "end_call",
-                    "detect_language": "language_detection",
-                    "transfer_to_agent": "transfer_to_agent",
-                    "transfer_to_number": "transfer_to_number",
-                    "skip_turn": "skip_turn",
-                    "keypad": "play_keypad_touch_tone",
-                    "voicemail": "voicemail_detection"
+            # Build simplified tools array based on ElevenLabs 2025 structure
+            # According to docs: tools array should contain objects with type, name, and optional description
+            tools_array = []
+            
+            for frontend_name in tool_names_to_enable:
+                backend_name = frontend_to_backend.get(frontend_name, frontend_name)
+                
+                # Check if custom config exists
+                custom_config = custom_tool_configs.get(frontend_name, {})
+                
+                # Create simplified tool object matching ElevenLabs API structure
+                tool_obj = {
+                    "type": "system",
+                    "name": backend_name,
+                    "description": custom_config.get("description", "")
                 }
                 
-                # Check if this tool should be enabled
-                should_enable = False
-                for frontend_name, backend_name in frontend_to_backend.items():
-                    if backend_name == tool_key and frontend_name in tool_names_to_enable:
-                        should_enable = True
-                        break
-                
-                if should_enable:
-                    # Check if frontend sent custom config for this tool
-                    custom_config = None
-                    for frontend_name, backend_name in frontend_to_backend.items():
-                        if backend_name == tool_key and frontend_name in custom_tool_configs:
-                            custom_config = custom_tool_configs[frontend_name]
-                            logging.info(f"[TOOLS] Using custom config for {tool_key} from frontend")
-                            break
-                    
-                    if custom_config:
-                        # Use custom config from frontend, but ensure required fields
-                        new_built_in_tools[tool_key] = {
-                            "type": "system",
-                            "name": tool_key,
-                            "description": custom_config.get("description", ""),
-                            "response_timeout_secs": int(custom_config.get("response_timeout_secs", 20)),
-                            "disable_interruptions": custom_config.get("disable_interruptions", False),
-                            "force_pre_tool_speech": custom_config.get("force_pre_tool_speech", False),
-                            "assignments": custom_config.get("assignments", []),
-                            "tool_call_sound": custom_config.get("tool_call_sound"),
-                            "tool_call_sound_behavior": custom_config.get("tool_call_sound_behavior", "auto"),
-                            "params": {"system_tool_type": tool_key}
-                        }
-                        # Handle params properly - preserve nested structures
-                        if "params" in custom_config and isinstance(custom_config["params"], dict):
-                            # Merge params recursively
-                            for param_key, param_value in custom_config["params"].items():
-                                if param_key == "system_tool_type":
-                                    continue  # Already set
-                                new_built_in_tools[tool_key]["params"][param_key] = param_value
-                        
-                        # Special handling for transfer tools
-                        if tool_key == "transfer_to_agent":
-                            if "transfer_to_agent" not in new_built_in_tools[tool_key]["params"]:
-                                new_built_in_tools[tool_key]["params"]["transfer_to_agent"] = {"transfers": []}
-                        elif tool_key == "transfer_to_number":
-                            if "transfer_to_number" not in new_built_in_tools[tool_key]["params"]:
-                                new_built_in_tools[tool_key]["params"]["transfer_to_number"] = {"transfers": []}
-                        elif tool_key == "voicemail_detection":
-                            if "voicemail_message" not in new_built_in_tools[tool_key]["params"]:
-                                new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
-                    elif tool_key in current_built_in_tools and current_built_in_tools[tool_key]:
-                        # Keep existing config from ElevenLabs
-                        new_built_in_tools[tool_key] = current_built_in_tools[tool_key]
-                    else:
-                        # Create default config
-                        new_built_in_tools[tool_key] = {
-                            "type": "system",
-                            "name": tool_key,
-                            "description": "",
-                            "response_timeout_secs": 20,
-                            "disable_interruptions": False,
-                            "force_pre_tool_speech": False,
-                            "assignments": [],
-                            "tool_call_sound": None,
-                            "tool_call_sound_behavior": "auto",
-                            "params": {"system_tool_type": tool_key}
-                        }
-                        if tool_key == "voicemail_detection":
-                            new_built_in_tools[tool_key]["params"]["voicemail_message"] = ""
-                else:
-                    # Disable tool by setting to None
-                    new_built_in_tools[tool_key] = None
+                tools_array.append(tool_obj)
+                logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
             
-            prompt_config["built_in_tools"] = new_built_in_tools
-            
-            # CRITICAL: Also update the 'tools' array!
-            # ElevenLabs uses BOTH built_in_tools object AND tools array
-            tools_array = []
-            for tool_key, tool_config in new_built_in_tools.items():
-                if tool_config is not None:
-                    tools_array.append(tool_config)
-            
-            # Make sure to set the tools array (even if empty)
+            # Set the tools array - this is the SOURCE OF TRUTH for ElevenLabs
             prompt_config["tools"] = tools_array
             
-            enabled_count = len([t for t in new_built_in_tools.values() if t])
-            disabled_count = len([t for t in new_built_in_tools.values() if t is None])
-            
-            logging.info(f"[TOOLS] Built ElevenLabs structure:")
-            logging.info(f"[TOOLS]   - {enabled_count} tools ENABLED")
-            logging.info(f"[TOOLS]   - {disabled_count} tools DISABLED (set to null)")
-            logging.info(f"[TOOLS] Enabled tools: {[k for k, v in new_built_in_tools.items() if v is not None]}")
-            logging.info(f"[TOOLS] Disabled tools: {[k for k, v in new_built_in_tools.items() if v is None]}")
-            logging.info(f"[TOOLS] Tools array has {len(tools_array)} items (only enabled tools)")
+            logging.info(f"[TOOLS] Built simplified ElevenLabs structure:")
+            logging.info(f"[TOOLS]   - {len(tools_array)} tools ENABLED")
+            logging.info(f"[TOOLS] Enabled tools: {[t['name'] for t in tools_array]}")
         
         if "tool_ids" in tools_update:
             prompt_config["tool_ids"] = tools_update["tool_ids"]
