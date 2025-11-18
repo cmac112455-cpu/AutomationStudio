@@ -3483,27 +3483,42 @@ async def update_agent_tools(
                     "description": custom_config.get("description", "")
                 }
                 
-                # Build params structure - trying without system_tool_type based on SDK examples
+                # Build system.params structure with system_tool_type discriminator (REQUIRED by ElevenLabs)
+                # Error says: "Unable to extract tag using discriminator 'system_tool_type'"
+                # This means: system_tool_type is REQUIRED in system.params
                 if backend_name == "transfer_to_agent":
-                    # Transfer to agent - use transfers directly in params (matching SDK structure)
+                    # Transfer to agent with system.params.system_tool_type + transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_agent", {}).get("transfers", [])
-                    tool_obj["params"] = {
-                        "transfers": transfers
+                    tool_obj["system"] = {
+                        "params": {
+                            "system_tool_type": backend_name,
+                            "transfers": transfers
+                        }
                     }
                 elif backend_name == "transfer_to_number":
-                    # Transfer to number - use transfers directly in params
+                    # Transfer to number with system.params.system_tool_type + transfers
                     transfers = custom_config.get("params", {}).get("transfer_to_number", {}).get("transfers", [])
-                    tool_obj["params"] = {
-                        "transfers": transfers
+                    tool_obj["system"] = {
+                        "params": {
+                            "system_tool_type": backend_name,
+                            "transfers": transfers
+                        }
                     }
                 elif backend_name == "voicemail_detection":
-                    # Voicemail - message directly in params
-                    tool_obj["params"] = {
-                        "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "") or ""
+                    # Voicemail with system.params.system_tool_type + voicemail_message
+                    tool_obj["system"] = {
+                        "params": {
+                            "system_tool_type": backend_name,
+                            "voicemail_message": custom_config.get("params", {}).get("voicemail_message", "") or ""
+                        }
                     }
                 else:
-                    # Simple tools - empty params object
-                    tool_obj["params"] = {}
+                    # Simple tools with system.params.system_tool_type only
+                    tool_obj["system"] = {
+                        "params": {
+                            "system_tool_type": backend_name
+                        }
+                    }
                 
                 tools_array.append(tool_obj)
                 logging.info(f"[TOOLS] ✅ Added tool: {backend_name} (from frontend: {frontend_name})")
