@@ -593,6 +593,11 @@ const ConversationalAgentsPage = () => {
       toast.success('✅ Tools saved to ElevenLabs!');
       
       setUnsavedToolsChanges(false);
+      
+      // Reload tools after save to ensure sync
+      console.log('🔄 Reloading tools to verify save...');
+      await loadAgentTools(editingAgent.id);
+      console.log('✅ Tools reloaded successfully');
     } catch (error) {
       console.error('Error saving tools:', error);
       toast.error(error.response?.data?.detail || 'Failed to save tools');
