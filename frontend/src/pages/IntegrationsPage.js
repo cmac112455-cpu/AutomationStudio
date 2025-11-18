@@ -35,10 +35,10 @@ const IntegrationsPage = () => {
           },
           twilio: {
             ...prev.twilio,
-            accountSid: response.data.twilio?.accountSid || '',
-            authToken: response.data.twilio?.authToken || '',
+            apiKey: response.data.twilio?.apiKey || '',
+            apiSecret: response.data.twilio?.apiSecret || '',
             phoneNumber: response.data.twilio?.phoneNumber || '',
-            connected: !!(response.data.twilio?.accountSid && response.data.twilio?.authToken)
+            connected: !!(response.data.twilio?.apiKey && response.data.twilio?.apiSecret)
           }
         }));
       }
