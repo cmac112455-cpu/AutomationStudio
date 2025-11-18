@@ -3533,34 +3533,42 @@ async def update_agent_tools(
             json=update_payload
         )
         
-        logging.info(f"[TOOLS] ElevenLabs PATCH response status: {patch_response.status_code}")
+        logging.info(f"[TOOLS] ========== ELEVENLABS RESPONSE ==========")
+        logging.info(f"[TOOLS] Response status: {patch_response.status_code}")
         
         if patch_response.status_code not in [200, 201]:
-            logging.error(f"[TOOLS] ElevenLabs API error: {patch_response.text}")
-            raise HTTPException(status_code=patch_response.status_code, detail=f"ElevenLabs API error: {patch_response.text}")
+            error_text = patch_response.text
+            logging.error(f"[TOOLS] ❌ ElevenLabs API ERROR:")
+            logging.error(f"[TOOLS] Status: {patch_response.status_code}")
+            logging.error(f"[TOOLS] Error: {error_text}")
+            
+            # Try to parse error details
+            try:
+                error_json = patch_response.json()
+                error_detail = error_json.get('detail', error_text)
+                logging.error(f"[TOOLS] Parsed error: {error_detail}")
+            except:
+                error_detail = error_text
+            
+            logging.info(f"[TOOLS] ==============================================")
+            raise HTTPException(
+                status_code=patch_response.status_code, 
+                detail=f"ElevenLabs API error: {error_detail}"
+            )
         
-        # Log what ElevenLabs actually returned
+        # Log what ElevenLabs actually saved
         response_data = patch_response.json()
         response_conversation_config = response_data.get("conversation_config", {})
         response_agent_config = response_conversation_config.get("agent", {})
         response_prompt_config = response_agent_config.get("prompt", {})
-        response_built_in_tools = response_prompt_config.get("built_in_tools", {})
         response_tools_array = response_prompt_config.get("tools", [])
         
-        logging.info(f"[TOOLS] ========== ELEVENLABS RESPONSE ==========")
-        logging.info(f"[TOOLS] What ElevenLabs saved in built_in_tools object:")
-        for tool_key, tool_config in response_built_in_tools.items():
-            if tool_config is not None:
-                logging.info(f"[TOOLS]   ✅ {tool_key}: SAVED")
-            else:
-                logging.info(f"[TOOLS]   ❌ {tool_key}: NOT SAVED (null)")
-        
-        logging.info(f"[TOOLS] What ElevenLabs saved in 'tools' array:")
-        logging.info(f"[TOOLS] Tools array: {response_tools_array}")
-        logging.info(f"[TOOLS] Tools array length: {len(response_tools_array)}")
-        
-        logging.info(f"[TOOLS] DIAGNOSIS: ElevenLabs is rejecting our built_in_tools format!")
-        logging.info(f"[TOOLS] This agent might only support 'end_call' or require different config.")
+        logging.info(f"[TOOLS] ✅ Save successful!")
+        logging.info(f"[TOOLS] Tools saved in ElevenLabs:")
+        for tool in response_tools_array:
+            if isinstance(tool, dict):
+                logging.info(f"[TOOLS]   ✅ {tool.get('name', 'unknown')}")
+        logging.info(f"[TOOLS] Total tools: {len(response_tools_array)}")
         logging.info(f"[TOOLS] ==============================================")
         
         # Get updated agent data to return
