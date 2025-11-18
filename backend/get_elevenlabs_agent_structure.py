@@ -13,7 +13,7 @@ async def get_agent_structure():
     # Connect to MongoDB to get user's API key and agent ID
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
     client = AsyncIOMotorClient(mongo_url)
-    db = client['conversational_ai_db']
+    db = client['apoe_database']
     
     # Get the first agent with an elevenlabs_agent_id
     agent = await db.conversational_agents.find_one(
