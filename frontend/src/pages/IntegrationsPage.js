@@ -499,6 +499,179 @@ const IntegrationsPage = () => {
           <h3 className="text-xl font-semibold text-gray-300 mb-2">More integrations coming soon</h3>
           <p className="text-gray-500">We're constantly adding new integrations to help you build better workflows</p>
         </div>
+
+        {/* Integration Detail Modal */}
+        {selectedIntegration && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6" onClick={() => setSelectedIntegration(null)}>
+            <div className="bg-[#1a1d2e] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800/50 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              {/* ElevenLabs Detail */}
+              {selectedIntegration === 'elevenlabs' && (
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden">
+                        {integrationsList.find(i => i.id === 'elevenlabs').logo}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-1">ElevenLabs</h2>
+                        <p className="text-gray-400">AI voice generation</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedIntegration(null)} className="text-gray-400 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+                      <div className="relative">
+                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                          type="password"
+                          value={integrations.elevenlabs.apiKey}
+                          onChange={(e) => handleInputChange('elevenlabs', 'apiKey', e.target.value)}
+                          placeholder="sk_..."
+                          className="w-full pl-10 pr-4 py-3 bg-[#0f1218] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      {integrations.elevenlabs.connected ? (
+                        <button
+                          onClick={() => disconnectIntegration('elevenlabs')}
+                          className="px-6 py-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors font-medium"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => saveIntegration('elevenlabs')}
+                          disabled={!integrations.elevenlabs.apiKey || integrations.elevenlabs.loading}
+                          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                          {integrations.elevenlabs.loading ? (
+                            <>
+                              <Loader className="w-4 h-4 mr-2 animate-spin" />
+                              Connecting...
+                            </>
+                          ) : (
+                            'Connect'
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {saveStatus.elevenlabs === 'success' && (
+                      <div className="flex items-center text-green-400 text-sm">
+                        <Check className="w-4 h-4 mr-1" />
+                        Successfully connected to ElevenLabs
+                      </div>
+                    )}
+                    
+                    {saveStatus.elevenlabs === 'error' && (
+                      <div className="flex items-start text-red-400 text-sm">
+                        <X className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                        <span>{integrations.elevenlabs.errorMessage || 'Failed to connect. Please check your API key.'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Twilio Detail */}
+              {selectedIntegration === 'twilio' && (
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden">
+                        {integrationsList.find(i => i.id === 'twilio').logo}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-1">Twilio</h2>
+                        <p className="text-gray-400">Phone calling integration</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedIntegration(null)} className="text-gray-400 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Account SID</label>
+                      <div className="relative">
+                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                          type="text"
+                          value={integrations.twilio.accountSid}
+                          onChange={(e) => handleInputChange('twilio', 'accountSid', e.target.value)}
+                          placeholder="AC..."
+                          className="w-full pl-10 pr-4 py-3 bg-[#0f1218] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Auth Token</label>
+                      <div className="relative">
+                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                          type="password"
+                          value={integrations.twilio.authToken}
+                          onChange={(e) => handleInputChange('twilio', 'authToken', e.target.value)}
+                          placeholder="Enter your auth token"
+                          className="w-full pl-10 pr-4 py-3 bg-[#0f1218] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      {integrations.twilio.connected ? (
+                        <button
+                          onClick={() => disconnectIntegration('twilio')}
+                          className="px-6 py-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors font-medium"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => saveIntegration('twilio')}
+                          disabled={!integrations.twilio.accountSid || !integrations.twilio.authToken || integrations.twilio.loading}
+                          className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                          {integrations.twilio.loading ? (
+                            <>
+                              <Loader className="w-4 h-4 mr-2 animate-spin" />
+                              Connecting...
+                            </>
+                          ) : (
+                            'Connect'
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {saveStatus.twilio === 'success' && (
+                      <div className="flex items-center text-green-400 text-sm">
+                        <Check className="w-4 h-4 mr-1" />
+                        Successfully connected to Twilio
+                      </div>
+                    )}
+                    
+                    {saveStatus.twilio === 'error' && (
+                      <div className="flex items-start text-red-400 text-sm">
+                        <X className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                        <span>{integrations.twilio.errorMessage || 'Failed to connect. Please check your credentials.'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
