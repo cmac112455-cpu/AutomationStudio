@@ -178,13 +178,8 @@ const ElevenLabsConversationalNode = ({ data }) => {
           <div className="font-semibold text-white">ElevenLabs AI Agent</div>
         </div>
         <div className="text-xs text-gray-400 mt-1">
-          Agent: {data.agentName || 'Click to configure'}
+          {data.agentName || 'Click to configure'}
         </div>
-        {data.tools && data.tools.length > 0 && (
-          <div className="text-xs text-gray-400">
-            Tools: {data.tools.length} enabled
-          </div>
-        )}
       </div>
     </NodeWrapper>
   );
