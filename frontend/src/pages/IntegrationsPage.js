@@ -183,6 +183,29 @@ const IntegrationsPage = () => {
       ),
       connected: integrations.twilio.connected,
       data: integrations.twilio
+    },
+    {
+      id: 'manychat',
+      name: 'ManyChat',
+      description: 'Chatbot automation for Messenger, Instagram & WhatsApp',
+      category: 'Messaging',
+      logo: (
+        <svg className="w-full h-full" viewBox="0 0 200 200" fill="none">
+          <rect width="200" height="200" rx="40" fill="url(#manychat-gradient)"/>
+          <path d="M60 80C60 71.7157 66.7157 65 75 65H125C133.284 65 140 71.7157 140 80V110C140 118.284 133.284 125 125 125H95L75 140V125C66.7157 125 60 118.284 60 110V80Z" fill="white"/>
+          <circle cx="85" cy="92" r="6" fill="url(#manychat-gradient)"/>
+          <circle cx="100" cy="92" r="6" fill="url(#manychat-gradient)"/>
+          <circle cx="115" cy="92" r="6" fill="url(#manychat-gradient)"/>
+          <defs>
+            <linearGradient id="manychat-gradient" x1="0" y1="0" x2="200" y2="200">
+              <stop offset="0%" stopColor="#FF6B9D"/>
+              <stop offset="100%" stopColor="#C837AB"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      ),
+      connected: integrations.manychat.connected,
+      data: integrations.manychat
     }
   ];
 
