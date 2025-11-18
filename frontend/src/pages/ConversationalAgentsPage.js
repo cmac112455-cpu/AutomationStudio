@@ -2002,7 +2002,7 @@ const ConversationalAgentsPage = () => {
                         <div className="space-y-3">
                           {/* End Call Tool */}
                           <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
                                 <Phone className="w-5 h-5 text-red-400" />
                               </div>
@@ -2011,21 +2011,35 @@ const ConversationalAgentsPage = () => {
                                 <p className="text-sm text-gray-400">Allow agent to end calls when appropriate</p>
                               </div>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={Array.isArray(builtInTools) && builtInTools.includes('end_call')}
-                                onChange={(e) => {
-                                  const newTools = e.target.checked
-                                    ? [...builtInTools, 'end_call']
-                                    : builtInTools.filter(t => t !== 'end_call');
-                                  setBuiltInTools(newTools);
-                                  setUnsavedToolsChanges(true);
-                                }}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {builtInTools.includes('end_call') && (
+                                <button
+                                  onClick={() => setEditingToolSettings({
+                                    toolName: 'end_call',
+                                    config: toolConfigs['end_call'] || {}
+                                  })}
+                                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                  title="Tool Settings"
+                                >
+                                  <Settings className="w-4 h-4 text-gray-400" />
+                                </button>
+                              )}
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(builtInTools) && builtInTools.includes('end_call')}
+                                  onChange={(e) => {
+                                    const newTools = e.target.checked
+                                      ? [...builtInTools, 'end_call']
+                                      : builtInTools.filter(t => t !== 'end_call');
+                                    setBuiltInTools(newTools);
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Detect Language Tool */}
