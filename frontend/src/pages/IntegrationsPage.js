@@ -66,8 +66,8 @@ const IntegrationsPage = () => {
 
       const payload = service === 'twilio' 
         ? { 
-            accountSid: integrations[service].accountSid,
-            authToken: integrations[service].authToken,
+            apiKey: integrations[service].apiKey,
+            apiSecret: integrations[service].apiSecret,
             phoneNumber: integrations[service].phoneNumber
           }
         : { apiKey: integrations[service].apiKey };
