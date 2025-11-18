@@ -2516,6 +2516,147 @@ const ConversationalAgentsPage = () => {
                                   <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                                 </label>
                               </div>
+
+                              {/* Tool Call Sound Behavior */}
+                              <div>
+                                <Label htmlFor="tool-sound-behavior" className="text-sm font-medium mb-2 block">
+                                  Tool Call Sound Behavior
+                                </Label>
+                                <Select
+                                  value={editingToolSettings.config.tool_call_sound_behavior || 'auto'}
+                                  onValueChange={(value) => {
+                                    setEditingToolSettings({
+                                      ...editingToolSettings,
+                                      config: { ...editingToolSettings.config, tool_call_sound_behavior: value }
+                                    });
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                >
+                                  <SelectTrigger className="bg-black/30 border-gray-700 text-gray-300">
+                                    <SelectValue placeholder="Select behavior" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="auto">Auto</SelectItem>
+                                    <SelectItem value="always">Always</SelectItem>
+                                    <SelectItem value="never">Never</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Control when tool call sounds are played
+                                </p>
+                              </div>
+
+                              {/* Tool Call Sound URL */}
+                              <div>
+                                <Label htmlFor="tool-call-sound" className="text-sm font-medium mb-2 block">
+                                  Tool Call Sound URL (Optional)
+                                </Label>
+                                <Input
+                                  id="tool-call-sound"
+                                  type="text"
+                                  value={editingToolSettings.config.tool_call_sound || ''}
+                                  onChange={(e) => {
+                                    setEditingToolSettings({
+                                      ...editingToolSettings,
+                                      config: { ...editingToolSettings.config, tool_call_sound: e.target.value || null }
+                                    });
+                                    setUnsavedToolsChanges(true);
+                                  }}
+                                  placeholder="https://example.com/sound.mp3"
+                                  className="bg-black/30 border-gray-700 text-gray-300"
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Custom audio file played when tool is called
+                                </p>
+                              </div>
+
+                              {/* Assignments */}
+                              <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                  Assignments
+                                </Label>
+                                <div className="space-y-2">
+                                  {(editingToolSettings.config.assignments || []).map((assignment, index) => (
+                                    <div key={index} className="flex gap-2">
+                                      <Input
+                                        value={assignment}
+                                        onChange={(e) => {
+                                          const newAssignments = [...(editingToolSettings.config.assignments || [])];
+                                          newAssignments[index] = e.target.value;
+                                          setEditingToolSettings({
+                                            ...editingToolSettings,
+                                            config: { ...editingToolSettings.config, assignments: newAssignments }
+                                          });
+                                          setUnsavedToolsChanges(true);
+                                        }}
+                                        className="bg-black/30 border-gray-700 text-gray-300"
+                                        placeholder="Variable assignment"
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          const newAssignments = (editingToolSettings.config.assignments || []).filter((_, i) => i !== index);
+                                          setEditingToolSettings({
+                                            ...editingToolSettings,
+                                            config: { ...editingToolSettings.config, assignments: newAssignments }
+                                          });
+                                          setUnsavedToolsChanges(true);
+                                        }}
+                                        className="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <Button
+                                    onClick={() => {
+                                      const newAssignments = [...(editingToolSettings.config.assignments || []), ''];
+                                      setEditingToolSettings({
+                                        ...editingToolSettings,
+                                        config: { ...editingToolSettings.config, assignments: newAssignments }
+                                      });
+                                      setUnsavedToolsChanges(true);
+                                    }}
+                                    variant="outline"
+                                    className="w-full border-gray-700 text-gray-400"
+                                  >
+                                    + Add Assignment
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Dynamic variables assigned during tool execution
+                                </p>
+                              </div>
+
+                              {/* Voicemail Message (only for voicemail_detection) */}
+                              {editingToolSettings.toolName === 'voicemail' && (
+                                <div>
+                                  <Label htmlFor="voicemail-message" className="text-sm font-medium mb-2 block">
+                                    Voicemail Message
+                                  </Label>
+                                  <Textarea
+                                    id="voicemail-message"
+                                    value={editingToolSettings.config.params?.voicemail_message || ''}
+                                    onChange={(e) => {
+                                      setEditingToolSettings({
+                                        ...editingToolSettings,
+                                        config: {
+                                          ...editingToolSettings.config,
+                                          params: {
+                                            ...editingToolSettings.config.params,
+                                            voicemail_message: e.target.value
+                                          }
+                                        }
+                                      });
+                                      setUnsavedToolsChanges(true);
+                                    }}
+                                    placeholder="Message to leave when voicemail is detected..."
+                                    className="min-h-[80px] bg-black/30 border-gray-700 text-gray-300"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    Message your agent will leave if it detects voicemail
+                                  </p>
+                                </div>
+                              )}
                             </div>
 
                             <div className="p-6 border-t border-gray-700 flex justify-end gap-3">
